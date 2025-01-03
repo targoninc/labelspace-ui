@@ -22,7 +22,7 @@
     --small-gap: 5px;
     --layout-gap: 10px;
 
-    --base-font-size: 16px;
+    --base-font-size: 14px;
     --fjsc-base-font-size: var(--base-font-size);
 
     --default-font-family: "IBM Plex Mono", monospace;
