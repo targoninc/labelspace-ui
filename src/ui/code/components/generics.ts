@@ -2,8 +2,11 @@ import {AnyElement, create, StringOrSignal} from "../../fjsc/src/f2.ts";
 import {NotificationType} from "../enums/NotificationType.ts";
 import type {NavItem} from "../models/NavItem.ts";
 import {compute} from "../../fjsc/src/signals.ts";
-import {currentRoute} from "../state.ts";
+import {currentRoute, currentUser} from "../state.ts";
 import {navigate} from "../routing/Router.ts";
+import {Api} from "../api/api.ts";
+import {FJSC} from "../../fjsc";
+import {InputType} from "../../fjsc/src/Types.ts";
 
 export class Generics {
     static notFound() {
@@ -35,9 +38,56 @@ export class Generics {
         ]
 
         return create("nav")
-            .classes("container", "border", "layer-1")
+            .classes("container", "border", "layer-1", "flex", "split-flex")
             .children(
-                ...navItems.map(item => Generics.navItem(item))
+                create("div")
+                    .classes("flex")
+                    .children(
+                        ...navItems.map(item => Generics.navItem(item))
+                    ).build(),
+                Generics.navLogin()
+            ).build();
+    }
+
+    static navLogin() {
+        const user = {
+            username: "",
+            password: ""
+        };
+        const login = async () => {
+            await Api.login(user);
+            currentUser.value = await Api.getUser();
+            navigate("home");
+        };
+
+        return create("div")
+            .classes("flex")
+            .children(
+                FJSC.input<string>({
+                    type: InputType.text,
+                    name: "username",
+                    placeholder: "Username",
+                    value: user.username,
+                    attributes: ["autocomplete", "username"],
+                    onchange: (v) => {
+                        user.username = v;
+                    }
+                }),
+                FJSC.input<string>({
+                    type: InputType.password,
+                    name: "password",
+                    placeholder: "Password",
+                    value: user.password,
+                    attributes: ["autocomplete", "password"],
+                    onchange: (v) => {
+                        user.password = v;
+                    }
+                }),
+                FJSC.button({
+                    text: "Login",
+                    onclick: login,
+                    classes: ["positive"]
+                })
             ).build();
     }
 

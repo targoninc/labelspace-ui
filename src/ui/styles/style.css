@@ -29,13 +29,28 @@
     --fjsc-font: var(--default-font-family);
 
     --radius: 0px;
+
+    --fjsc-text-color: var(--black);
+    --fjsc-error-color: var(--red);
+    --fjsc-interactive-background: var(--gray-1);
+    --fjsc-interactive-background-hover: var(--gray-2);
+    --fjsc-interactive-background-active: var(--gray-3);
+    --fjsc-interactive-color: var(--black);
+    --fjsc-interactive-color-active: var(--black);
+    --fjsc-interactive-border: var(--gray-2);
+    --fjsc-interactive-border-focused: var(--blue);
+    --fjsc-interactive-border-active: var(--blue);
+    --fjsc-border-radius-small: var(--radius);
+    --fjsc-border-radius-medium: var(--radius);
+    --fjsc-border-radius-large: var(--radius);
 }
 
 .material-symbols-outlined {
     font-variation-settings: 'FILL' 1,
     'wght' 400,
     'GRAD' 0,
-    'opsz' 24
+    'opsz' 24;
+    font-family: 'Material Symbols Outlined';
 }
 
 a {
@@ -140,4 +155,13 @@ h3, h4, h5, h6 {
 
 .center-items {
     align-items: center;
+}
+
+.split-flex {
+    justify-content: space-between;
+}
+
+button.positive {
+    background: var(--green);
+    color: var(--white);
 }
