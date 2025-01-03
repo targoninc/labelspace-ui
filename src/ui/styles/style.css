@@ -19,6 +19,11 @@
     --gray-9: #414042;
     --gray-10: #231f20;
 
+    --stats-1: var(--black);
+    --stats-2: var(--gray-10);
+    --stats-3: var(--gray-9);
+    --stats-4: var(--gray-8);
+
     --inline-padding: 2px 7px;
     --small-gap: 5px;
     --layout-gap: 10px;
@@ -249,4 +254,8 @@ button.fjsc {
     align-items: center;
     display: flex;
     gap: var(--layout-gap);
+}
+
+.statistic {
+    width: min(100%, 600px);
 }

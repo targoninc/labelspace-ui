@@ -38,4 +38,8 @@ export class Api {
     static async getRoyaltiesByMonth() {
         return await Fetcher.get<Statistic[]>(base + "/statistics/royaltiesByMonth");
     }
+
+    static async getRoyaltiesByTrack() {
+        return await Fetcher.get<Statistic[]>(base + "/statistics/royaltiesByTrack");
+    }
 }

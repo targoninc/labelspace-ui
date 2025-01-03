@@ -164,16 +164,25 @@ export class Statistics {
             return Generics.heading(2, "Not logged in");
         }
 
-        const royaltiesByMonth = signal<Statistic[]>([]);
-        Api.getRoyaltiesByMonth().then(r => royaltiesByMonth.value = r);
+        return create("div")
+            .classes("flex")
+            .children(
+                Statistics.singleStatistic("Royalties by month", Api.getRoyaltiesByMonth, Statistics.royaltiesByMonthChart),
+                Statistics.singleStatistic("Royalties by track", Api.getRoyaltiesByTrack, Statistics.royaltiesByTrackChart),
+            ).build();
+    }
+
+    static singleStatistic(title: string, apiFunction: Function, template: Function) {
+        const stats = signal<Statistic[]>([]);
+        apiFunction().then(r => stats.value = r);
 
         return create("div")
-            .classes("flex-v")
+            .classes("flex-v", "statistic")
             .children(
                 create("h1")
-                    .text("Royalties by month")
+                    .text(title)
                     .build(),
-                statisticsFromSignal(royaltiesByMonth, Statistics.royaltiesByMonthChart)
+                statisticsFromSignal(stats, template)
             ).build();
     }
 }
