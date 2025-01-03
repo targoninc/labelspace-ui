@@ -1,7 +1,6 @@
 import {signal} from "../../fjsc/src/signals.ts";
-import {routes} from "./routes.ts";
-import {Route} from "./Route.ts";
 import {currentRoute, router} from "../state.ts";
+import {Route} from "./Route.ts";
 
 export class Router {
     public currentRoute = signal<Route|null>(null);
@@ -21,6 +20,10 @@ export class Router {
         setTimeout(() => {
             this.init();
         });
+    }
+
+    setRoutes(routes: Route[]) {
+        this.routes = routes;
     }
 
     init() {
@@ -80,13 +83,15 @@ export class Router {
 }
 
 const content = document.querySelector("#content");
-router.value = new Router(routes, async (route: Route, params: any) => {
+router.value = new Router([], async (route: Route, params: any) => {
     content.innerHTML = "";
     const component = await route.template(route, params);
     content.appendChild(component);
     content.firstElementChild?.scrollIntoView();
 }, () => {}, () => {
-    console.log("No route found, attempting to redirect to 404");
+    if (router.value!.routes?.length === 0) {
+        return;
+    }
     setTimeout(() => {
         navigate("404");
     });
