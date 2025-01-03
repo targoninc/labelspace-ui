@@ -1,6 +1,6 @@
 import {Chart, registerables} from "chart.js";
 import {BoxPlotChart} from "@sgratzl/chartjs-chart-boxplot";
-import {create, HtmlPropertyValue} from "../../fjsc/src/f2.ts";
+import {create, HtmlPropertyValue, ifjs} from "../../fjsc/src/f2.ts";
 import {ChartOptions} from "../enums/ChartOptions.ts";
 import {Colors} from "../enums/Colors.ts";
 import {Statistic} from "../models/Statistic.ts";
@@ -9,6 +9,7 @@ import {Api} from "../api/api.ts";
 import {statisticsFromSignal} from "../functions/templates.ts";
 import {currentUser} from "../state.ts";
 import {Generics} from "./generics.ts";
+import {FJSC} from "../../fjsc";
 
 Chart.register(...registerables);
 
@@ -146,6 +147,13 @@ export class Statistics {
         return Statistics.barChart(labels, values, "Royalties", "Royalties by month", "royaltiesByMonthChart", [usedColors[8]]);
     }
 
+    static royaltiesByYearChart(labels: string[], values: number[]) {
+        if (labels.length === 0) {
+            return Statistics.noData("Royalties by year");
+        }
+        return Statistics.barChart(labels, values, "Royalties", "Royalties by year", "royaltiesByYearChart", [usedColors[8]]);
+    }
+
     static royaltiesByTrackChart(labels: string[], values: number[]) {
         if (labels.length === 0) {
             return Statistics.noData("Royalties by track");
@@ -168,20 +176,36 @@ export class Statistics {
             .classes("flex")
             .children(
                 Statistics.singleStatistic("Royalties by month", Api.getRoyaltiesByMonth, Statistics.royaltiesByMonthChart),
+                Statistics.singleStatistic("Royalties by year", Api.getRoyaltiesByYear, Statistics.royaltiesByYearChart),
                 Statistics.singleStatistic("Royalties by track", Api.getRoyaltiesByTrack, Statistics.royaltiesByTrackChart),
             ).build();
     }
 
     static singleStatistic(title: string, apiFunction: Function, template: Function) {
         const stats = signal<Statistic[]>([]);
-        apiFunction().then(r => stats.value = r);
+        const loading = signal(false);
+        const loadStatistic = () => {
+            loading.value = true;
+            apiFunction().then(r => stats.value = r)
+                .finally(() => loading.value = false);
+        };
+        loadStatistic();
 
         return create("div")
             .classes("flex-v", "statistic")
             .children(
-                create("h1")
-                    .text(title)
-                    .build(),
+                create("div")
+                    .classes("flex", "center-items")
+                    .children(
+                        create("h1")
+                            .text(title)
+                            .build(),
+                        ifjs(loading, FJSC.button({
+                            icon: { icon: "refresh" },
+                            onclick: loadStatistic
+                        }), true),
+                        ifjs(loading, Generics.loading()),
+                    ).build(),
                 statisticsFromSignal(stats, template)
             ).build();
     }
