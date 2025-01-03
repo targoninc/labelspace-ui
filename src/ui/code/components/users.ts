@@ -17,20 +17,22 @@ export class Users {
         return Generics.pageFrame(
             ifjs(loading, Generics.loading()),
             Generics.heading(2, "Users"),
-            Generics.list(
+            Generics.table(
+                ["Username", "Artists"],
                 users,
-                (user: User) => Users.user(user)
+                (user: User) => Users.userInTable(user)
             )
         )
     }
 
-    static user(user: User) {
-        return create("div")
-            .classes("flex", "space-outwards")
+    static userInTable(user: User) {
+        return create("tr")
             .children(
-                Generics.heading(3, `@${user.username}`),
-                create("span")
-                    .text(user.artists?.map(a => a.name).join(", "))
+                create("td")
+                    .text(`@${user.username}`)
+                    .build(),
+                create("td")
+                    .text(user.artists?.map(a => a.name).join(", ") ?? "No artists")
                     .build()
             ).build();
     }

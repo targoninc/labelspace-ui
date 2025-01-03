@@ -186,14 +186,14 @@ export const routes: Route[] = [
         path: "users",
         title: "Users",
         template: Users.listPage,
-        icon: "users",
+        icon: "group",
         showInNav: (u: User) => u && (u.permissions?.some(p => p.name === Permissions.userManagement) ?? false)
     },
     {
         path: "profile",
         title: "Profile",
         template: Users.profile,
-        icon: "profile",
+        icon: "person",
         showInNav: (u: User) => !!u
     }
 ];
