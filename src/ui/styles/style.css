@@ -4,6 +4,7 @@
     --blue: #2e3192;
     --cyan: #00aeef;
     --yellow: #fff200;
+    --orange: #ff9f00;
     --magenta: #ec008c;
     --black: #000000;
     --white: #ffffff;
@@ -139,9 +140,26 @@ b {
     max-height: 100dvh;
 }
 
+.notification {
+    font-weight: bold;
+}
+
+.notification.error {
+    color: var(--red);
+}
+
+.notification.success {
+    color: var(--green);
+}
+
+.notification.warning {
+    color: var(--orange);
+}
+
 .container {
     padding: var(--layout-gap);
     box-sizing: border-box;
+    background: var(--white);
 }
 
 .border {

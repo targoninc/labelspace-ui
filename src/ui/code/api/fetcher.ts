@@ -2,10 +2,16 @@ import {NotificationType} from "../enums/NotificationType.ts";
 import {notify} from "../functions/notifications.ts";
 
 export class Fetcher {
-    private static async handleResponse<T = null>(res: Response, parseOutput = true): Promise<T> {
+    private static async handleResponse<T = null>(res: Response, parseOutput = true): Promise<T|null> {
         const text = await res.text();
         if (!res.ok) {
+            const json = JSON.parse(text);
+            if (json.error) {
+                notify(`Failed POST (${res.status}): ${json.error}`, NotificationType.error);
+                throw new Error(json.error);
+            }
             notify(`Failed POST (${res.status}): ${text}`, NotificationType.error);
+            throw new Error(text);
         }
 
         if (!parseOutput) {
@@ -16,7 +22,7 @@ export class Fetcher {
             return JSON.parse(text) as T;
         } catch (e) {
             notify(`Failed to parse response: ${text}`, NotificationType.error);
-            return text as T;
+            throw e;
         }
     }
 

@@ -49,7 +49,7 @@ export class Router {
         }
     }
 
-    getParams(fullPath: string, route: any) {
+    getParams(fullPath: string, route: Route) {
         const path = fullPath.split("/").filter(p => p !== "");
         const params: {
             [key: string]: string;
@@ -61,9 +61,9 @@ export class Router {
         for (let [key, value] of urlParams.entries()) {
             params[key] = value;
         }
-        if (route.params) {
-            for (let i = 0; i < route.params.length; i++) {
-                params[route.params[i]] = params["path_" + (i + 1)];
+        if (route.pathParams) {
+            for (let i = 0; i < route.pathParams.length; i++) {
+                params[route.pathParams[i]] = params["path_" + (i + 1)];
             }
         }
         return params;

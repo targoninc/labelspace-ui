@@ -2,7 +2,7 @@ import {NotificationType} from "../enums/NotificationType.ts";
 import {Generics} from "../components/generics.ts";
 
 export function notify(text: string, type = NotificationType.info, time = 7000) {
-    const notifications = document.querySelector(".notifications");
+    const notifications = document.querySelector("#notifications");
     const notification = Generics.notification(type, text);
     const previousNotifications = document.querySelectorAll(".notification") as NodeListOf<HTMLElement>;
     if (previousNotifications) {

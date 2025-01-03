@@ -92,16 +92,7 @@ export class Generics {
                                 username.value = v;
                             }
                         }),
-                        FJSC.input<string>({
-                            type: InputType.password,
-                            name: "password",
-                            placeholder: "Password",
-                            value: password,
-                            attributes: ["autocomplete", "password"],
-                            onchange: (v) => {
-                                password.value = v;
-                            }
-                        }),
+                        Generics.passwordInput(password),
                         ifjs(filledBoth, FJSC.button({
                             text: "Login",
                             onclick: login,
@@ -114,10 +105,27 @@ export class Generics {
                             classes: ["material-symbols-outlined", "negative"]
                         }))
                     ).build(),
-                ifjs(message, create("span")
-                    .text(message)
-                    .build())
+                Generics.message(message)
             ).build();
+    }
+
+    static message(message: Signal<string>) {
+        return ifjs(message, create("span")
+            .text(message)
+            .build());
+    }
+
+    static passwordInput(password: Signal<string>, placeholder: string = "Password") {
+        return FJSC.input<string>({
+            type: InputType.password,
+            name: "password",
+            placeholder,
+            value: password,
+            attributes: ["autocomplete", "password"],
+            onchange: (v) => {
+                password.value = v;
+            }
+        });
     }
 
     static image(src: StringOrSignal, extraClasses: StringOrSignal[] = []) {
@@ -158,7 +166,7 @@ export class Generics {
 
     static notification(type: NotificationType = NotificationType.success, text = "Success!") {
         return create("div")
-            .classes("notification", type)
+            .classes("notification", "container", "border", type)
             .text(text)
             .build();
     }

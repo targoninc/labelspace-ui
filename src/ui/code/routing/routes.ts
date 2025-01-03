@@ -1,5 +1,6 @@
 import {Route} from "./Route.ts";
 import {Generics} from "../components/generics.ts";
+import {Account} from "../components/account.ts";
 
 export const routes: Route[] = [
     {
@@ -7,5 +8,10 @@ export const routes: Route[] = [
         title: "404",
         aliases: ["error", "not-found"],
         template: Generics.notFound
+    },
+    {
+        path: "password-reset",
+        title: "Password reset",
+        template: Account.passwordReset
     }
 ];
