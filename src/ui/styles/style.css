@@ -217,3 +217,29 @@ button.negative {
         box-shadow: 0 0 0 1em rgba(0, 0, 0, 0);
     }
 }
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+th {
+    background: var(--black);
+    color: var(--white);
+}
+
+th, td {
+    text-align: left;
+}
+
+tr:nth-child(even) {
+    background: var(--gray-2);
+}
+
+tr:nth-child(odd) {
+    background: var(--gray-1);
+}
+
+.privateText {
+    cursor: pointer;
+}

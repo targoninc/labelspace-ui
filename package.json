@@ -18,6 +18,8 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
+    "@sgratzl/chartjs-chart-boxplot": "^4.4.4",
+    "chart.js": "^4.4.7",
     "dotenv": "^16.4.7"
   }
 }

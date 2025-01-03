@@ -1,13 +1,14 @@
-import {AnyElement, AnyNode, create, ifjs, signalMap, StringOrSignal} from "../../fjsc/src/f2.ts";
+import {AnyElement, create, ifjs, signalMap, StringOrSignal} from "../../fjsc/src/f2.ts";
 import {NotificationType} from "../enums/NotificationType.ts";
-import type {NavItem} from "../models/NavItem.ts";
 import {compute, signal, Signal} from "../../fjsc/src/signals.ts";
-import {currentRoute, currentUser, userLoading} from "../state.ts";
-import {navigate, reload} from "../routing/Router.ts";
-import {Api} from "../api/api.ts";
-import {FJSC} from "../../fjsc";
+import {Nav} from "./nav.ts";
+import {Route} from "../routing/Route.ts";
 import {Account} from "./account.ts";
+import {Users} from "./users.ts";
 import {User} from "../models/db/tri/User.ts";
+import {Permissions} from "../enums/Permissions.ts";
+import {currentUser, userLoading} from "../state.ts";
+import type {NavItem} from "../models/NavItem.ts";
 
 export class Generics {
     static notFound() {
@@ -16,6 +17,36 @@ export class Generics {
                 .text("404")
                 .build()
         );
+    }
+    static nav() {
+        const loginShown = compute((u, l) => !u && !l, currentUser, userLoading);
+
+        return create("nav")
+            .classes("container", "border", "layer-1", "flex", "split-flex", "center-items")
+            .children(
+                create("div")
+                    .classes("flex", "center-items")
+                    .children(
+                        Generics.image("/images/LOGO256.png", ["header-logo"]),
+                        create("h1")
+                            .children(
+                                create("b").text("Tri").build(),
+                                create("span").text("Records").build(),
+                            ).build(),
+                        ...routes.filter(r => r.showInNav !== undefined)
+                            .map(r => {
+                                const show = compute(u => r.showInNav(u), currentUser);
+                                return ifjs(show, Nav.navItem(<NavItem>{
+                                    text: r.title,
+                                    path: r.path,
+                                    icon: r.icon,
+                                }));
+                            })
+                    ).build(),
+                ifjs(loginShown, Account.navLogin()),
+                ifjs(userLoading, Generics.loading()),
+                ifjs(currentUser, Nav.navUser(currentUser))
+            ).build();
     }
 
     static pageFrame(...content: (AnyElement|Signal<AnyElement>)[]) {
@@ -32,36 +63,6 @@ export class Generics {
             .classes("container", "border", "layer-" + layer)
             .children(...content)
             .build();
-    }
-
-    static nav() {
-        const navItems: NavItem[] = [
-            {
-                text: "Home",
-                path: "/",
-                icon: "home"
-            },
-        ];
-        const loginShown = compute((u, l) => !u && !l, currentUser, userLoading);
-
-        return create("nav")
-            .classes("container", "border", "layer-1", "flex", "split-flex", "center-items")
-            .children(
-                create("div")
-                    .classes("flex", "center-items")
-                    .children(
-                        Generics.image("/images/LOGO256.png", ["header-logo"]),
-                        create("h1")
-                            .children(
-                                create("b").text("Tri").build(),
-                                create("span").text("Records").build(),
-                            ).build(),
-                        ...navItems.map(item => Generics.navItem(item))
-                    ).build(),
-                ifjs(loginShown, Account.navLogin()),
-                ifjs(userLoading, Generics.loading()),
-                ifjs(currentUser, Generics.navUser(currentUser))
-            ).build();
     }
 
     static message(message: Signal<string>) {
@@ -84,28 +85,6 @@ export class Generics {
             .build();
     }
 
-    static navItem(item: NavItem) {
-        const active = compute(r => r && r.path === item.path, currentRoute);
-        const activeClass = compute((a): string => a ? "active" : "_", active);
-
-        return create("a")
-            .classes("button", "flex", "center-items", activeClass)
-            .href(item.path)
-            .target("_blank")
-            .onclick((e: MouseEvent) => {
-                if (e.button === 0) {
-                    e.preventDefault();
-                    navigate(item.path);
-                }
-            })
-            .children(
-                Generics.icon(item.icon),
-                create("span")
-                    .text(item.text)
-                    .build()
-            ).build();
-    }
-
     static notification(type: NotificationType = NotificationType.success, text = "Success!") {
         return create("div")
             .classes("notification", "container", "border", type)
@@ -113,30 +92,19 @@ export class Generics {
             .build();
     }
 
-    static list<T>(entries: Signal<T[]>, template: (entry: T) => AnyElement) {
-        return create("div")
-            .classes("container", "layer-2")
-            .children(
-                signalMap(entries, create("div").classes("flex-v"), template)
-            ).build();
-    }
-
-    private static navUser(currentUser: Signal<User | null>) {
-        const username = compute(u => `@${u?.username}`, currentUser);
+    static list<T>(entries: Signal<T[]>|T[], template: (entry: T) => AnyElement) {
+        if (entries instanceof Signal) {
+            return create("div")
+                .classes("container", "layer-2")
+                .children(
+                    signalMap(entries, create("div").classes("flex-v"), template)
+                ).build();
+        }
 
         return create("div")
-            .classes("flex", "center-items")
+            .classes("container", "layer-2", "flex-v")
             .children(
-                Generics.heading(3, username),
-                FJSC.button({
-                    text: "Logout",
-                    classes: ["negative"],
-                    onclick: async () => {
-                        await Api.logout();
-                        currentUser.value = null;
-                        reload();
-                    }
-                })
+                ...entries.map(template)
             ).build();
     }
 
@@ -151,4 +119,81 @@ export class Generics {
             .text(text)
             .build();
     }
+
+    static table<T>(headers: StringOrSignal[], entries: Signal<T[]>|T[], rowTemplate: (entry: T) => AnyElement) {
+        if (entries instanceof Signal) {
+            return create("table")
+                .classes("container", "layer-2")
+                .children(
+                    create("thead")
+                        .children(
+                            create("tr")
+                                .children(
+                                    ...headers.map(c => create("th").text(c).build())
+                                ).build()
+                        ).build(),
+                    signalMap(entries, create("tbody"), rowTemplate)
+                ).build();
+        }
+
+        return create("table")
+            .classes("container", "layer-2")
+            .children(
+                create("thead")
+                    .children(
+                        create("tr")
+                            .children(
+                                ...headers.map(c => create("th").text(c).build())
+                            ).build()
+                    ).build(),
+                create("tbody")
+                    .children(
+                        ...entries.map(rowTemplate)
+                    ).build()
+            ).build();
+    }
+
+    static privateText(text: string) {
+        const hidden = signal(true);
+
+        return create("span")
+            .classes("privateText")
+            .onclick(() => hidden.value = !hidden.value)
+            .children(
+                ifjs(hidden, create("span")
+                    .text(text)
+                    .build(), true),
+                ifjs(hidden, create("span")
+                    .text("*".repeat(text.length))
+                    .build())
+            ).build();
+    }
 }
+
+export const routes: Route[] = [
+    {
+        path: "404",
+        title: "404",
+        aliases: ["error", "not-found"],
+        template: Generics.notFound
+    },
+    {
+        path: "password-reset",
+        title: "Password reset",
+        template: Account.passwordReset
+    },
+    {
+        path: "users",
+        title: "Users",
+        template: Users.listPage,
+        icon: "users",
+        showInNav: (u: User) => u && (u.permissions?.some(p => p.name === Permissions.userManagement) ?? false)
+    },
+    {
+        path: "profile",
+        title: "Profile",
+        template: Users.profile,
+        icon: "profile",
+        showInNav: (u: User) => !!u
+    }
+];

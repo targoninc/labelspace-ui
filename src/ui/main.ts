@@ -1,7 +1,7 @@
 import {currentUser, router, userLoading} from "./code/state.ts";
 import {Api} from "./code/api/api.ts";
 import {reload, startRouter} from "./code/routing/Router.ts";
-import {routes} from "./code/routing/routes.ts";
+import {routes} from "./code/components/generics.ts";
 
 userLoading.value = true;
 Api.getUser()
