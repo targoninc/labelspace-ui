@@ -49,30 +49,34 @@ export class Users {
     }
 
     static profile() {
-        const artists = compute(u => u?.artists ?? [], currentUser);
-        const headers = ["Artist name"];
-
         return Generics.pageFrame(
             create("div")
                 .classes("flex-v")
                 .children(
                     Generics.heading(2, "Profile"),
                     Users.personalData(),
-                    Generics.container(2, [
-                        Generics.heading(3, "Your artists"),
-                        Generics.table(
-                            headers,
-                            artists,
-                            (artist: Artist) => create("tr")
-                                .children(
-                                    create("td")
-                                        .text(artist.name)
-                                        .build(),
-                                ).build()
-                        )
-                    ])
+                    Users.yourArtists()
                 ).build()
         );
+    }
+
+    private static yourArtists() {
+        const artists = compute(u => u?.artists ?? [], currentUser);
+        const headers = ["Artist name"];
+
+        return Generics.container(1, [
+            Generics.heading(3, "Your artists"),
+            Generics.table(
+                headers,
+                artists,
+                (artist: Artist) => create("tr")
+                    .children(
+                        create("td")
+                            .text(artist.name)
+                            .build(),
+                    ).build()
+            )
+        ]);
     }
 
     static personalData() {
@@ -95,7 +99,7 @@ export class Users {
         const loading = signal(false);
         const disabled = compute((nc, l) => nc || l, notChanged, loading);
 
-        return Generics.container(2, [
+        return Generics.container(1, [
             Generics.heading(3, "Personal Data"),
             Inputs.text(legalName, "Legal name", "legal_name"),
             Inputs.text(country, "Country", "country"),
