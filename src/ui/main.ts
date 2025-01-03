@@ -1,11 +1,15 @@
-import {currentUser, router} from "./code/state.ts";
+import {currentUser, router, userLoading} from "./code/state.ts";
 import {Api} from "./code/api/api.ts";
-import {startRouter} from "./code/routing/Router.ts";
+import {reload, startRouter} from "./code/routing/Router.ts";
 import {routes} from "./code/routing/routes.ts";
 
-Api.getUser().then(user => {
-    currentUser.value = user;
-});
+userLoading.value = true;
+Api.getUser()
+    .then(user => {
+        currentUser.value = user;
+        reload();
+    })
+    .finally(() => userLoading.value = false);
 
 startRouter();
 router.value!.setRoutes(routes);

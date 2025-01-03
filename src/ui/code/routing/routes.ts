@@ -1,6 +1,7 @@
 import {Route} from "./Route.ts";
 import {Generics} from "../components/generics.ts";
 import {Account} from "../components/account.ts";
+import {Users} from "../components/users.ts";
 
 export const routes: Route[] = [
     {
@@ -13,5 +14,10 @@ export const routes: Route[] = [
         path: "password-reset",
         title: "Password reset",
         template: Account.passwordReset
+    },
+    {
+        path: "users",
+        title: "Users",
+        template: Users.listPage
     }
 ];

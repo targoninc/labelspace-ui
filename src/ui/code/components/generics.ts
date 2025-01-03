@@ -1,13 +1,13 @@
-import {AnyElement, create, ifjs, signalMap, StringOrSignal} from "../../fjsc/src/f2.ts";
+import {AnyElement, AnyNode, create, ifjs, signalMap, StringOrSignal} from "../../fjsc/src/f2.ts";
 import {NotificationType} from "../enums/NotificationType.ts";
 import type {NavItem} from "../models/NavItem.ts";
 import {compute, signal, Signal} from "../../fjsc/src/signals.ts";
-import {currentRoute, currentUser} from "../state.ts";
+import {currentRoute, currentUser, userLoading} from "../state.ts";
 import {navigate, reload} from "../routing/Router.ts";
 import {Api} from "../api/api.ts";
 import {FJSC} from "../../fjsc";
-import {InputType} from "../../fjsc/src/Types.ts";
-import {User} from "../models/User.ts";
+import {Account} from "./account.ts";
+import {User} from "../models/db/tri/User.ts";
 
 export class Generics {
     static notFound() {
@@ -18,15 +18,20 @@ export class Generics {
         );
     }
 
-    static pageFrame(content: AnyElement) {
+    static pageFrame(...content: (AnyElement|Signal<AnyElement>)[]) {
         return create("div")
             .classes("container", "flex-v")
             .children(
                 Generics.nav(),
-                create("div")
-                    .classes("container", "border", "layer-1")
-                    .children(content)
+                Generics.container(1, content)
             ).build();
+    }
+
+    static container(layer: number, content: (AnyElement|Signal<AnyElement>)[]) {
+        return create("div")
+            .classes("container", "border", "layer-" + layer)
+            .children(...content)
+            .build();
     }
 
     static nav() {
@@ -36,10 +41,11 @@ export class Generics {
                 path: "/",
                 icon: "home"
             },
-        ]
+        ];
+        const loginShown = compute((u, l) => !u && !l, currentUser, userLoading);
 
         return create("nav")
-            .classes("container", "border", "layer-1", "flex", "split-flex")
+            .classes("container", "border", "layer-1", "flex", "split-flex", "center-items")
             .children(
                 create("div")
                     .classes("flex", "center-items")
@@ -52,61 +58,9 @@ export class Generics {
                             ).build(),
                         ...navItems.map(item => Generics.navItem(item))
                     ).build(),
-                ifjs(currentUser, Generics.navLogin(), true),
+                ifjs(loginShown, Account.navLogin()),
+                ifjs(userLoading, Generics.loading()),
                 ifjs(currentUser, Generics.navUser(currentUser))
-            ).build();
-    }
-
-    static navLogin() {
-        const username = signal("");
-        const password = signal("");
-        const filledUsername = compute(u => u.length > 0, username);
-        const filledPassword = compute(p => p.length > 0, password);
-        const filledBoth = compute((u, p) => u && p, filledUsername, filledPassword);
-
-        const message = signal("");
-        const login = async () => {
-            await Api.login({
-                username: username.value,
-                password: password.value
-            });
-            currentUser.value = await Api.getUser();
-            navigate("home");
-        };
-        const forgotPassword = async (e: MouseEvent) => {
-            await Api.requestPasswordReset(username.value);
-            message.value = "Password reset email sent.";
-        };
-
-        return create("div")
-            .classes("flex-v")
-            .children(
-                create("div")
-                    .classes("flex", "center-items")
-                    .children(
-                        FJSC.input<string>({
-                            type: InputType.text,
-                            name: "username",
-                            placeholder: "Username",
-                            value: username,
-                            attributes: ["autocomplete", "username", "tabindex", "-1"],
-                            onchange: (v) => {
-                                username.value = v;
-                            }
-                        }),
-                        Generics.passwordInput(password),
-                        ifjs(filledBoth, FJSC.button({
-                            text: "Login",
-                            onclick: login,
-                            classes: ["positive"]
-                        })),
-                        ifjs(username, FJSC.button({
-                            icon: { icon: "question_mark" },
-                            title: "Send password reset mail",
-                            onclick: forgotPassword,
-                        }))
-                    ).build(),
-                Generics.message(message)
             ).build();
     }
 
@@ -114,19 +68,6 @@ export class Generics {
         return ifjs(message, create("span")
             .text(message)
             .build());
-    }
-
-    static passwordInput(password: Signal<string>, placeholder: string = "Password") {
-        return FJSC.input<string>({
-            type: InputType.password,
-            name: "password",
-            placeholder,
-            value: password,
-            attributes: ["autocomplete", "password", "tabindex", "-1"],
-            onchange: (v) => {
-                password.value = v;
-            }
-        });
     }
 
     static image(src: StringOrSignal, extraClasses: StringOrSignal[] = []) {
@@ -186,9 +127,7 @@ export class Generics {
         return create("div")
             .classes("flex", "center-items")
             .children(
-                create("h3")
-                    .text(username)
-                    .build(),
+                Generics.heading(3, username),
                 FJSC.button({
                     text: "Logout",
                     classes: ["negative"],
@@ -199,5 +138,17 @@ export class Generics {
                     }
                 })
             ).build();
+    }
+
+    static loading() {
+        return create("div")
+            .classes("loading")
+            .build();
+    }
+
+    static heading(level: number, text: StringOrSignal) {
+        return create(`h${level}`)
+            .text(text)
+            .build();
     }
 }

@@ -1,5 +1,5 @@
 import {Fetcher} from "./fetcher.ts";
-import type {User} from "../models/User.ts";
+import {User} from "../models/db/tri/User.ts";
 
 const base = window.location.origin.includes("localhost") ? "http://localhost:8090" : "https://artists-api.trirecords.eu";
 
@@ -13,7 +13,7 @@ export class Api {
     }
 
     static async getUsers() {
-        return await Fetcher.get<User[]>("/users/get");
+        return await Fetcher.get<User[]>(base + "/users/get");
     }
 
     static async requestPasswordReset(username: string) {
