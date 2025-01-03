@@ -188,7 +188,10 @@ b {
 
 button.positive {
     background: var(--green);
-    color: var(--white);
+}
+
+button.negative {
+    background: var(--red);
 }
 
 .header-logo {

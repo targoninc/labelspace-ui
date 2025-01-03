@@ -25,4 +25,8 @@ export class Api {
     static async resetPassword(param: { token: any; newPassword: string; newPasswordConfirm: string }) {
         return await Fetcher.post(base + "/user/actions/reset-password", param);
     }
+
+    static async logout() {
+        return await Fetcher.post(base + "/user/actions/logout");
+    }
 }

@@ -3,10 +3,11 @@ import {NotificationType} from "../enums/NotificationType.ts";
 import type {NavItem} from "../models/NavItem.ts";
 import {compute, signal, Signal} from "../../fjsc/src/signals.ts";
 import {currentRoute, currentUser} from "../state.ts";
-import {navigate} from "../routing/Router.ts";
+import {navigate, reload} from "../routing/Router.ts";
 import {Api} from "../api/api.ts";
 import {FJSC} from "../../fjsc";
 import {InputType} from "../../fjsc/src/Types.ts";
+import {User} from "../models/User.ts";
 
 export class Generics {
     static notFound() {
@@ -51,7 +52,8 @@ export class Generics {
                             ).build(),
                         ...navItems.map(item => Generics.navItem(item))
                     ).build(),
-                Generics.navLogin()
+                ifjs(currentUser, Generics.navLogin(), true),
+                ifjs(currentUser, Generics.navUser(currentUser))
             ).build();
     }
 
@@ -87,7 +89,7 @@ export class Generics {
                             name: "username",
                             placeholder: "Username",
                             value: username,
-                            attributes: ["autocomplete", "username"],
+                            attributes: ["autocomplete", "username", "tabindex", "-1"],
                             onchange: (v) => {
                                 username.value = v;
                             }
@@ -102,7 +104,6 @@ export class Generics {
                             icon: { icon: "question_mark" },
                             title: "Send password reset mail",
                             onclick: forgotPassword,
-                            classes: ["material-symbols-outlined", "negative"]
                         }))
                     ).build(),
                 Generics.message(message)
@@ -121,7 +122,7 @@ export class Generics {
             name: "password",
             placeholder,
             value: password,
-            attributes: ["autocomplete", "password"],
+            attributes: ["autocomplete", "password", "tabindex", "-1"],
             onchange: (v) => {
                 password.value = v;
             }
@@ -176,6 +177,27 @@ export class Generics {
             .classes("container", "layer-2")
             .children(
                 signalMap(entries, create("div").classes("flex-v"), template)
+            ).build();
+    }
+
+    private static navUser(currentUser: Signal<User | null>) {
+        const username = compute(u => `@${u?.username}`, currentUser);
+
+        return create("div")
+            .classes("flex", "center-items")
+            .children(
+                create("h3")
+                    .text(username)
+                    .build(),
+                FJSC.button({
+                    text: "Logout",
+                    classes: ["negative"],
+                    onclick: async () => {
+                        await Api.logout();
+                        currentUser.value = null;
+                        reload();
+                    }
+                })
             ).build();
     }
 }
