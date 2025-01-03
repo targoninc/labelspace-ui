@@ -1,5 +1,6 @@
 import {Fetcher} from "./fetcher.ts";
 import {User} from "../models/db/tri/User.ts";
+import {Statistic} from "../models/Statistic.ts";
 
 const base = window.location.origin.includes("localhost") ? "http://localhost:8090" : "https://artists-api.trirecords.eu";
 
@@ -28,5 +29,13 @@ export class Api {
 
     static async logout() {
         return await Fetcher.post(base + "/user/actions/logout");
+    }
+
+    static async updateUser(user: Partial<User>) {
+        return await Fetcher.post(base + "/user/actions/update", { user });
+    }
+
+    static async getRoyaltiesByMonth() {
+        return await Fetcher.get<Statistic[]>(base + "/statistics/royaltiesByMonth");
     }
 }

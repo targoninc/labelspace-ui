@@ -9,6 +9,7 @@ import {User} from "../models/db/tri/User.ts";
 import {Permissions} from "../enums/Permissions.ts";
 import {currentUser, userLoading} from "../state.ts";
 import type {NavItem} from "../models/NavItem.ts";
+import {Statistics} from "./statistics.ts";
 
 export class Generics {
     static notFound() {
@@ -58,9 +59,9 @@ export class Generics {
             ).build();
     }
 
-    static container(layer: number, content: (AnyElement|Signal<AnyElement>)[]) {
+    static container(layer: number, content: (AnyElement|Signal<AnyElement>)[], extraClasses: string[] = []) {
         return create("div")
-            .classes("container", "border", "layer-" + layer)
+            .classes("container", "border", "layer-" + layer, ...extraClasses)
             .children(...content)
             .build();
     }
@@ -194,6 +195,13 @@ export const routes: Route[] = [
         title: "Profile",
         template: Users.profile,
         icon: "person",
+        showInNav: (u: User) => !!u
+    },
+    {
+        path: "dashboard",
+        title: "Dashboard",
+        template: Statistics.page,
+        icon: "dashboard",
         showInNav: (u: User) => !!u
     }
 ];

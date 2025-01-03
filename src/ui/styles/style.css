@@ -53,6 +53,7 @@
     'opsz' 24;
     font-family: 'Material Symbols Outlined';
     font-size: 1.1em !important;
+    line-height: 1.2;
 }
 
 a {
@@ -242,4 +243,10 @@ tr:nth-child(odd) {
 
 .privateText {
     cursor: pointer;
+}
+
+button.fjsc {
+    align-items: center;
+    display: flex;
+    gap: var(--layout-gap);
 }

@@ -3,6 +3,12 @@ import {BoxPlotChart} from "@sgratzl/chartjs-chart-boxplot";
 import {create, HtmlPropertyValue} from "../../fjsc/src/f2.ts";
 import {ChartOptions} from "../enums/ChartOptions.ts";
 import {Colors} from "../enums/Colors.ts";
+import {Statistic} from "../models/Statistic.ts";
+import {signal} from "../../fjsc/src/signals.ts";
+import {Api} from "../api/api.ts";
+import {statisticsFromSignal} from "../functions/templates.ts";
+import {currentUser} from "../state.ts";
+import {Generics} from "./generics.ts";
 
 Chart.register(...registerables);
 
@@ -145,5 +151,29 @@ export class Statistics {
             return Statistics.noData("Royalties by track");
         }
         return Statistics.donutChart(labels, values, "Royalties", "Royalties by track", "royaltiesByTrackChart", usedColors);
+    }
+
+    static page() {
+        return Generics.pageFrame(
+            Statistics.stats()
+        );
+    }
+
+    static stats() {
+        if (!currentUser.value) {
+            return Generics.heading(2, "Not logged in");
+        }
+
+        const royaltiesByMonth = signal<Statistic[]>([]);
+        Api.getRoyaltiesByMonth().then(r => royaltiesByMonth.value = r);
+
+        return create("div")
+            .classes("flex-v")
+            .children(
+                create("h1")
+                    .text("Royalties by month")
+                    .build(),
+                statisticsFromSignal(royaltiesByMonth, Statistics.royaltiesByMonthChart)
+            ).build();
     }
 }

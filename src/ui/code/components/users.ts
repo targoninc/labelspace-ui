@@ -5,9 +5,20 @@ import {User} from "../models/db/tri/User.ts";
 import {Api} from "../api/api.ts";
 import {Artist} from "../models/db/tri/Artist.ts";
 import {currentUser} from "../state.ts";
+import {Inputs} from "./inputs.ts";
+import {NotificationType} from "../enums/NotificationType.ts";
+import {notify} from "../functions/notifications.ts";
+import {FJSC} from "../../fjsc";
+import {Permissions} from "../enums/Permissions.ts";
 
 export class Users {
     static listPage() {
+        if (!currentUser.value?.permissions?.some(p => p.name === Permissions.userManagement)) {
+            return Generics.pageFrame(
+                Generics.heading(2, "Access denied"),
+            );
+        }
+
         const users = signal<User[]>([]);
         const loading = signal(false);
         Api.getUsers()
@@ -39,22 +50,83 @@ export class Users {
 
     static profile() {
         const artists = compute(u => u?.artists ?? [], currentUser);
-        const headers = ["Artist", "Legal name"];
+        const headers = ["Artist name"];
 
         return Generics.pageFrame(
-            Generics.heading(2, "Profile"),
-            Generics.heading(3, "Your artists"),
-            Generics.table(
-                headers,
-                artists,
-                (artist: Artist) => create("tr")
-                    .children(
-                        create("td")
-                            .text(artist.name)
-                            .build(),
-                        Generics.privateText(artist.legal_name)
-                    ).build()
-            )
+            create("div")
+                .classes("flex-v")
+                .children(
+                    Generics.heading(2, "Profile"),
+                    Users.personalData(),
+                    Generics.container(2, [
+                        Generics.heading(3, "Your artists"),
+                        Generics.table(
+                            headers,
+                            artists,
+                            (artist: Artist) => create("tr")
+                                .children(
+                                    create("td")
+                                        .text(artist.name)
+                                        .build(),
+                                ).build()
+                        )
+                    ])
+                ).build()
         );
+    }
+
+    static personalData() {
+        const user = compute(u => u, currentUser);
+        const legalName = compute(u => u?.legal_name ?? "", user);
+        const country = compute(u => u?.country ?? "", user);
+        const state = compute(u => u?.state ?? "", user);
+        const description = compute(u => u?.description ?? "", user);
+        const notChanged = signal(true);
+        compute((l, c, s, d) => {
+            user.value = {
+                legal_name: l,
+                country: c,
+                state: s,
+                description: d
+            };
+            notChanged.value = false;
+        }, legalName, country, state, description);
+        const message = signal("");
+        const loading = signal(false);
+        const disabled = compute((nc, l) => nc || l, notChanged, loading);
+
+        return Generics.container(2, [
+            Generics.heading(3, "Personal Data"),
+            Inputs.text(legalName, "Legal name", "legal_name"),
+            Inputs.text(country, "Country", "country"),
+            Inputs.text(state, "State", "state"),
+            Inputs.text(description, "Description", "description"),
+            create("div")
+                .classes("flex", "center-items")
+                .children(
+                    FJSC.button({
+                        text: "Save",
+                        icon: { icon: "save" },
+                        classes: ["positive"],
+                        disabled: disabled,
+                        onclick: () => {
+                            loading.value = true;
+                            Api.updateUser(<Partial<User>>{
+                                legal_name: legalName.value,
+                                country: country.value,
+                                state: state.value,
+                            }).then(() => {
+                                notify("Saved", NotificationType.success);
+                            }).catch(e => {
+                                message.value = e.message;
+                            }).finally(() => {
+                                loading.value = false;
+                            });
+                        }
+                    }),
+                    ifjs(loading, Generics.loading())
+                ).build(),
+            Generics.message(message)
+        ], ["flex-v"]);
     }
 }

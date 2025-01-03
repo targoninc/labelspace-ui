@@ -15,4 +15,17 @@ export class Inputs {
             }
         });
     }
+
+    static text(value: Signal<string>, label: string, name: string) {
+        return FJSC.input<string>({
+            type: InputType.text,
+            name,
+            label,
+            value,
+            attributes: ["autocomplete", name],
+            onchange: (v) => {
+                value.value = v;
+            }
+        });
+    }
 }
