@@ -3,13 +3,14 @@ import {FJSC} from "../../fjsc";
 import {InputType} from "../../fjsc/src/Types.ts";
 
 export class Inputs {
-    static password(password: Signal<string>, placeholder: string = "Password") {
+    static password(password: Signal<string>, placeholder: string = "Password", name: string = "password") {
         return FJSC.input<string>({
             type: InputType.password,
-            name: "password",
+            name,
+            label: placeholder,
             placeholder,
             value: password,
-            attributes: ["autocomplete", "password"],
+            attributes: ["autocomplete", name],
             onchange: (v) => {
                 password.value = v;
             }

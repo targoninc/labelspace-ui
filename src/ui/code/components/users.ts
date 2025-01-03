@@ -101,7 +101,7 @@ export class Users {
 
         return Generics.container(1, [
             Generics.heading(3, "Personal Data"),
-            Inputs.text(legalName, "Legal name", "legal_name"),
+            Inputs.password(legalName, "Legal name", "legal_name"),
             Inputs.text(country, "Country", "country"),
             Inputs.text(state, "State", "state"),
             Inputs.text(description, "Description", "description"),

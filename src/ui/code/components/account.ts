@@ -36,16 +36,7 @@ export class Account {
                 create("div")
                     .classes("flex", "center-items")
                     .children(
-                        FJSC.input<string>({
-                            type: InputType.text,
-                            name: "username",
-                            placeholder: "Username",
-                            value: username,
-                            attributes: ["autocomplete", "username", "tabindex", "-1"],
-                            onchange: (v) => {
-                                username.value = v;
-                            }
-                        }),
+                        Inputs.text(username, "Username", "username"),
                         Inputs.password(password),
                         ifjs(filledBoth, FJSC.button({
                             text: "Login",
