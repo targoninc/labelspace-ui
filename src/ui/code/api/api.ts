@@ -1,7 +1,7 @@
 import {Fetcher} from "./fetcher.ts";
 import type {User} from "../models/User.ts";
 
-const base = window.location.origin.includes("localhost") ? "http://localhost:8082" : "https://artists-api.trirecords.eu";
+const base = window.location.origin.includes("localhost") ? "http://localhost:8090" : "https://artists-api.trirecords.eu";
 
 export class Api {
     static async getUser() {
@@ -10,5 +10,15 @@ export class Api {
 
     static async login(user: { username: string; password: string }) {
         return await Fetcher.postWithResponse<User>(base + "/user/actions/login", user);
+    }
+
+    static async getUsers() {
+        return await Fetcher.get<User[]>("/users/get");
+    }
+
+    static async requestPasswordReset(username: string) {
+        return await Fetcher.post(base + "/user/actions/request-password-reset", {
+            username
+        });
     }
 }

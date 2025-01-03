@@ -1,7 +1,7 @@
-import {AnyElement, create, StringOrSignal} from "../../fjsc/src/f2.ts";
+import {AnyElement, create, ifjs, signalMap, StringOrSignal} from "../../fjsc/src/f2.ts";
 import {NotificationType} from "../enums/NotificationType.ts";
 import type {NavItem} from "../models/NavItem.ts";
-import {compute} from "../../fjsc/src/signals.ts";
+import {compute, signal, Signal} from "../../fjsc/src/signals.ts";
 import {currentRoute, currentUser} from "../state.ts";
 import {navigate} from "../routing/Router.ts";
 import {Api} from "../api/api.ts";
@@ -56,44 +56,67 @@ export class Generics {
     }
 
     static navLogin() {
-        const user = {
-            username: "",
-            password: ""
-        };
+        const username = signal("");
+        const password = signal("");
+        const filledUsername = compute(u => u.length > 0, username);
+        const filledPassword = compute(p => p.length > 0, password);
+        const filledBoth = compute((u, p) => u && p, filledUsername, filledPassword);
+
+        const message = signal("");
         const login = async () => {
-            await Api.login(user);
+            await Api.login({
+                username: username.value,
+                password: password.value
+            });
             currentUser.value = await Api.getUser();
             navigate("home");
         };
+        const forgotPassword = async (e: MouseEvent) => {
+            await Api.requestPasswordReset(username.value);
+            message.value = "Password reset email sent.";
+        };
 
         return create("div")
-            .classes("flex", "center-items")
+            .classes("flex-v")
             .children(
-                FJSC.input<string>({
-                    type: InputType.text,
-                    name: "username",
-                    placeholder: "Username",
-                    value: user.username,
-                    attributes: ["autocomplete", "username"],
-                    onchange: (v) => {
-                        user.username = v;
-                    }
-                }),
-                FJSC.input<string>({
-                    type: InputType.password,
-                    name: "password",
-                    placeholder: "Password",
-                    value: user.password,
-                    attributes: ["autocomplete", "password"],
-                    onchange: (v) => {
-                        user.password = v;
-                    }
-                }),
-                FJSC.button({
-                    text: "Login",
-                    onclick: login,
-                    classes: ["positive"]
-                })
+                create("div")
+                    .classes("flex", "center-items")
+                    .children(
+                        FJSC.input<string>({
+                            type: InputType.text,
+                            name: "username",
+                            placeholder: "Username",
+                            value: username,
+                            attributes: ["autocomplete", "username"],
+                            onchange: (v) => {
+                                username.value = v;
+                            }
+                        }),
+                        FJSC.input<string>({
+                            type: InputType.password,
+                            name: "password",
+                            placeholder: "Password",
+                            value: password,
+                            attributes: ["autocomplete", "password"],
+                            onchange: (v) => {
+                                password.value = v;
+                            }
+                        }),
+                        ifjs(filledBoth, FJSC.button({
+                            text: "Login",
+                            onclick: login,
+                            classes: ["positive"]
+                        })),
+                        ifjs(username, FJSC.button({
+                            icon: { icon: "question_mark" },
+                            title: "Send password reset mail",
+                            onclick: forgotPassword,
+                            classes: ["material-symbols-outlined", "negative"]
+                        }))
+                    ).build(),
+                ifjs(message, create("span")
+                    .text(message)
+                    .build())
             ).build();
     }
 
@@ -138,5 +161,13 @@ export class Generics {
             .classes("notification", type)
             .text(text)
             .build();
+    }
+
+    static list<T>(entries: Signal<T[]>, template: (entry: T) => AnyElement) {
+        return create("div")
+            .classes("container", "layer-2")
+            .children(
+                signalMap(entries, create("div").classes("flex-v"), template)
+            ).build();
     }
 }
