@@ -3,7 +3,9 @@ import {Api} from "./code/api/api.ts";
 import {startRouter} from "./code/routing/Router.ts";
 import {routes} from "./code/routing/routes.ts";
 
-currentUser.value = await Api.getUser();
+Api.getUser().then(user => {
+    currentUser.value = user;
+});
 
 startRouter();
 router.value!.setRoutes(routes);

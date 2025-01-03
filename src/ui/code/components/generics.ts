@@ -41,8 +41,14 @@ export class Generics {
             .classes("container", "border", "layer-1", "flex", "split-flex")
             .children(
                 create("div")
-                    .classes("flex")
+                    .classes("flex", "center-items")
                     .children(
+                        Generics.image("/images/LOGO256.png", ["header-logo"]),
+                        create("h1")
+                            .children(
+                                create("b").text("Tri").build(),
+                                create("span").text("Records").build(),
+                            ).build(),
                         ...navItems.map(item => Generics.navItem(item))
                     ).build(),
                 Generics.navLogin()
@@ -61,7 +67,7 @@ export class Generics {
         };
 
         return create("div")
-            .classes("flex")
+            .classes("flex", "center-items")
             .children(
                 FJSC.input<string>({
                     type: InputType.text,
@@ -89,6 +95,13 @@ export class Generics {
                     classes: ["positive"]
                 })
             ).build();
+    }
+
+    static image(src: StringOrSignal, extraClasses: StringOrSignal[] = []) {
+        return create("img")
+            .classes(...extraClasses)
+            .src(src)
+            .build();
     }
 
     static icon(icon: StringOrSignal) {

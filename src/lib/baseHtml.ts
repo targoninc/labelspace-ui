@@ -24,8 +24,8 @@ export async function baseHtml(req: Request) {
     
     <link rel="stylesheet" type="text/css" href="/fjsc/src/fjs-components.css"/>
     <link rel="stylesheet" type="text/css" href="/styles/style.css"/>
-    <link rel="apple-touch-icon" href="/img/icons/favicon_128.png">
-    <link rel="icon" href="/img/icons/favicon_128.png" sizes="128x128">
+    <link rel="apple-touch-icon" href="/images/LOGO128.png">
+    <link rel="icon" href="/images/LOGO.svg" sizes="128x128">
 
     <meta property="og:type" content="website"/>
     <meta property="og:title" content="Tri Artist Space"/>
