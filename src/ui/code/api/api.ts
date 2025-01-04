@@ -2,6 +2,7 @@ import {Fetcher} from "./fetcher.ts";
 import {User} from "../models/db/tri/User.ts";
 import {Statistic} from "../models/Statistic.ts";
 import {Payment} from "../models/db/finance/Payment.ts";
+import {RoyaltyInfo} from "../models/RoyaltyInfo.ts";
 
 const base = window.location.origin.includes("localhost") ? "http://localhost:8090" : "https://artists-api.trirecords.eu";
 
@@ -50,5 +51,9 @@ export class Api {
 
     static async getPayments() {
         return await Fetcher.get<Payment[]>(base + "/payments/get");
+    }
+
+    static async getAvailablePaymentAmount() {
+        return await Fetcher.postWithResponse<RoyaltyInfo>(base + "/payments/available");
     }
 }

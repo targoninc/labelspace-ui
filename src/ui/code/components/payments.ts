@@ -1,9 +1,10 @@
 import {Generics} from "./generics.ts";
 import {currentUser} from "../state.ts";
 import {Api} from "../api/api.ts";
-import {signal} from "../../fjsc/src/signals.ts";
+import {compute, signal} from "../../fjsc/src/signals.ts";
 import {ifjs} from "../../fjsc/src/f2.ts";
 import {currency} from "../functions/formatters.ts";
+import {RoyaltyInfo} from "../models/RoyaltyInfo.ts";
 
 export class Payments {
     static page() {
@@ -31,5 +32,23 @@ export class Payments {
                 )
             )
         );
+    }
+
+    static available() {
+        const info = signal<RoyaltyInfo|null>(null);
+        const total = compute(a => "Total " + currency(a?.total), info);
+        const paidOut = compute(a => "Paid out " + currency(a?.paidOut), info);
+        const available = compute(a => "Available " + currency(a?.available), info);
+
+        const loading = signal(true);
+        Api.getAvailablePaymentAmount()
+            .then(a => info.value = a)
+            .finally(() => loading.value = false);
+
+        return Generics.container(1, [
+            ifjs(total, Generics.heading(3, total)),
+            ifjs(paidOut, Generics.heading(3, paidOut)),
+            ifjs(available, Generics.heading(2, available)),
+        ]);
     }
 }

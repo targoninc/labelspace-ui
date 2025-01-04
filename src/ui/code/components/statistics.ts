@@ -10,6 +10,7 @@ import {statisticsFromSignal} from "../functions/templates.ts";
 import {currentUser} from "../state.ts";
 import {Generics} from "./generics.ts";
 import {FJSC} from "../../fjsc";
+import {Payments} from "./payments.ts";
 
 Chart.register(...registerables);
 
@@ -163,6 +164,7 @@ export class Statistics {
 
     static page() {
         return Generics.pageFrame(
+            Payments.available(),
             Statistics.stats()
         );
     }
