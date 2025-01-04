@@ -3,6 +3,7 @@ import {currentUser} from "../state.ts";
 import {Api} from "../api/api.ts";
 import {signal} from "../../fjsc/src/signals.ts";
 import {ifjs} from "../../fjsc/src/f2.ts";
+import {currency} from "../functions/formatters.ts";
 
 export class Payments {
     static page() {
@@ -26,7 +27,7 @@ export class Payments {
                 payments,
                 (payment: any) => Generics.tableRow(
                     new Date(payment.date).toLocaleString(),
-                    payment.amount
+                    currency(payment.amount)
                 )
             )
         );
