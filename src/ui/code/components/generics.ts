@@ -7,7 +7,7 @@ import {Account} from "./account.ts";
 import {Users} from "./users.ts";
 import {User} from "../models/db/tri/User.ts";
 import {Permissions} from "../enums/Permissions.ts";
-import {currentUser, userLoading} from "../state.ts";
+import {currentRoute, currentUser, userLoading} from "../state.ts";
 import type {NavItem} from "../models/NavItem.ts";
 import {Statistics} from "./statistics.ts";
 import {Payments} from "./payments.ts";
@@ -209,14 +209,14 @@ export const routes: Route[] = [
         path: "dashboard",
         title: "Dashboard",
         template: Statistics.page,
-        icon: "dashboard",
+        icon: "analytics",
         showInNav: (u: User) => !!u
     },
     {
         path: "payments",
         title: "Payments",
         template: Payments.page,
-        icon: "money",
+        icon: "receipt",
         showInNav: (u: User) => !!u
     }
 ];

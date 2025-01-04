@@ -77,6 +77,7 @@ a.button {
 
 a.button:hover {
     background: var(--gray-2);
+    color: var(--black);
 }
 
 .flex, .flex-v {
@@ -192,12 +193,19 @@ b {
     justify-content: space-between;
 }
 
-button.positive {
+button.positive, .button.positive {
     background: var(--green);
+    color: var(--white);
 }
 
-button.negative {
+button.negative, .button.negative {
     background: var(--red);
+    color: var(--white);
+}
+
+button.active, .button.active {
+    background: var(--blue);
+    color: var(--white);
 }
 
 .header-logo {
