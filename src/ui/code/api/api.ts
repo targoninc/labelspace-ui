@@ -1,6 +1,7 @@
 import {Fetcher} from "./fetcher.ts";
 import {User} from "../models/db/tri/User.ts";
 import {Statistic} from "../models/Statistic.ts";
+import {Payment} from "../models/db/finance/Payment.ts";
 
 const base = window.location.origin.includes("localhost") ? "http://localhost:8090" : "https://artists-api.trirecords.eu";
 
@@ -45,5 +46,9 @@ export class Api {
 
     static async getRoyaltiesByTrack() {
         return await Fetcher.get<Statistic[]>(base + "/statistics/royaltiesByTrack");
+    }
+
+    static async getPayments() {
+        return await Fetcher.get<Payment[]>(base + "/payments/get");
     }
 }

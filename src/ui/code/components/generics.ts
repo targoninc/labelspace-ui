@@ -10,6 +10,7 @@ import {Permissions} from "../enums/Permissions.ts";
 import {currentUser, userLoading} from "../state.ts";
 import type {NavItem} from "../models/NavItem.ts";
 import {Statistics} from "./statistics.ts";
+import {Payments} from "./payments.ts";
 
 export class Generics {
     static notFound() {
@@ -169,6 +170,13 @@ export class Generics {
                     .build())
             ).build();
     }
+
+    static tableRow(...data: any[]) {
+        return create("tr")
+            .children(
+                ...data.map(d => create("td").text(d).build())
+            ).build();
+    }
 }
 
 export const routes: Route[] = [
@@ -202,6 +210,13 @@ export const routes: Route[] = [
         title: "Dashboard",
         template: Statistics.page,
         icon: "dashboard",
+        showInNav: (u: User) => !!u
+    },
+    {
+        path: "payments",
+        title: "Payments",
+        template: Payments.page,
+        icon: "money",
         showInNav: (u: User) => !!u
     }
 ];

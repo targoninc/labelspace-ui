@@ -70,7 +70,7 @@ export class Account {
                 newPasswordConfirm: password2.value
             }).then(() => {
                 success.value = true;
-                message.value = "Password reset successful. You can close this page.";
+                message.value = "Password reset successful. You can now login with your new password.";
                 setTimeout(() => {
                     window.close();
                 }, 5000);
