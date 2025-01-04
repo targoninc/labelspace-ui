@@ -29,7 +29,7 @@ export class Users {
             ifjs(loading, Generics.loading()),
             Generics.heading(2, "Users"),
             Generics.table(
-                ["Username", "Artists"],
+                ["Username", "Artists", "Permissions"],
                 users,
                 (user: User) => Users.userInTable(user)
             )
@@ -44,6 +44,9 @@ export class Users {
                     .build(),
                 create("td")
                     .text(user.artists?.map(a => a.name).join(", ") ?? "No artists")
+                    .build(),
+                create("td")
+                    .text(user.permissions?.map(p => p.name).join(", ") ?? "No permissions")
                     .build()
             ).build();
     }

@@ -3,4 +3,5 @@ export enum Permissions {
     userManagement = "userManagement",
     releaseManagement = "releaseManagement",
     releaseEditing = "releaseEditing",
+    importData = "importData",
 }

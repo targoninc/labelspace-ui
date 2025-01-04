@@ -11,6 +11,8 @@ import {currentRoute, currentUser, userLoading} from "../state.ts";
 import type {NavItem} from "../models/NavItem.ts";
 import {Statistics} from "./statistics.ts";
 import {Payments} from "./payments.ts";
+import {Logs} from "./logs.ts";
+import {Albums} from "./albums.ts";
 
 export class Generics {
     static notFound() {
@@ -218,5 +220,26 @@ export const routes: Route[] = [
         template: Payments.page,
         icon: "receipt",
         showInNav: (u: User) => !!u
+    },
+    {
+        path: "logs",
+        title: "Logs",
+        template: Logs.page,
+        icon: "history",
+        showInNav: (u: User) => u && (u.permissions?.some(p => p.name === Permissions.canViewLogs) ?? false)
+    },
+    {
+        path: "releases",
+        title: "Releases",
+        template: Albums.page,
+        icon: "album",
+        showInNav: (u: User) => !!u
+    },
+    {
+        path: "new-album",
+        title: "New album",
+        template: Albums.createPage,
+        icon: "album",
+        showInNav: (u: User) => false
     }
 ];

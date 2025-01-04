@@ -29,4 +29,30 @@ export class Inputs {
             }
         });
     }
+
+    static date(value: Signal<Date>, label: string, name: string) {
+        return FJSC.input<Date>({
+            type: InputType.date,
+            name,
+            label,
+            value,
+            attributes: ["autocomplete", name],
+            onchange: (v) => {
+                value.value = v;
+            }
+        });
+    }
+
+    static number(value: Signal<number>, label: string, name: string) {
+        return FJSC.input<number>({
+            type: InputType.number,
+            name,
+            label,
+            value,
+            attributes: ["autocomplete", name],
+            onchange: (v) => {
+                value.value = v;
+            }
+        });
+    }
 }

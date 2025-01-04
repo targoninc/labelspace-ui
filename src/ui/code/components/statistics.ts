@@ -1,16 +1,22 @@
 import {Chart, registerables} from "chart.js";
 import {BoxPlotChart} from "@sgratzl/chartjs-chart-boxplot";
 import {create, HtmlPropertyValue, ifjs} from "../../fjsc/src/f2.ts";
-import {ChartOptions} from "../enums/ChartOptions.ts";
+import {CustomChartOptions} from "../enums/CustomChartOptions.ts";
 import {Colors} from "../enums/Colors.ts";
 import {Statistic} from "../models/Statistic.ts";
-import {signal} from "../../fjsc/src/signals.ts";
+import {compute, signal} from "../../fjsc/src/signals.ts";
 import {Api} from "../api/api.ts";
 import {statisticsFromSignal} from "../functions/templates.ts";
 import {currentUser} from "../state.ts";
 import {Generics} from "./generics.ts";
 import {FJSC} from "../../fjsc";
 import {Payments} from "./payments.ts";
+import {ExtendedChartOptions} from "../models/ExtendedChartOptions.ts";
+import {Permissions} from "../enums/Permissions.ts";
+import {navigate} from "../routing/Router.ts";
+import {notify} from "../functions/notifications.ts";
+import {NotificationType} from "../enums/NotificationType.ts";
+import {Migration} from "./migration.ts";
 
 Chart.register(...registerables);
 
@@ -37,8 +43,8 @@ export class Statistics {
             type: "doughnut",
             data: data,
             options: {
-                ...ChartOptions.defaultOptions,
-                ...ChartOptions.noGridOptions
+                ...CustomChartOptions.defaultOptions(),
+                ...CustomChartOptions.noGridOptions
             }
         };
 
@@ -55,7 +61,7 @@ export class Statistics {
             ).build();
     }
 
-    static barChart(labels, values, valueTitle, title, id, colors = usedColors) {
+    static barChart(labels, values, valueTitle, title, id, colors = usedColors, opts: ExtendedChartOptions = {}) {
         const ctx = create("canvas")
             .classes("chart")
             .id(id)
@@ -74,7 +80,7 @@ export class Statistics {
         const config = {
             type: "bar",
             data: data,
-            options: ChartOptions.defaultOptions
+            options: CustomChartOptions.defaultOptions(opts)
         };
 
         new Chart(ctx, config);
@@ -110,7 +116,7 @@ export class Statistics {
         const config = {
             type: "boxplot",
             data: data,
-            options: ChartOptions.defaultOptions
+            options: CustomChartOptions.defaultOptions()
         };
 
         new BoxPlotChart(ctx, config);
@@ -136,8 +142,7 @@ export class Statistics {
                         create("span")
                             .text("No data yet")
                             .build()
-                    )
-                    .build(),
+                    ).build(),
             ).build();
     }
 
@@ -159,11 +164,14 @@ export class Statistics {
         if (labels.length === 0) {
             return Statistics.noData("Royalties by track");
         }
-        return Statistics.donutChart(labels, values, "Royalties", "Royalties by track", "royaltiesByTrackChart", usedColors);
+        return Statistics.barChart(labels, values, "Royalties", "Royalties by track", "royaltiesByTrackChart", usedColors);
     }
 
     static page() {
+        const hasImportPermission = compute(u => u?.permissions?.some(p => p.name === Permissions.importData), currentUser);
+
         return Generics.pageFrame(
+            ifjs(hasImportPermission, Migration.dataImport()),
             Payments.available(),
             Statistics.stats()
         );
