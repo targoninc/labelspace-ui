@@ -6,6 +6,7 @@ import {RoyaltyInfo} from "../models/RoyaltyInfo.ts";
 import {Log} from "../models/db/tri/Log.ts";
 import {Album} from "../models/db/tri/Album.ts";
 import {CreateAlbumRequestBody} from "../models/CreateAlbumRequestBody.ts";
+import {Track} from "../models/db/tri/Track.ts";
 
 const base = window.location.origin.includes("localhost") ? "http://localhost:8090" : "https://artists-api.trirecords.eu";
 
@@ -82,5 +83,13 @@ export class Api {
 
     static async getAlbum(id: number) {
         return await Fetcher.get<Album>(base + "/albums/byId?id=" + id);
+    }
+
+    static getTrack(id: number) {
+        return Fetcher.get<Track>(base + "/tracks/byId?id=" + id);
+    }
+
+    static updateTrack(id: number, track: Partial<Track>) {
+        return Fetcher.post(base + "/tracks/actions/update", { id, track });
     }
 }

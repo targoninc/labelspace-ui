@@ -5,7 +5,7 @@ export interface Track {
     repost_user_id?: number;
     user?: User;
     comments?: Comment[];
-    albums?: Album[];
+    album?: Album;
     notifications?: Notification[];
     id: number;
     album_id?: number;

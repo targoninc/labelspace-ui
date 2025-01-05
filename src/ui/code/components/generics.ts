@@ -13,6 +13,7 @@ import {Statistics} from "./statistics.ts";
 import {Payments} from "./payments.ts";
 import {Logs} from "./logs.ts";
 import {Albums} from "./albums.ts";
+import {Tracks} from "./tracks.ts";
 
 export class Generics {
     static notFound() {
@@ -249,6 +250,14 @@ export const routes: Route[] = [
         pathParams: ["id"],
         title: "Album",
         template: Albums.albumPage,
+        icon: "album",
+        showInNav: () => false
+    },
+    {
+        path: "track",
+        pathParams: ["id"],
+        title: "Track",
+        template: Tracks.trackPage,
         icon: "album",
         showInNav: () => false
     }

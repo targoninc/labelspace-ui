@@ -125,10 +125,10 @@ export class Albums {
         return create("div")
             .classes("flex-v")
             .children(
-                Generics.heading(3, title),
                 create("div")
                     .classes("flex-v")
                     .children(
+                        Inputs.text(title, "Title", "title"),
                         Inputs.text(upc, "UPC", "upc"),
                         Inputs.date(releaseDate, "Release date", "release_date"),
                         Inputs.number(price, "Price", "price"),
@@ -136,10 +136,16 @@ export class Albums {
                 Generics.table(
                     ["Track", "Price"],
                     tracks,
-                    (track: Track) => Generics.tableRow(
-                        track.title,
-                        currency(track.price)
-                    )
+                    (track: Track) => create("tr")
+                        .onclick(() => navigate("/track/" + track.id))
+                        .children(
+                            create("td")
+                                .text(track.title)
+                                .build(),
+                            create("td")
+                                .text(currency(track.price))
+                                .build(),
+                        ).build()
                 )
             ).build();
     }

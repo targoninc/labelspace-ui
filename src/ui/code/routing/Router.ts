@@ -1,5 +1,5 @@
 import {signal} from "../../fjsc/src/signals.ts";
-import {currentRoute, currentUser, router} from "../state.ts";
+import {currentRoute, currentUser, router, userLoading} from "../state.ts";
 import {Route} from "./Route.ts";
 import {Generics} from "../components/generics.ts";
 
@@ -87,7 +87,7 @@ const content = document.querySelector("#content");
 router.value = new Router([], async (route: Route, params: any) => {
     content.innerHTML = "";
 
-    if (!currentUser.value) {
+    if (!currentUser.value && !userLoading.value) {
         if (!route.allowWithoutLogin) {
             navigate("404");
             return;
