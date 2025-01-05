@@ -266,4 +266,6 @@ button.fjsc {
 
 .statistic {
     width: min(100%, 600px);
+    border: 1px solid var(--gray-5);
+    padding: var(--layout-gap);
 }

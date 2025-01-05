@@ -1,8 +1,8 @@
 import {User} from "./User.js";
-import {AlbumTrack} from "./AlbumTrack.js";
+import {Track} from "./Track.ts";
 
 export interface Album {
-    tracks?: AlbumTrack[];
+    tracks?: Track[];
     user?: User;
     id: number;
     user_id: number;

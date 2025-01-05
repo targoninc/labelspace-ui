@@ -75,4 +75,12 @@ export class Api {
     static async importData() {
         return await Fetcher.post(base + "/migration/import");
     }
+
+    static async getRoyaltiesByArtist() {
+        return await Fetcher.get<Statistic[]>(base + "/statistics/royaltiesByArtist");
+    }
+
+    static async getAlbum(id: number) {
+        return await Fetcher.get<Album>(base + "/albums/byId?id=" + id);
+    }
 }

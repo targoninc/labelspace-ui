@@ -69,7 +69,7 @@ export class Generics {
             .build();
     }
 
-    static message(message: Signal<string>) {
+    static message(message: StringOrSignal) {
         return ifjs(message, create("span")
             .text(message)
             .build());
@@ -240,6 +240,14 @@ export const routes: Route[] = [
         title: "New album",
         template: Albums.createPage,
         icon: "album",
-        showInNav: (u: User) => false
+        showInNav: () => false
+    },
+    {
+        path: "album",
+        pathParams: ["id"],
+        title: "Album",
+        template: Albums.albumPage,
+        icon: "album",
+        showInNav: () => false
     }
 ];

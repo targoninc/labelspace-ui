@@ -167,13 +167,24 @@ export class Statistics {
         return Statistics.barChart(labels, values, "Royalties", "Royalties by track", "royaltiesByTrackChart", usedColors);
     }
 
+    static royaltiesByArtistChart(labels: string[], values: number[]) {
+        if (labels.length === 0) {
+            return Statistics.noData("Royalties by artist");
+        }
+        return Statistics.barChart(labels, values, "Royalties", "Royalties by artist", "royaltiesByArtistChart", usedColors);
+    }
+
     static page() {
         const hasImportPermission = compute(u => u?.permissions?.some(p => p.name === Permissions.importData), currentUser);
 
         return Generics.pageFrame(
-            ifjs(hasImportPermission, Migration.dataImport()),
-            Payments.available(),
-            Statistics.stats()
+            create("div")
+                .classes("flex-v")
+                .children(
+                    ifjs(hasImportPermission, Migration.dataImport()),
+                    Payments.available(),
+                    Statistics.stats()
+                ).build()
         );
     }
 
@@ -188,6 +199,7 @@ export class Statistics {
                 Statistics.singleStatistic("Royalties by month", Api.getRoyaltiesByMonth, Statistics.royaltiesByMonthChart),
                 Statistics.singleStatistic("Royalties by year", Api.getRoyaltiesByYear, Statistics.royaltiesByYearChart),
                 Statistics.singleStatistic("Royalties by track", Api.getRoyaltiesByTrack, Statistics.royaltiesByTrackChart),
+                Statistics.singleStatistic("Royalties by artist", Api.getRoyaltiesByArtist, Statistics.royaltiesByArtistChart),
             ).build();
     }
 
