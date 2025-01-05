@@ -8,5 +8,6 @@ export interface Route {
     pathParams?: string[];
     aliases?: string[];
     template: Function;
+    allowWithoutLogin?: boolean;
     showInNav?: (user: User, permissions: Permission[]) => boolean;
 }

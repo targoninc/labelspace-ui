@@ -1,6 +1,7 @@
 import {signal} from "../../fjsc/src/signals.ts";
-import {currentRoute, router} from "../state.ts";
+import {currentRoute, currentUser, router} from "../state.ts";
 import {Route} from "./Route.ts";
+import {Generics} from "../components/generics.ts";
 
 export class Router {
     public currentRoute = signal<Route|null>(null);
@@ -85,6 +86,13 @@ export class Router {
 const content = document.querySelector("#content");
 router.value = new Router([], async (route: Route, params: any) => {
     content.innerHTML = "";
+
+    if (!currentUser.value) {
+        if (!route.allowWithoutLogin) {
+            navigate("404");
+            return;
+        }
+    }
     const component = await route.template(route, params);
     content.appendChild(component);
     content.firstElementChild?.scrollIntoView();

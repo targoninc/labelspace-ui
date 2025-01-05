@@ -98,8 +98,6 @@ export class Albums {
     }
 
     static albumPage(route: Route, params: any) {
-        console.log(params);
-
         const album = signal<Album|null>(null);
         const loading = signal(false);
         Api.getAlbum(params.id ?? 0)
@@ -117,10 +115,7 @@ export class Albums {
         );
     }
 
-    private static album(value: Signal<Album | null>) {
-        if (!value) {
-            return Generics.message("Album not found");
-        }
+    static album(value: Signal<Album | null>) {
         const title = compute(a => a?.title ?? "Album", value);
         const upc = compute(a => a?.upc ?? "No UPC", value);
         const releaseDate = compute(a => new Date(a?.release_date), value);

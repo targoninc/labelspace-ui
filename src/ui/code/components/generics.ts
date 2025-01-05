@@ -186,12 +186,14 @@ export const routes: Route[] = [
         path: "404",
         title: "404",
         aliases: ["error", "not-found"],
-        template: Generics.notFound
+        template: Generics.notFound,
+        allowWithoutLogin: true
     },
     {
         path: "password-reset",
         title: "Password reset",
-        template: Account.passwordReset
+        template: Account.passwordReset,
+        allowWithoutLogin: true
     },
     {
         path: "users",

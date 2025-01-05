@@ -5,7 +5,6 @@ import {FJSC} from "../../fjsc";
 import {Api} from "../api/api.ts";
 import {currentUser} from "../state.ts";
 import {navigate} from "../routing/Router.ts";
-import {InputType} from "../../fjsc/src/Types.ts";
 import {Inputs} from "./inputs.ts";
 
 export class Account {
@@ -23,7 +22,7 @@ export class Account {
                 password: password.value
             });
             currentUser.value = await Api.getUser();
-            navigate("home");
+            navigate("dashboard");
         };
         const forgotPassword = async (e: MouseEvent) => {
             await Api.requestPasswordReset(username.value);
