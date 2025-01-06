@@ -236,7 +236,7 @@ export const routes: Route[] = [
         title: "Releases",
         template: Albums.page,
         icon: "album",
-        showInNav: (u: User) => !!u
+        showInNav: (u: User) => u && (u.permissions?.some(p => p.name === Permissions.releaseManagement) ?? false)
     },
     {
         path: "new-album",

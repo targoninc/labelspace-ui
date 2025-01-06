@@ -11,6 +11,8 @@ import {NotificationType} from "../enums/NotificationType.ts";
 import {Route} from "../routing/Route.ts";
 import {currency} from "../functions/formatters.ts";
 import {Track} from "../models/db/tri/Track.ts";
+import {currentUser} from "../state.ts";
+import {Permissions} from "../enums/Permissions.ts";
 
 export class Albums {
     static page() {
@@ -65,6 +67,18 @@ export class Albums {
         const release_date = signal(new Date());
         const price = signal(10);
         const anyEmpty = compute((t, u, r, p) => t === "" || u === "" || r === "" || p === 0, title, upc, release_date, price);
+        if (!currentUser.value?.permissions?.some(p => p.name === Permissions.releaseManagement)) {
+            return Generics.pageFrame(
+                create("div")
+                    .classes("flex-v")
+                    .children(
+                        Generics.heading(2, "Not allowed"),
+                        create("p")
+                            .text("You are not allowed to create albums.")
+                            .build()
+                    ).build()
+            );
+        }
 
         return Generics.pageFrame(
             create("div")
