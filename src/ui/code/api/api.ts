@@ -74,7 +74,14 @@ export class Api {
     }
 
     static async importData() {
-        return await Fetcher.post(base + "/migration/import");
+        return await Fetcher.post(base + "/data/import");
+    }
+
+    static async addRoyalties(csv: string) {
+        return await Fetcher.post(base + "/data/add", {
+            type: "royalties",
+            data: csv
+        });
     }
 
     static async getRoyaltiesByArtist() {

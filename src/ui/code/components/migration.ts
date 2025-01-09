@@ -24,6 +24,50 @@ export class Migration {
                         }).finally(() => loading.value = false);
                     }
                 }),
+                FJSC.button({
+                    text: "Upload royalties",
+                    classes: ["positive"],
+                    disabled: loading,
+                    onclick: async () => {
+                        loading.value = true;
+
+                        async function uploadFile(): Promise<File | null> {
+                            return new Promise((resolve, reject) => {
+                                const input = document.createElement("input");
+                                input.type = "file";
+                                input.accept = ".csv";
+                                input.style.display = "none";
+
+                                input.addEventListener("change", () => {
+                                    if (input.files && input.files.length > 0) {
+                                        resolve(input.files[0]);
+                                    } else {
+                                        resolve(null);
+                                    }
+                                });
+
+                                document.body.appendChild(input);
+                                input.click();
+
+                                input.addEventListener("blur", () => {
+                                    document.body.removeChild(input);
+                                });
+                            });
+                        }
+
+                        const file = await uploadFile();
+                        if (!file) {
+                            loading.value = false;
+                            notify("No file selected", NotificationType.error);
+                            return;
+                        }
+
+                        const content = await file.text();
+                        Api.addRoyalties(content).then(() => {
+                            notify("Imported data", NotificationType.success);
+                        }).finally(() => loading.value = false);
+                    }
+                }),
                 ifjs(loading, Generics.loading())
             ).build();
     }
