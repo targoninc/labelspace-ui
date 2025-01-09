@@ -7,7 +7,6 @@ import {Log} from "../models/db/tri/Log.ts";
 import {Album} from "../models/db/tri/Album.ts";
 import {CreateAlbumRequestBody} from "../models/CreateAlbumRequestBody.ts";
 import {Track} from "../models/db/tri/Track.ts";
-import {PaymentRequest} from "../models/db/finance/PaymentRequest.ts";
 
 const base = window.location.origin.includes("localhost") ? "http://localhost:8090" : "https://artists-api.trirecords.eu";
 
@@ -55,10 +54,7 @@ export class Api {
     }
 
     static async getPayments() {
-        return await Fetcher.get<{
-            payments: Payment[],
-            requests: PaymentRequest[],
-        }>(base + "/payments/get");
+        return await Fetcher.get<Payment[]>(base + "/payments/get");
     }
 
     static async getAvailablePaymentAmount() {

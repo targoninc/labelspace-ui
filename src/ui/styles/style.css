@@ -304,3 +304,19 @@ button.fjsc {
 .question-cursor {
     cursor: help;
 }
+
+.status-tr.requested {
+    color: var(--blue);
+}
+
+.status-tr.processing {
+    color: var(--cyan);
+}
+
+.status-tr.paid {
+    color: var(--green);
+}
+
+.status-tr.failed {
+    color: var(--red);
+}

@@ -8,7 +8,8 @@ import {RoyaltyInfo} from "../models/RoyaltyInfo.ts";
 import {FJSC} from "../../fjsc";
 import {Modals} from "./modals.ts";
 import {Payment} from "../models/db/finance/Payment.ts";
-import {PaymentRequest} from "../models/db/finance/PaymentRequest.ts";
+import {notify} from "../functions/notifications.ts";
+import {NotificationType} from "../enums/NotificationType.ts";
 
 export class Payments {
     static page() {
@@ -19,35 +20,44 @@ export class Payments {
         }
 
         const payments = signal<any[]>([]);
-        const requests = signal<any[]>([]);
         const loading = signal(false);
-        Api.getPayments()
-            .then(p => {
-                payments.value = p.payments;
-                requests.value = p.requests;
-            })
-            .finally(() => loading.value = false);
+        const load = () => {
+            Api.getPayments()
+                .then(p => payments.value = p)
+                .finally(() => loading.value = false);
+        }
+        load();
 
         return Generics.pageFrame(
-            Generics.heading(2, "Payments"),
-            ifjs(loading, Generics.loading()),
+            Generics.heading(2, "Payment history"),
+            create("div")
+                .classes("flex", "center-items")
+                .children(
+                    FJSC.button({
+                        text: "Refresh",
+                        icon: { icon: "refresh" },
+                        disabled: loading,
+                        onclick: load,
+                        classes: ["positive"]
+                    }),
+                    ifjs(loading, Generics.loading()),
+                ).build(),
             Generics.table(
-                ["Status", "Requested date", "Last update", "Amount"],
-                requests,
-                (request: PaymentRequest) => Generics.tableRow(
-                    request.status,
-                    new Date(request.created_at).toLocaleString(),
-                    new Date(request.updated_at).toLocaleString(),
-                    currency(request.amount)
-                )
-            ),
-            Generics.table(
-                ["Date", "Amount"],
+                ["Amount", "Status", "Date"],
                 payments,
-                (payment: Payment) => Generics.tableRow(
-                    new Date(payment.date).toLocaleString(),
-                    currency(payment.amount)
-                )
+                (payment: Payment) => create("tr")
+                    .classes("status-tr", payment.status)
+                    .children(
+                        create("td")
+                            .text(currency(payment.amount))
+                            .build(),
+                        create("td")
+                            .text(payment.status)
+                            .build(),
+                        create("td")
+                            .text(new Date(payment.created_at).toLocaleString())
+                            .build(),
+                    ).build()
             ),
         );
     }
@@ -82,6 +92,7 @@ export class Payments {
                                 requestLoading.value = true;
                                 Api.requestPayment().then(() => {
                                     loading.value = true;
+                                    notify("Payment successfully requested!", NotificationType.success);
                                     Api.getAvailablePaymentAmount()
                                         .then(a => info.value = a)
                                         .finally(() => loading.value = false);
