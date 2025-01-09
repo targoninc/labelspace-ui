@@ -151,7 +151,7 @@ b {
     content: "";
     position: absolute;
     background: var(--black);
-    opacity: .95;
+    opacity: .7;
     top: 0;
     left: 0;
     width: 100%;
@@ -166,7 +166,7 @@ b {
 .modal {
     position: absolute;
     border: 1px solid var(--black);
-    box-shadow: 0 10px 20px 7px var(--black);
+    box-shadow: 0 0 20dvw 0 var(--black);
     border-radius: calc(var(--radius) * 2);
     top: 50%;
     left: 50%;
@@ -306,17 +306,24 @@ button.fjsc {
 }
 
 .status-tr.requested {
-    color: var(--blue);
+    --status-color: var(--blue);
 }
 
 .status-tr.processing {
-    color: var(--cyan);
+    --status-color: var(--cyan);
 }
 
 .status-tr.paid {
-    color: var(--green);
+    --status-color: var(--green);
 }
 
 .status-tr.failed {
-    color: var(--red);
+    --status-color: var(--red);
+}
+
+.status-tr .status {
+    background: var(--status-color);
+    border-radius: 999px;
+    padding: var(--inline-padding);
+    font-size: .8rem;
 }

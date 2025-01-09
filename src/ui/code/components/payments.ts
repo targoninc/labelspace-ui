@@ -52,8 +52,12 @@ export class Payments {
                             .text(currency(payment.amount))
                             .build(),
                         create("td")
-                            .text(payment.status)
-                            .build(),
+                            .children(
+                                create("span")
+                                    .classes("status")
+                                    .text(payment.status)
+                                    .build(),
+                            ).build(),
                         create("td")
                             .text(new Date(payment.created_at).toLocaleString())
                             .build(),
@@ -64,7 +68,7 @@ export class Payments {
 
     static available() {
         const info = signal<RoyaltyInfo|null>(null);
-        const total = compute(a => "Total " + currency(a?.total), info);
+        const total = compute(a => "Total earned " + currency(a?.total), info);
         const paidOut = compute(a => "Paid out " + currency(a?.paidOut), info);
         const availableUsd = compute(a => currency(a?.available), info);
         const available = compute(a => "Available " + currency(a?.available), info);
@@ -99,7 +103,7 @@ export class Payments {
                                 }).finally(() => {
                                     requestLoading.value = false;
                                 });
-                            }, "Confirm request", `Are you sure you want to request a payment for ${availableUsd.value}?`)
+                            }, "Confirm request", compute(a => `Are you sure you want to request a payment for ${a} USD?`, availableUsd))
                         }
                     }),
                     ifjs(requestLoading, Generics.loading()),
