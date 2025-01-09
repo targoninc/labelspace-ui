@@ -35,6 +35,7 @@ export async function baseHtml(req: Request) {
 <body>
 <div id="content"></div>
 <div id="notifications"></div>
+<div id="modals"></div>
 </body>
 </html>`;
 }

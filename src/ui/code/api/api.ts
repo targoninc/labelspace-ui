@@ -99,4 +99,8 @@ export class Api {
     static updateTrack(id: number, track: Partial<Track>) {
         return Fetcher.post(base + "/tracks/actions/update", { id, track });
     }
+
+    static requestPayment() {
+        return Fetcher.post(base + "/payments/request");
+    }
 }

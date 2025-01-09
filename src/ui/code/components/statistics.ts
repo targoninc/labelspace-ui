@@ -196,14 +196,14 @@ export class Statistics {
         return create("div")
             .classes("flex")
             .children(
-                Statistics.singleStatistic("Royalties by month", Api.getRoyaltiesByMonth, Statistics.royaltiesByMonthChart),
+                Statistics.singleStatistic("Royalties by month", Api.getRoyaltiesByMonth, Statistics.royaltiesByMonthChart, "Royalty reporting is delayed by roughly 3 months. This is due to the fact that not all services report in time."),
                 Statistics.singleStatistic("Royalties by year", Api.getRoyaltiesByYear, Statistics.royaltiesByYearChart),
                 Statistics.singleStatistic("Royalties by track", Api.getRoyaltiesByTrack, Statistics.royaltiesByTrackChart),
                 Statistics.singleStatistic("Royalties by artist", Api.getRoyaltiesByArtist, Statistics.royaltiesByArtistChart),
             ).build();
     }
 
-    static singleStatistic(title: string, apiFunction: Function, template: Function) {
+    static singleStatistic(title: string, apiFunction: Function, template: Function, info: string|null = null) {
         const stats = signal<Statistic[]>([]);
         const loading = signal(false);
         const loadStatistic = () => {
@@ -226,6 +226,11 @@ export class Statistics {
                             icon: { icon: "refresh" },
                             onclick: loadStatistic
                         }), true),
+                        ifjs(info, FJSC.icon({
+                            icon: "info",
+                            classes: ["question-cursor"],
+                            title: info,
+                        })),
                         ifjs(loading, Generics.loading()),
                     ).build(),
                 statisticsFromSignal(stats, template)
