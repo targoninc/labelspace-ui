@@ -77,9 +77,13 @@ export class Payments {
         const available = compute(a => "Available " + currency(a?.available), info);
 
         const loading = signal(true);
-        Api.getAvailablePaymentAmount()
-            .then(a => info.value = a)
-            .finally(() => loading.value = false);
+        const load = () => {
+            loading.value = true;
+            Api.getAvailablePaymentAmount()
+                .then(a => info.value = a)
+                .finally(() => loading.value = false);
+        }
+        load();
         const requestLoading = signal(false);
 
         return Generics.container(1, [
@@ -98,11 +102,8 @@ export class Payments {
                             Modals.confirm(() => {
                                 requestLoading.value = true;
                                 Api.requestPayment().then(() => {
-                                    loading.value = true;
                                     notify("Payment successfully requested!", NotificationType.success);
-                                    Api.getAvailablePaymentAmount()
-                                        .then(a => info.value = a)
-                                        .finally(() => loading.value = false);
+                                    load();
                                 }).finally(() => {
                                     requestLoading.value = false;
                                 });

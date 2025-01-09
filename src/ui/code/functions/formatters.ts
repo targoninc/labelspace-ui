@@ -1,4 +1,4 @@
-export function currency(value: number, currency = "USD") {
+export function currency(value: number|undefined|null, currency = "USD") {
     if (!value) {
         return "--";
     }

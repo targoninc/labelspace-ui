@@ -1,4 +1,4 @@
-import {AnyNode, create, ifjs} from "../../fjsc/src/f2.ts";
+import {AnyNode, create, ifjs, StringOrSignal} from "../../fjsc/src/f2.ts";
 import {Generics} from "./generics.ts";
 import {FJSC} from "../../fjsc";
 import {addModal, removeLastModal} from "../functions/modals.ts";
@@ -13,13 +13,15 @@ export class Modals {
             ).build();
     }
 
-    static confirm(action: Function, title: string, message: string, onCancel: Function = () => {
+    static confirm(action: Function, title: StringOrSignal, message: StringOrSignal, onCancel: Function = () => {
     }) {
         const loading = signal(false);
 
         addModal(Modals.modalBase(
             Generics.heading(1, title),
-            create("p").text(message).build(),
+            create("p")
+                .text(message)
+                .build(),
             create("div")
                 .classes("flex", "center-items")
                 .children(
