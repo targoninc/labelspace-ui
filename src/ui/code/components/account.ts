@@ -39,6 +39,7 @@ export class Account {
                         Inputs.password(password),
                         ifjs(filledBoth, FJSC.button({
                             text: "Login",
+                            icon: { icon: "login" },
                             onclick: login,
                             classes: ["positive"]
                         })),

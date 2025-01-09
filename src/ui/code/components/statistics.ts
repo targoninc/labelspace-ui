@@ -13,9 +13,6 @@ import {FJSC} from "../../fjsc";
 import {Payments} from "./payments.ts";
 import {ExtendedChartOptions} from "../models/ExtendedChartOptions.ts";
 import {Permissions} from "../enums/Permissions.ts";
-import {navigate} from "../routing/Router.ts";
-import {notify} from "../functions/notifications.ts";
-import {NotificationType} from "../enums/NotificationType.ts";
 import {Migration} from "./migration.ts";
 
 Chart.register(...registerables);

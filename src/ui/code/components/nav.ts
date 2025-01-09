@@ -18,6 +18,7 @@ export class Nav {
                 Generics.heading(3, username),
                 FJSC.button({
                     text: "Logout",
+                    icon: { icon: "logout" },
                     classes: ["negative"],
                     onclick: async () => {
                         await Api.logout();

@@ -7,6 +7,8 @@ import {currency} from "../functions/formatters.ts";
 import {RoyaltyInfo} from "../models/RoyaltyInfo.ts";
 import {FJSC} from "../../fjsc";
 import {Modals} from "./modals.ts";
+import {Payment} from "../models/db/finance/Payment.ts";
+import {PaymentRequest} from "../models/db/finance/PaymentRequest.ts";
 
 export class Payments {
     static page() {
@@ -17,22 +19,36 @@ export class Payments {
         }
 
         const payments = signal<any[]>([]);
+        const requests = signal<any[]>([]);
         const loading = signal(false);
         Api.getPayments()
-            .then(p => payments.value = p)
+            .then(p => {
+                payments.value = p.payments;
+                requests.value = p.requests;
+            })
             .finally(() => loading.value = false);
 
         return Generics.pageFrame(
             Generics.heading(2, "Payments"),
             ifjs(loading, Generics.loading()),
             Generics.table(
+                ["Status", "Requested date", "Last update", "Amount"],
+                requests,
+                (request: PaymentRequest) => Generics.tableRow(
+                    request.status,
+                    new Date(request.created_at).toLocaleString(),
+                    new Date(request.updated_at).toLocaleString(),
+                    currency(request.amount)
+                )
+            ),
+            Generics.table(
                 ["Date", "Amount"],
                 payments,
-                (payment: any) => Generics.tableRow(
+                (payment: Payment) => Generics.tableRow(
                     new Date(payment.date).toLocaleString(),
                     currency(payment.amount)
                 )
-            )
+            ),
         );
     }
 

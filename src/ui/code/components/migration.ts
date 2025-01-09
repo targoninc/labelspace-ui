@@ -15,6 +15,7 @@ export class Migration {
             .children(
                 FJSC.button({
                     text: "Import data",
+                    icon: { icon: "database" },
                     classes: ["positive"],
                     disabled: loading,
                     onclick: () => {
@@ -26,6 +27,7 @@ export class Migration {
                 }),
                 FJSC.button({
                     text: "Upload royalties",
+                    icon: { icon: "upload" },
                     classes: ["positive"],
                     disabled: loading,
                     onclick: async () => {
@@ -45,6 +47,9 @@ export class Migration {
                                         resolve(null);
                                     }
                                 });
+
+                                input.onabort = () => loading.value = false;
+                                input.oncancel = () => loading.value = false;
 
                                 document.body.appendChild(input);
                                 input.click();
