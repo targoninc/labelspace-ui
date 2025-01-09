@@ -29,40 +29,43 @@ export class Payments {
         load();
 
         return Generics.pageFrame(
-            Generics.heading(2, "Payment history"),
             create("div")
-                .classes("flex", "center-items")
+                .classes("flex-v")
                 .children(
-                    FJSC.button({
-                        text: "Refresh",
-                        icon: { icon: "refresh" },
-                        disabled: loading,
-                        onclick: load,
-                        classes: ["positive"]
-                    }),
-                    ifjs(loading, Generics.loading()),
-                ).build(),
-            Generics.table(
-                ["Amount", "Status", "Date"],
-                payments,
-                (payment: Payment) => create("tr")
-                    .classes("status-tr", payment.status)
-                    .children(
-                        create("td")
-                            .text(currency(payment.amount))
-                            .build(),
-                        create("td")
+                    Generics.heading(2, "Payment history"),
+                    create("div")
+                        .classes("flex", "center-items")
+                        .children(
+                            FJSC.button({
+                                text: "Refresh",
+                                icon: { icon: "refresh" },
+                                disabled: loading,
+                                onclick: load,
+                            }),
+                            ifjs(loading, Generics.loading()),
+                        ).build(),
+                    Generics.table(
+                        ["Amount", "Status", "Date"],
+                        payments,
+                        (payment: Payment) => create("tr")
+                            .classes("status-tr", payment.status)
                             .children(
-                                create("span")
-                                    .classes("status")
-                                    .text(payment.status)
+                                create("td")
+                                    .text(currency(payment.amount))
                                     .build(),
-                            ).build(),
-                        create("td")
-                            .text(new Date(payment.created_at).toLocaleString())
-                            .build(),
-                    ).build()
-            ),
+                                create("td")
+                                    .children(
+                                        create("span")
+                                            .classes("status")
+                                            .text(payment.status)
+                                            .build(),
+                                    ).build(),
+                                create("td")
+                                    .text(new Date(payment.created_at).toLocaleString())
+                                    .build(),
+                            ).build()
+                    ),
+                ).build(),
         );
     }
 
