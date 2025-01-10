@@ -315,9 +315,20 @@ export class Albums {
                                                 disabled: loading,
                                                 onclick: () => {
                                                     loading.value = true;
-                                                    Api.addTrackToAlbum(track.id, album.value?.id ?? 0).then(() => {
-                                                        load();
-                                                    }).finally(() => loading.value = false);
+                                                    const add = () => {
+                                                        Api.addTrackToAlbum(track.id, album.value?.id ?? 0).then(() => {
+                                                            load();
+                                                        }).finally(() => loading.value = false);
+                                                    }
+
+                                                    Api.getTrack(track.id)
+                                                        .then(track => {
+                                                            if (track.album_id) {
+                                                                Modals.confirm(add, "Conflict", "This track is already in an album. Do you want to add it to this album? This will remove it from the other album.");
+                                                            } else {
+                                                                add();
+                                                            }
+                                                        });
                                                 }
                                             }),
                                         ).build()
