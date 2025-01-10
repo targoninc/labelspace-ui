@@ -262,42 +262,42 @@ export const routes: Route[] = [
         title: "Users",
         template: Users.listPage,
         icon: "group",
-        showInNav: (u: User) => u && (u.permissions?.some(p => p.name === Permissions.userManagement) ?? false)
+        showInNav: (u) => !!u && (u.permissions?.some(p => p.name === Permissions.userManagement) ?? false)
     },
     {
         path: "profile",
         title: "Profile",
         template: Users.profile,
         icon: "person",
-        showInNav: (u: User) => !!u
+        showInNav: (u) => !!u
     },
     {
         path: "dashboard",
         title: "Dashboard",
         template: Statistics.page,
         icon: "analytics",
-        showInNav: (u: User) => !!u
+        showInNav: (u) => !!u
     },
     {
         path: "payments",
         title: "Payments",
         template: Payments.page,
         icon: "receipt",
-        showInNav: (u: User) => !!u
+        showInNav: (u) => !!u
     },
     {
         path: "logs",
         title: "Logs",
         template: Logs.page,
         icon: "history",
-        showInNav: (u: User) => u && (u.permissions?.some(p => p.name === Permissions.canViewLogs) ?? false)
+        showInNav: (u) => !!u && (u.permissions?.some(p => p.name === Permissions.canViewLogs) ?? false)
     },
     {
         path: "releases",
         title: "Releases",
         template: Albums.page,
         icon: "album",
-        showInNav: (u: User) => u && (u.permissions?.some(p => p.name === Permissions.releaseManagement) ?? false)
+        showInNav: (u) => !!u && (u.permissions?.some(p => p.name === Permissions.releaseManagement) ?? false)
     },
     {
         path: "new-album",

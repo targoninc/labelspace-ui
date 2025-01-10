@@ -8,5 +8,5 @@ export interface Route {
     aliases?: string[];
     template: Function;
     allowWithoutLogin?: boolean;
-    showInNav?: (user: User) => boolean;
+    showInNav?: (user: User|null) => boolean;
 }
