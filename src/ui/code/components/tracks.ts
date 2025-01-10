@@ -11,6 +11,8 @@ import {navigate} from "../routing/Router.ts";
 import {NotificationType} from "../enums/NotificationType.ts";
 import {currentUser} from "../state.ts";
 import {Permissions} from "../enums/Permissions.ts";
+import {ServiceLink} from "../models/ServiceLink.ts";
+import {LinkServices} from "../enums/LinkServices.ts";
 
 export class Tracks {
     static trackPage(route: Route, params: any) {
@@ -123,6 +125,7 @@ export class Tracks {
         const credits = signal("");
         const release_date = signal(new Date());
         const price = signal(1);
+        const serviceLinks = signal<ServiceLink[]>([]);
         const anyEmpty = compute((t, u, r, p) => t === "" || u === "" || r === null || p === 0, title, artists, release_date, price);
         if (!currentUser.value?.permissions?.some(p => p.name === Permissions.releaseManagement)) {
             return Generics.pageFrame(
@@ -131,7 +134,7 @@ export class Tracks {
                     .children(
                         Generics.heading(2, "Not allowed"),
                         create("p")
-                            .text("You are not allowed to create albums.")
+                            .text("You are not allowed to create tracks.")
                             .build()
                     ).build()
             );
@@ -141,18 +144,21 @@ export class Tracks {
             create("div")
                 .classes("flex-v")
                 .children(
-                    Generics.heading(2, "Create album"),
+                    Generics.heading(2, "Create track"),
                     Inputs.text(title, "Title", "title"),
                     Inputs.text(artists, "Artists", "artists"),
                     Inputs.date(release_date, "Release date", "release_date"),
                     Inputs.text(isrc, "ISRC", "isrc"),
                     Inputs.text(credits, "Credits", "credits"),
                     Inputs.number(price, "Price", "price"),
+                    Inputs.serviceLinks(serviceLinks),
                     FJSC.button({
                         text: "Create",
                         classes: ["positive"],
                         disabled: anyEmpty,
                         onclick: () => {
+                            const links = serviceLinks.value;
+
                             Api.createTrack({
                                 title: title.value,
                                 artists: artists.value,
@@ -162,12 +168,12 @@ export class Tracks {
                                 credits: credits.value,
                                 genre: "",
                                 visibility: "",
-                                link_spotify: "",
-                                link_youtube: "",
-                                link_soundcloud: "",
-                                link_applemusic: "",
-                                link_bandcamp: "",
-                                link_lyda: ""
+                                link_spotify: links.find(l => l.service === LinkServices.spotify)?.link ?? "",
+                                link_youtube: links.find(l => l.service === LinkServices.youtube)?.link ?? "",
+                                link_soundcloud: links.find(l => l.service === LinkServices.soundcloud)?.link ?? "",
+                                link_applemusic: links.find(l => l.service === LinkServices.applemusic)?.link ?? "",
+                                link_bandcamp: links.find(l => l.service === LinkServices.bandcamp)?.link ?? "",
+                                link_lyda: links.find(l => l.service === LinkServices.lyda)?.link ?? "",
                             }).then(() => {
                                 notify("Track created", NotificationType.success);
                                 navigate("/releases");

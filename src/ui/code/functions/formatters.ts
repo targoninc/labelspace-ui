@@ -8,3 +8,17 @@ export function currency(value: number|undefined|null, currency = "USD") {
         currency
     }).format(value);
 }
+
+export function linkPath(link: string) {
+    const noProtocol = link.replace(/^https?:\/\//, "");
+    const removeGetStrings = ["spotify", "lyda", "apple", "bandcamp", "soundcloud"];
+    let noParams = noProtocol;
+    if (removeGetStrings.some(s => noProtocol.includes(s))) {
+        noParams = noProtocol.split("?")[0];
+    }
+    const firstSlash = noParams.indexOf("/");
+    if (firstSlash > 0) {
+        noParams = noParams.substring(firstSlash, noParams.length);
+    }
+    return noParams;
+}

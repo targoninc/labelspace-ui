@@ -174,7 +174,7 @@ b {
 #modals:before {
     content: "";
     position: absolute;
-    background: var(--black);
+    background: black;
     opacity: .7;
     top: 0;
     left: 0;
@@ -190,7 +190,7 @@ b {
 .modal {
     position: absolute;
     border: 1px solid var(--black);
-    box-shadow: 0 0 20dvw 0 var(--black);
+    box-shadow: 0 0 20dvw 0 black;
     border-radius: calc(var(--radius) * 2);
     top: 50%;
     left: 50%;
@@ -352,4 +352,52 @@ button.fjsc {
     border-radius: 999px;
     padding: var(--inline-padding);
     font-size: .8rem;
+}
+
+.clickable-icon {
+    cursor: pointer;
+    border-radius: 999px;
+    padding: var(--small-gap);
+    width: 1.5em;
+    height: 1.5em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: inherit !important;
+}
+
+.clickable-icon:hover {
+    background: rgba(100, 100, 100, .5);
+}
+
+.service-link {
+    border-radius: 999px;
+    padding: 2px 2px 2px 20px;
+    background: var(--service-link-color);
+    --service-link-color: var(--gray-1);
+}
+
+.service-link.spotify {
+    --service-link-color: #1db954;
+    color: black;
+}
+
+.service-link.youtube {
+    --service-link-color: #ff0000;
+}
+
+.service-link.soundcloud {
+    --service-link-color: #ff8800;
+}
+
+.service-link.applemusic {
+    --service-link-color: #000000;
+}
+
+.service-link.bandcamp {
+    --service-link-color: #00a1e0;
+}
+
+.service-link.lyda {
+    --service-link-color: #70c926;
 }

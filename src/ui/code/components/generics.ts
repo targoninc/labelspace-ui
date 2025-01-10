@@ -14,7 +14,7 @@ import {Payments} from "./payments.ts";
 import {Logs} from "./logs.ts";
 import {Albums} from "./albums.ts";
 import {Tracks} from "./tracks.ts";
-import {Tab} from "../models/tab.ts";
+import {Tab} from "../models/Tab.ts";
 import {FJSC} from "../../fjsc";
 
 export class Generics {

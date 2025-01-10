@@ -13,7 +13,7 @@ import {currency} from "../functions/formatters.ts";
 import {Track} from "../models/db/tri/Track.ts";
 import {currentUser} from "../state.ts";
 import {Permissions} from "../enums/Permissions.ts";
-import {Tab} from "../models/tab.ts";
+import {Tab} from "../models/Tab.ts";
 import {Tracks} from "./tracks.ts";
 
 export class Albums {
