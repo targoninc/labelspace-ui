@@ -1,7 +1,7 @@
 :root {
     --red: #ed1c24;
     --green: #00a651;
-    --blue: #2e3192;
+    --blue: #567afc;
     --cyan: #00aeef;
     --yellow: #fff200;
     --orange: #ff9f00;
@@ -49,6 +49,30 @@
     --fjsc-border-radius-small: var(--radius);
     --fjsc-border-radius-medium: var(--radius);
     --fjsc-border-radius-large: var(--radius);
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --red: #ed1c24;
+        --green: #00a651;
+        --blue: #2e3192;
+        --cyan: #00aeef;
+        --yellow: #fff200;
+        --orange: #ff9f00;
+        --magenta: #ec008c;
+        --black: #ffffff;
+        --white: #0e0d0e;
+        --gray-1: #231f20;
+        --gray-2: #414042;
+        --gray-3: #58595b;
+        --gray-4: #6d6e71;
+        --gray-5: #808285;
+        --gray-6: #939598;
+        --gray-7: #a7a9ac;
+        --gray-8: #bcbec0;
+        --gray-9: #d1d3d4;
+        --gray-10: #e6e7e8;
+    }
 }
 
 .material-symbols-outlined {
@@ -235,12 +259,10 @@ button.positive:hover, .button.positive:hover {
 
 button.negative, .button.negative {
     background: var(--red);
-    color: var(--white);
 }
 
 button.active, .button.active {
     background: var(--blue);
-    color: var(--white);
 }
 
 .header-logo {

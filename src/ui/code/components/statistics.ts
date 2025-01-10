@@ -147,28 +147,28 @@ export class Statistics {
         if (labels.length === 0) {
             return Statistics.noData("Royalties by month");
         }
-        return Statistics.barChart(labels, values, "Royalties", "Royalties by month", "royaltiesByMonthChart", [usedColors[8]]);
+        return Statistics.barChart(labels, values, "Royalties", "Royalties by month", "royaltiesByMonthChart", ["var(--black)"]);
     }
 
     static royaltiesByYearChart(labels: string[], values: number[]) {
         if (labels.length === 0) {
             return Statistics.noData("Royalties by year");
         }
-        return Statistics.barChart(labels, values, "Royalties", "Royalties by year", "royaltiesByYearChart", [usedColors[8]]);
+        return Statistics.barChart(labels, values, "Royalties", "Royalties by year", "royaltiesByYearChart", ["var(--black)"]);
     }
 
     static royaltiesByTrackChart(labels: string[], values: number[]) {
         if (labels.length === 0) {
             return Statistics.noData("Royalties by track");
         }
-        return Statistics.barChart(labels, values, "Royalties", "Royalties by track", "royaltiesByTrackChart", usedColors);
+        return Statistics.barChart(labels, values, "Royalties", "Royalties by track", "royaltiesByTrackChart", ["var(--black)"]);
     }
 
     static royaltiesByArtistChart(labels: string[], values: number[]) {
         if (labels.length === 0) {
             return Statistics.noData("Royalties by artist");
         }
-        return Statistics.barChart(labels, values, "Royalties", "Royalties by artist", "royaltiesByArtistChart", usedColors);
+        return Statistics.barChart(labels, values, "Royalties", "Royalties by artist", "royaltiesByArtistChart", ["var(--black)"]);
     }
 
     static page() {
