@@ -1,4 +1,4 @@
-import {AnyElement, create, ifjs, signalMap, StringOrSignal} from "../../fjsc/src/f2.ts";
+import {AnyElement, create, ifjs, nullElement, signalMap, StringOrSignal} from "../../fjsc/src/f2.ts";
 import {NotificationType} from "../enums/NotificationType.ts";
 import {compute, signal, Signal} from "../../fjsc/src/signals.ts";
 import {Nav} from "./nav.ts";
@@ -7,13 +7,15 @@ import {Account} from "./account.ts";
 import {Users} from "./users.ts";
 import {User} from "../models/db/tri/User.ts";
 import {Permissions} from "../enums/Permissions.ts";
-import {currentRoute, currentUser, userLoading} from "../state.ts";
+import {currentUser, userLoading} from "../state.ts";
 import type {NavItem} from "../models/NavItem.ts";
 import {Statistics} from "./statistics.ts";
 import {Payments} from "./payments.ts";
 import {Logs} from "./logs.ts";
 import {Albums} from "./albums.ts";
 import {Tracks} from "./tracks.ts";
+import {Tab} from "../models/tab.ts";
+import {FJSC} from "../../fjsc";
 
 export class Generics {
     static notFound() {
@@ -40,7 +42,7 @@ export class Generics {
                             ).build(),
                         ...routes.filter(r => r.showInNav !== undefined)
                             .map(r => {
-                                const show = compute(u => r.showInNav(u), currentUser);
+                                const show = compute(u => r.showInNav && r.showInNav(u), currentUser);
                                 return ifjs(show, Nav.navItem(<NavItem>{
                                     text: r.title,
                                     path: r.path,
@@ -180,6 +182,38 @@ export class Generics {
                 ...data.map(d => create("td").text(d).build())
             ).build();
     }
+
+    static tabSelector(tab$: Signal<string>, tabs: Tab[]) {
+        return create("div")
+            .classes("flex", "center-items")
+            .children(
+                ...tabs.map(tab => {
+                    const activeClass = compute((t): string => t === tab.key ? "active" : "_", tab$);
+
+                    return FJSC.button({
+                        text: tab.text,
+                        icon: { icon: tab.icon },
+                        classes: [activeClass],
+                        onclick: () => {
+                            tab$.value = tab.key;
+                        }
+                    })
+                })
+            ).build();
+    }
+
+    static tabContents(tab$: Signal<string>, templateMap: Record<string, Function>) {
+        const template = compute(t => {
+            if (templateMap[t]) {
+                return templateMap[t]();
+            }
+            return nullElement();
+        }, tab$);
+
+        return create("div")
+            .children(template)
+            .build();
+    }
 }
 
 export const routes: Route[] = [
@@ -243,6 +277,13 @@ export const routes: Route[] = [
         title: "New album",
         template: Albums.createPage,
         icon: "album",
+        showInNav: () => false
+    },
+    {
+        path: "new-track",
+        title: "New track",
+        template: Tracks.createPage,
+        icon: "graphic_eq",
         showInNav: () => false
     },
     {

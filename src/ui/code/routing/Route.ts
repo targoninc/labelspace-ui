@@ -1,4 +1,3 @@
-import {Permission} from "../models/db/tri/Permission.ts";
 import {User} from "../models/db/tri/User.ts";
 
 export interface Route {
@@ -9,5 +8,5 @@ export interface Route {
     aliases?: string[];
     template: Function;
     allowWithoutLogin?: boolean;
-    showInNav?: (user: User, permissions: Permission[]) => boolean;
+    showInNav?: (user: User) => boolean;
 }

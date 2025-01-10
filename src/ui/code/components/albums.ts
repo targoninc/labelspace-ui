@@ -13,38 +13,68 @@ import {currency} from "../functions/formatters.ts";
 import {Track} from "../models/db/tri/Track.ts";
 import {currentUser} from "../state.ts";
 import {Permissions} from "../enums/Permissions.ts";
+import {Tab} from "../models/tab.ts";
+import {Tracks} from "./tracks.ts";
 
 export class Albums {
     static page() {
-        const albums = signal<Album[]>([]);
-        const loading = signal(false);
-        Api.getAlbums()
-            .then(a => albums.value = a)
-            .finally(() => loading.value = false);
+        const canManageReleases = compute(u => !!(u && u.permissions?.some(p => p.name === Permissions.releaseManagement)), currentUser);
+        const tabs: Tab[] = [
+            {
+                key: "albums",
+                text: "Albums",
+                icon: "album"
+            },
+            {
+                key: "tracks",
+                text: "Tracks",
+                icon: "graphic_eq"
+            }
+        ];
+        const tab$ = signal(tabs[0].key);
 
         return Generics.pageFrame(
             create("div")
                 .classes("flex-v")
                 .children(
-                    Generics.heading(2, "Albums"),
-                    Albums.createSection(),
-                    ifjs(loading, Generics.loading()),
-                    Generics.table(
-                        ["Title", "Release date"],
-                        albums,
-                        (album: Album) => create("tr")
-                            .onclick(() => navigate(`/album/${album.id}`))
-                            .children(
-                                create("td")
-                                    .text(album.title)
-                                    .build(),
-                                create("td")
-                                    .text(new Date(album.release_date).toLocaleString())
-                                    .build(),
-                            ).build()
-                    )
+                    Generics.tabSelector(tab$, tabs),
+                    Generics.tabContents(tab$, {
+                        "albums": () => Albums.albumsTab(canManageReleases),
+                        "tracks": () => Tracks.tracksTab(canManageReleases)
+                    })
                 ).build()
         );
+    }
+
+    static albumsTab(canManageReleases: Signal<boolean>) {
+        const albums = signal<Album[]>([]);
+        const count = compute(a => a.length + " Albums", albums);
+        const loading = signal(false);
+        Api.getAlbums()
+            .then(a => albums.value = a)
+            .finally(() => loading.value = false);
+
+        return create("div")
+            .classes("flex-v")
+            .children(
+                Generics.heading(2, count),
+                ifjs(canManageReleases, Albums.createSection()),
+                ifjs(loading, Generics.loading()),
+                Generics.table(
+                    ["Title", "Release date"],
+                    albums,
+                    (album) => create("tr")
+                        .onclick(() => navigate(`/album/${album.id}`))
+                        .children(
+                            create("td")
+                                .text(album.title)
+                                .build(),
+                            create("td")
+                                .text(new Date(album.release_date).toLocaleString())
+                                .build(),
+                        ).build()
+                )
+            ).build();
     }
 
     private static createSection() {
@@ -53,6 +83,7 @@ export class Albums {
             .children(
                 FJSC.button({
                     text: "Create album",
+                    icon: {icon: "add"},
                     classes: ["positive"],
                     onclick: () => {
                         navigate("/new-album");
@@ -101,7 +132,7 @@ export class Albums {
                                 price: price.value,
                             }).then(() => {
                                 notify("Album created", NotificationType.success);
-                                navigate("/albums");
+                                navigate("/releases");
                             }).catch(e => {
                                 console.error(e);
                             });
@@ -112,7 +143,7 @@ export class Albums {
     }
 
     static albumPage(route: Route, params: any) {
-        const album = signal<Album|null>(null);
+        const album = signal<Album | null>(null);
         const loading = signal(false);
         Api.getAlbum(params.id ?? 0)
             .then(a => album.value = a)
@@ -152,7 +183,7 @@ export class Albums {
                         Inputs.number(price, "Price", "price"),
                         FJSC.button({
                             text: "Update",
-                            icon: { icon: "save" },
+                            icon: {icon: "save"},
                             classes: ["positive"],
                             disabled: noneChanged,
                             onclick: () => {

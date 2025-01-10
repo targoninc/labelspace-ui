@@ -226,7 +226,11 @@ b {
 
 button.positive, .button.positive {
     background: var(--green);
-    color: var(--white);
+    --fjsc-text-color: var(--white);
+}
+
+button.positive:hover, .button.positive:hover {
+    --fjsc-text-color: var(--black);
 }
 
 button.negative, .button.negative {

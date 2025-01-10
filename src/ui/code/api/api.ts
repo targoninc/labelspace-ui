@@ -7,6 +7,7 @@ import {Log} from "../models/db/tri/Log.ts";
 import {Album} from "../models/db/tri/Album.ts";
 import {CreateAlbumRequestBody} from "../models/CreateAlbumRequestBody.ts";
 import {Track} from "../models/db/tri/Track.ts";
+import {UploadTrackRequestBody} from "../models/UploadTrackRequestBody.ts";
 
 const base = window.location.origin.includes("localhost") ? "http://localhost:8090" : "https://artists-api.trirecords.eu";
 
@@ -106,5 +107,13 @@ export class Api {
 
     static updateAlbum(id: number, album: Partial<Album>) {
         return Fetcher.post(base + "/albums/actions/update", { id, ...album });
+    }
+
+    static async getTracks() {
+        return await Fetcher.get<Track[]>(base + "/tracks/get");
+    }
+
+    static createTrack(track: UploadTrackRequestBody) {
+        return Fetcher.post(base + "/tracks/create", track);
     }
 }
