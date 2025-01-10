@@ -1,7 +1,7 @@
 import {Usersetting} from "./Usersetting.js";
 import {UserEmail} from "./UserEmail.js";
 import type {Artist} from "./Artist.ts";
-import {Permission} from "./Permission.ts";
+import type {Permission} from "./Permission.ts";
 
 export interface User extends Express.User {
     permissions?: Permission[];
@@ -9,10 +9,12 @@ export interface User extends Express.User {
     settings?: Usersetting[];
     id: number;
     username: string;
+    legal_name: string;
+    country: string;
+    state: string;
     mfa_enabled: boolean;
     emails: UserEmail[];
     password_hash: string;
-    displayname: string;
     description: string;
     password_token: string|null;
     verified: boolean;
