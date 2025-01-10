@@ -19,3 +19,7 @@ export function mapStatistics(stats: Statistic[]) {
         values: stats.map(s => s.value)
     }
 }
+
+export function target<T = HTMLInputElement>(e: Event) {
+    return e.target as T;
+}

@@ -91,6 +91,20 @@ a {
     font-size: inherit;
 }
 
+.underline {
+    text-decoration: underline;
+}
+
+.link-container {
+    width: max-content;
+    cursor: pointer;
+}
+
+.link-container:hover {
+    transform: scale(1.1);
+    background: var(--yellow);
+}
+
 a.button {
     padding: var(--inline-padding);
     border-radius: var(--radius);
@@ -289,6 +303,13 @@ button.active, .button.active {
     }
 }
 
+hr {
+    background: var(--gray-5);
+    border: none;
+    height: 1px;
+    margin: var(--layout-gap) 3px;
+}
+
 table {
     border-collapse: collapse;
     width: 100%;
@@ -301,6 +322,22 @@ th {
 
 th, td {
     text-align: left;
+    position: relative;
+    box-sizing: border-box;
+    border-top: 1px solid transparent;
+}
+
+tr:hover td {
+    border-top: 1px solid var(--black);
+    border-bottom: 1px solid var(--black);
+}
+
+tr:hover td:first-child {
+    border-left: 1px solid var(--black);
+}
+
+tr:hover td:last-child {
+    border-right: 1px solid var(--black);
 }
 
 tr:nth-child(even) {
@@ -400,4 +437,8 @@ button.fjsc {
 
 .service-link.lyda {
     --service-link-color: #70c926;
+}
+
+.flex-grow {
+    flex-grow: 1;
 }

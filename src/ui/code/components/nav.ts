@@ -35,7 +35,7 @@ export class Nav {
 
         return create("a")
             .classes("button", "flex", "center-items", activeClass)
-            .href(item.path)
+            .href(window.location.origin + "/" + item.path)
             .target("_blank")
             .onclick((e: MouseEvent) => {
                 if (e.button === 0) {

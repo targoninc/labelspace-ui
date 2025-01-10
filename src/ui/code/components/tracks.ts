@@ -13,6 +13,7 @@ import {currentUser} from "../state.ts";
 import {Permissions} from "../enums/Permissions.ts";
 import {ServiceLink} from "../models/ServiceLink.ts";
 import {LinkServices} from "../enums/LinkServices.ts";
+import {Genre} from "../enums/Genre.ts";
 
 export class Tracks {
     static trackPage(route: Route, params: any) {
@@ -93,8 +94,9 @@ export class Tracks {
                         .onclick(() => navigate(`/track/${track.id}`))
                         .children(
                             create("td")
-                                .text(track.title)
-                                .build(),
+                                .children(
+                                    Generics.link("/track/" + track.id, track.title)
+                                ).build(),
                             create("td")
                                 .text(new Date(track.release_date).toLocaleString())
                                 .build(),
@@ -119,14 +121,6 @@ export class Tracks {
     }
 
     static createPage() {
-        const title = signal("");
-        const artists = signal("");
-        const isrc = signal("");
-        const credits = signal("");
-        const release_date = signal(new Date());
-        const price = signal(1);
-        const serviceLinks = signal<ServiceLink[]>([]);
-        const anyEmpty = compute((t, u, r, p) => t === "" || u === "" || r === null || p === 0, title, artists, release_date, price);
         if (!currentUser.value?.permissions?.some(p => p.name === Permissions.releaseManagement)) {
             return Generics.pageFrame(
                 create("div")
@@ -140,6 +134,22 @@ export class Tracks {
             );
         }
 
+        const title = signal("");
+        const artists = signal("");
+        const isrc = signal("");
+        const credits = signal("");
+        const release_date = signal(new Date());
+        const price = signal(1);
+        const serviceLinks = signal<ServiceLink[]>([]);
+        const genre = signal<string>("");
+        const genres = Object.values(Genre).map((genre: string) => {
+            return {
+                name: genre.charAt(0).toUpperCase() + genre.slice(1),
+                id: genre
+            };
+        });
+        const anyEmpty = compute((t, u, r, p) => t === "" || u === "" || r === null || p === 0, title, artists, release_date, price);
+
         return Generics.pageFrame(
             create("div")
                 .classes("flex-v")
@@ -149,6 +159,14 @@ export class Tracks {
                     Inputs.text(artists, "Artists", "artists"),
                     Inputs.date(release_date, "Release date", "release_date"),
                     Inputs.text(isrc, "ISRC", "isrc"),
+                    FJSC.searchableSelect({
+                        label: "Genre",
+                        options: signal(genres),
+                        value: genre,
+                        onchange: (v) => {
+                            genre.value = v;
+                        }
+                    }),
                     Inputs.text(credits, "Credits", "credits"),
                     Inputs.number(price, "Price", "price"),
                     Inputs.serviceLinks(serviceLinks),
@@ -166,8 +184,7 @@ export class Tracks {
                                 price: price.value,
                                 isrc: isrc.value,
                                 credits: credits.value,
-                                genre: "",
-                                visibility: "",
+                                genre: genre.value,
                                 link_spotify: links.find(l => l.service === LinkServices.spotify)?.link ?? "",
                                 link_youtube: links.find(l => l.service === LinkServices.youtube)?.link ?? "",
                                 link_soundcloud: links.find(l => l.service === LinkServices.soundcloud)?.link ?? "",

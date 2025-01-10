@@ -15,6 +15,10 @@ import {currentUser} from "../state.ts";
 import {Permissions} from "../enums/Permissions.ts";
 import {Tab} from "../models/Tab.ts";
 import {Tracks} from "./tracks.ts";
+import {Modals} from "./modals.ts";
+import {SearchResult} from "../models/SearchResult.ts";
+import {target} from "../functions/templates.ts";
+import { InputType } from "../../fjsc/src/Types.ts";
 
 export class Albums {
     static page() {
@@ -48,7 +52,12 @@ export class Albums {
 
     static albumsTab(canManageReleases: Signal<boolean>) {
         const albums = signal<Album[]>([]);
-        const count = compute(a => a.length + " Albums", albums);
+        const filter = signal("");
+        const filteredAlbums = compute((a, f) => a.filter(a => {
+            return a.title.toLowerCase().includes(f.toLowerCase()) ||
+                a.artists.toLowerCase().includes(f.toLowerCase());
+        }), albums, filter);
+        const count = compute(a => a.length + " Albums", filteredAlbums);
         const loading = signal(false);
         Api.getAlbums()
             .then(a => albums.value = a)
@@ -58,46 +67,61 @@ export class Albums {
             .classes("flex-v")
             .children(
                 Generics.heading(2, count),
-                ifjs(canManageReleases, Albums.createSection()),
+                Albums.listActions(canManageReleases, filter),
                 ifjs(loading, Generics.loading()),
                 Generics.table(
-                    ["Title", "Release date"],
-                    albums,
+                    ["Title", "Release date", "Tracks"],
+                    filteredAlbums,
                     (album) => create("tr")
-                        .onclick(() => navigate(`/album/${album.id}`))
                         .children(
                             create("td")
-                                .text(album.title)
-                                .build(),
+                                .children(
+                                    Generics.link("/album/" + album.id, album.title)
+                                ).build(),
                             create("td")
                                 .text(new Date(album.release_date).toLocaleString())
+                                .build(),
+                            create("td")
+                                .text(album.tracks?.length ?? 0)
                                 .build(),
                         ).build()
                 )
             ).build();
     }
 
-    private static createSection() {
+    private static listActions(canManageReleases: Signal<boolean>, filter: Signal<string>) {
         return create("div")
             .classes("flex")
             .children(
-                FJSC.button({
+                ifjs(canManageReleases, FJSC.button({
                     text: "Create album",
                     icon: {icon: "add"},
                     classes: ["positive"],
                     onclick: () => {
                         navigate("/new-album");
                     }
-                })
+                })),
+                FJSC.input({
+                    type: InputType.text,
+                    name: "filter",
+                    placeholder: "Filter",
+                    value: filter,
+                    onkeydown: (e) => {
+                        setTimeout(() => {
+                            filter.value = target(e).value;
+                        }, 10);
+                    },
+                }),
             ).build();
     }
 
     static createPage() {
         const title = signal("");
         const upc = signal("");
+        const artists = signal("");
         const release_date = signal(new Date());
         const price = signal(10);
-        const anyEmpty = compute((t, u, r, p) => t === "" || u === "" || r === null || p === 0, title, upc, release_date, price);
+        const anyEmpty = compute((t, u, a, r, p) => t === "" || u === "" || a === "" || r === null || p === 0, title, upc, artists, release_date, price);
         if (!currentUser.value?.permissions?.some(p => p.name === Permissions.releaseManagement)) {
             return Generics.pageFrame(
                 create("div")
@@ -118,6 +142,7 @@ export class Albums {
                     Generics.heading(2, "Create album"),
                     Inputs.text(title, "Title", "title"),
                     Inputs.text(upc, "UPC", "upc"),
+                    Inputs.text(artists, "Artists", "artists"),
                     Inputs.date(release_date, "Release date", "release_date"),
                     Inputs.number(price, "Price", "price"),
                     FJSC.button({
@@ -130,9 +155,10 @@ export class Albums {
                                 upc: upc.value,
                                 release_date: release_date.value,
                                 price: price.value,
-                            }).then(() => {
+                                artists: artists.value,
+                            }).then((album) => {
                                 notify("Album created", NotificationType.success);
-                                navigate("/releases");
+                                navigate(`/album/${album.id}`);
                             }).catch(e => {
                                 console.error(e);
                             });
@@ -145,9 +171,13 @@ export class Albums {
     static albumPage(route: Route, params: any) {
         const album = signal<Album | null>(null);
         const loading = signal(false);
-        Api.getAlbum(params.id ?? 0)
-            .then(a => album.value = a)
-            .finally(() => loading.value = false);
+        const load = () => {
+            loading.value = true;
+            Api.getAlbum(params.id ?? 0)
+                .then(a => album.value = a)
+                .finally(() => loading.value = false);
+        }
+        load();
 
         return Generics.pageFrame(
             create("div")
@@ -155,12 +185,12 @@ export class Albums {
                 .children(
                     Generics.heading(2, "Album"),
                     ifjs(loading, Generics.loading()),
-                    ifjs(album, Albums.album(album))
+                    ifjs(album, Albums.album(album, load))
                 ).build()
         );
     }
 
-    static album(album: Signal<Album | null>) {
+    static album(album: Signal<Album | null>, load: Function) {
         const title = compute(a => a?.title ?? "Album", album);
         const upc = compute(a => a?.upc ?? "No UPC", album);
         const releaseDate = compute(a => new Date(a?.release_date ?? new Date().toISOString()), album);
@@ -170,51 +200,130 @@ export class Albums {
         const noneChanged = compute((t, u, r, p) => {
             return t === album.value?.title && u === album.value?.upc && r.getTime() === new Date(album.value?.release_date).getTime() && p === album.value?.price;
         }, title, upc, releaseDate, price);
+        const loading = signal(false);
+        const search = signal("");
+        const searchResults = signal<SearchResult[]>([]);
+        let timeout: Timer;
+        const debounce = 250;
+        search.subscribe(q => {
+            timeout && clearTimeout(timeout);
+            if (!q || q.trim().length === 0) {
+                return;
+            }
+            timeout = setTimeout(() => {
+                Api.searchTracks(q)
+                    .then(results => searchResults.value = results)
+                    .finally();
+            }, debounce);
+        });
 
         return create("div")
-            .classes("flex-v")
+            .classes("flex")
             .children(
                 create("div")
-                    .classes("flex-v")
+                    .classes("flex-v", "flex-grow")
                     .children(
-                        Inputs.text(title, "Title", "title"),
-                        Inputs.text(upc, "UPC", "upc"),
-                        Inputs.date(releaseDate, "Release date", "release_date"),
-                        Inputs.number(price, "Price", "price"),
-                        FJSC.button({
-                            text: "Update",
-                            icon: {icon: "save"},
-                            classes: ["positive"],
-                            disabled: noneChanged,
-                            onclick: () => {
-                                Api.updateAlbum(id.value, {
-                                    title: title.value,
-                                    upc: upc.value,
-                                    release_date: releaseDate.value,
-                                    price: price.value,
-                                }).then(() => {
-                                    notify("Album updated", NotificationType.success);
-                                    reload();
-                                }).catch((e: any) => {
-                                    console.error(e);
-                                });
-                            }
-                        })
+                        create("div")
+                            .classes("flex-v")
+                            .children(
+                                Inputs.text(title, "Title", "title"),
+                                Inputs.text(upc, "UPC", "upc"),
+                                Inputs.date(releaseDate, "Release date", "release_date"),
+                                Inputs.number(price, "Price", "price"),
+                                FJSC.button({
+                                    text: "Update",
+                                    icon: {icon: "save"},
+                                    classes: ["positive"],
+                                    disabled: compute((l, n) => l || n, loading, noneChanged),
+                                    onclick: () => {
+                                        Api.updateAlbum(id.value, {
+                                            title: title.value,
+                                            upc: upc.value,
+                                            release_date: releaseDate.value,
+                                            price: price.value,
+                                        }).then(() => {
+                                            notify("Album updated", NotificationType.success);
+                                            reload();
+                                        }).catch((e: any) => {
+                                            console.error(e);
+                                        });
+                                    }
+                                })
+                            ).build(),
                     ).build(),
-                Generics.table(
-                    ["Track", "Price"],
-                    tracks,
-                    (track: Track) => create("tr")
-                        .onclick(() => navigate("/track/" + track.id))
-                        .children(
-                            create("td")
-                                .text(track.title)
-                                .build(),
-                            create("td")
-                                .text(currency(track.price))
-                                .build(),
-                        ).build()
-                )
+                create("div")
+                    .classes("flex-v", "flex-grow")
+                    .children(
+                        Generics.table(
+                            ["Track", "Price", "Actions"],
+                            tracks,
+                            (track: Track) => create("tr")
+                                .children(
+                                    create("td")
+                                        .children(
+                                            Generics.link("/track/" + track.id, track.title)
+                                        ).build(),
+                                    create("td")
+                                        .text(currency(track.price))
+                                        .build(),
+                                    create("td")
+                                        .children(
+                                            FJSC.button({
+                                                icon: { icon: "link_off" },
+                                                disabled: loading,
+                                                onclick: () => {
+                                                    Modals.confirm(() => {
+                                                        loading.value = true;
+                                                        Api.removeTrackFromAlbum(track.id, album.value?.id ?? 0).then(() => {
+                                                            load();
+                                                        }).finally(() => loading.value = false);
+                                                    }, "Remove track from album", "Are you sure you want to remove this track from the album?");
+                                                }
+                                            }),
+                                        ).build()
+                                ).build()
+                        ),
+                        Generics.divider(),
+                        FJSC.input({
+                            type: InputType.text,
+                            name: "search",
+                            label: "Add tracks",
+                            placeholder: "Search",
+                            value: search,
+                            onkeydown: (e) => {
+                                setTimeout(() => {
+                                    search.value = target(e).value;
+                                }, 10);
+                            }
+                        }),
+                        Generics.table(
+                            ["Title", "Artists", "Actions"],
+                            searchResults,
+                            (track) => create("tr")
+                                .children(
+                                    create("td")
+                                        .children(
+                                            Generics.link("/track/" + track.id, track.display)
+                                        ).build(),
+                                    create("td")
+                                        .text(track.subtitle)
+                                        .build(),
+                                    create("td")
+                                        .children(
+                                            FJSC.button({
+                                                icon: { icon: "add_link" },
+                                                disabled: loading,
+                                                onclick: () => {
+                                                    loading.value = true;
+                                                    Api.addTrackToAlbum(track.id, album.value?.id ?? 0).then(() => {
+                                                        load();
+                                                    }).finally(() => loading.value = false);
+                                                }
+                                            }),
+                                        ).build()
+                                ).build()
+                        ),
+                    ).build(),
             ).build();
     }
 }

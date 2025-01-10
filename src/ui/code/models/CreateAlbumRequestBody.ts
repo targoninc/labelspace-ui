@@ -1,4 +1,5 @@
 export interface CreateAlbumRequestBody {
+    artists: string;
     title: string;
     description?: string;
     upc?: string;

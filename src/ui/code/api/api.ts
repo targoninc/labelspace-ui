@@ -8,6 +8,7 @@ import {Album} from "../models/db/tri/Album.ts";
 import {CreateAlbumRequestBody} from "../models/CreateAlbumRequestBody.ts";
 import {Track} from "../models/db/tri/Track.ts";
 import {UploadTrackRequestBody} from "../models/UploadTrackRequestBody.ts";
+import {SearchResult} from "../models/SearchResult.ts";
 
 const base = window.location.origin.includes("localhost") ? "http://localhost:8090" : "https://artists-api.trirecords.eu";
 
@@ -71,7 +72,7 @@ export class Api {
     }
 
     static async createAlbum(album: CreateAlbumRequestBody) {
-        return await Fetcher.post(base + "/albums/actions/new", album);
+        return await Fetcher.postWithResponse<Album>(base + "/albums/actions/new", album);
     }
 
     static async importData() {
@@ -115,5 +116,23 @@ export class Api {
 
     static createTrack(track: UploadTrackRequestBody) {
         return Fetcher.post(base + "/tracks/create", track);
+    }
+
+    static removeTrackFromAlbum(track_id: number, album_id: number) {
+        return Fetcher.post(base + "/albums/actions/removeTrack", {
+            track_id,
+            album_ids: [album_id]
+        });
+    }
+
+    static searchTracks(q: string) {
+        return Fetcher.get<SearchResult[]>(base + "/search/tracks?search=" + q);
+    }
+
+    static addTrackToAlbum(track_id: number, album_id: number) {
+        return Fetcher.post(base + "/albums/actions/addTrack", {
+            track_id,
+            album_ids: [album_id]
+        });
     }
 }

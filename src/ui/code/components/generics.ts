@@ -16,6 +16,7 @@ import {Albums} from "./albums.ts";
 import {Tracks} from "./tracks.ts";
 import {Tab} from "../models/Tab.ts";
 import {FJSC} from "../../fjsc";
+import {navigate} from "../routing/Router.ts";
 
 export class Generics {
     static notFound() {
@@ -212,6 +213,32 @@ export class Generics {
 
         return create("div")
             .children(template)
+            .build();
+    }
+
+    static link(url: string, title: string) {
+        const isRemote = url.includes("http");
+
+        return create("div")
+            .classes("link-container")
+            .children(
+                create("a")
+                    .classes("underline")
+                    .href(url)
+                    .rel(isRemote ? "_blank" : "_self")
+                    .title(url)
+                    .text(title)
+                    .onclick(e => {
+                        if (!isRemote && e.button === 0) {
+                            e.preventDefault();
+                            navigate(url);
+                        }
+                    }).build()
+            ).build();
+    }
+
+    static divider() {
+        return create("hr")
             .build();
     }
 }
