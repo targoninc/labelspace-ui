@@ -90,12 +90,6 @@ export class Users {
         const description = compute(u => u?.description ?? "", user);
         const notChanged = signal(true);
         compute((l, c, s, d) => {
-            user.value = {
-                legal_name: l,
-                country: c,
-                state: s,
-                description: d
-            };
             notChanged.value = false;
         }, legalName, country, state, description);
         const message = signal("");
@@ -124,6 +118,9 @@ export class Users {
                                 state: state.value,
                             }).then(() => {
                                 notify("Saved", NotificationType.success);
+                                Api.getUser().then(u => {
+                                    currentUser.value = u;
+                                });
                             }).catch(e => {
                                 message.value = e.message;
                             }).finally(() => {
