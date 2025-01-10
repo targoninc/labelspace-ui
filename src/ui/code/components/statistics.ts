@@ -147,28 +147,28 @@ export class Statistics {
         if (labels.length === 0) {
             return Statistics.noData("Royalties by month");
         }
-        return Statistics.barChart(labels, values, "Royalties", "Royalties by month", "royaltiesByMonthChart", ["var(--black)"]);
+        return Statistics.barChart(labels, values, "Royalties", "Royalties by month", "royaltiesByMonthChart");
     }
 
     static royaltiesByYearChart(labels: string[], values: number[]) {
         if (labels.length === 0) {
             return Statistics.noData("Royalties by year");
         }
-        return Statistics.barChart(labels, values, "Royalties", "Royalties by year", "royaltiesByYearChart", ["var(--black)"]);
+        return Statistics.barChart(labels, values, "Royalties", "Royalties by year", "royaltiesByYearChart");
     }
 
     static royaltiesByTrackChart(labels: string[], values: number[]) {
         if (labels.length === 0) {
             return Statistics.noData("Royalties by track");
         }
-        return Statistics.barChart(labels, values, "Royalties", "Royalties by track", "royaltiesByTrackChart", ["var(--black)"]);
+        return Statistics.barChart(labels, values, "Royalties", "Royalties by track", "royaltiesByTrackChart");
     }
 
     static royaltiesByArtistChart(labels: string[], values: number[]) {
         if (labels.length === 0) {
             return Statistics.noData("Royalties by artist");
         }
-        return Statistics.barChart(labels, values, "Royalties", "Royalties by artist", "royaltiesByArtistChart", ["var(--black)"]);
+        return Statistics.barChart(labels, values, "Royalties", "Royalties by artist", "royaltiesByArtistChart");
     }
 
     static page() {

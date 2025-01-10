@@ -19,7 +19,7 @@ export class Colors {
     static get themedList() {
         const css = getComputedStyle(document.documentElement);
         const colors = [];
-        for (let i = 1; i <= 4; i++) {
+        for (let i = 1; i <= 1; i++) {
             colors.push(css.getPropertyValue(`--stats-${i}`));
         }
         return colors;
