@@ -97,10 +97,14 @@ export class Api {
     }
 
     static updateTrack(id: number, track: Partial<Track>) {
-        return Fetcher.post(base + "/tracks/actions/update", { id, track });
+        return Fetcher.post(base + "/tracks/actions/update", { id, ...track });
     }
 
     static requestPayment() {
         return Fetcher.post(base + "/payments/request");
+    }
+
+    static updateAlbum(id: number, album: Partial<Album>) {
+        return Fetcher.post(base + "/albums/actions/update", { id, ...album });
     }
 }

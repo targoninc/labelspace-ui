@@ -3,7 +3,7 @@ import {Album} from "../models/db/tri/Album.ts";
 import {Api} from "../api/api.ts";
 import {Generics} from "./generics.ts";
 import {create, ifjs} from "../../fjsc/src/f2.ts";
-import {navigate} from "../routing/Router.ts";
+import {navigate, reload} from "../routing/Router.ts";
 import {FJSC} from "../../fjsc";
 import {Inputs} from "./inputs.ts";
 import {notify} from "../functions/notifications.ts";
@@ -66,7 +66,7 @@ export class Albums {
         const upc = signal("");
         const release_date = signal(new Date());
         const price = signal(10);
-        const anyEmpty = compute((t, u, r, p) => t === "" || u === "" || r === "" || p === 0, title, upc, release_date, price);
+        const anyEmpty = compute((t, u, r, p) => t === "" || u === "" || r === null || p === 0, title, upc, release_date, price);
         if (!currentUser.value?.permissions?.some(p => p.name === Permissions.releaseManagement)) {
             return Generics.pageFrame(
                 create("div")
@@ -129,12 +129,16 @@ export class Albums {
         );
     }
 
-    static album(value: Signal<Album | null>) {
-        const title = compute(a => a?.title ?? "Album", value);
-        const upc = compute(a => a?.upc ?? "No UPC", value);
-        const releaseDate = compute(a => new Date(a?.release_date), value);
-        const price = compute(a => a?.price ?? 0, value);
-        const tracks = compute(a => a?.tracks ?? [], value);
+    static album(album: Signal<Album | null>) {
+        const title = compute(a => a?.title ?? "Album", album);
+        const upc = compute(a => a?.upc ?? "No UPC", album);
+        const releaseDate = compute(a => new Date(a?.release_date ?? new Date().toISOString()), album);
+        const price = compute(a => a?.price ?? 0, album);
+        const tracks = compute(a => a?.tracks ?? [], album);
+        const id = compute(a => a?.id ?? 0, album);
+        const noneChanged = compute((t, u, r, p) => {
+            return t === album.value?.title && u === album.value?.upc && r.getTime() === new Date(album.value?.release_date).getTime() && p === album.value?.price;
+        }, title, upc, releaseDate, price);
 
         return create("div")
             .classes("flex-v")
@@ -146,6 +150,25 @@ export class Albums {
                         Inputs.text(upc, "UPC", "upc"),
                         Inputs.date(releaseDate, "Release date", "release_date"),
                         Inputs.number(price, "Price", "price"),
+                        FJSC.button({
+                            text: "Update",
+                            icon: { icon: "save" },
+                            classes: ["positive"],
+                            disabled: noneChanged,
+                            onclick: () => {
+                                Api.updateAlbum(id.value, {
+                                    title: title.value,
+                                    upc: upc.value,
+                                    release_date: releaseDate.value,
+                                    price: price.value,
+                                }).then(() => {
+                                    notify("Album updated", NotificationType.success);
+                                    reload();
+                                }).catch((e: any) => {
+                                    console.error(e);
+                                });
+                            }
+                        })
                     ).build(),
                 Generics.table(
                     ["Track", "Price"],
