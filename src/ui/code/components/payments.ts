@@ -75,6 +75,7 @@ export class Payments {
         const paidOut = compute(a => "Paid out " + currency(a?.paidOut), info);
         const availableUsd = compute(a => currency(a?.available), info);
         const available = compute(a => "Available " + currency(a?.available), info);
+        const payable = compute(i => i?.available > 0, info);
 
         const loading = signal(true);
         const load = () => {
@@ -93,7 +94,7 @@ export class Payments {
                 .classes("flex", "center-items")
                 .children(
                     Generics.heading(2, available),
-                    FJSC.button({
+                    ifjs(payable, FJSC.button({
                         text: "Request payment",
                         icon: { icon: "wallet" },
                         classes: ["positive"],
@@ -109,7 +110,7 @@ export class Payments {
                                 });
                             }, "Confirm request", compute(a => `Are you sure you want to request a payment for ${a} USD?`, availableUsd))
                         }
-                    }),
+                    })),
                     ifjs(requestLoading, Generics.loading()),
                 ).build()),
         ]);
