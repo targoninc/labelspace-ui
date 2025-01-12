@@ -16,7 +16,6 @@ export class Migration {
                 FJSC.button({
                     text: "Import data",
                     icon: { icon: "database" },
-                    classes: ["positive"],
                     disabled: loading,
                     onclick: () => {
                         loading.value = true;
@@ -28,7 +27,6 @@ export class Migration {
                 FJSC.button({
                     text: "Upload royalties",
                     icon: { icon: "upload" },
-                    classes: ["positive"],
                     disabled: loading,
                     onclick: async () => {
                         loading.value = true;
