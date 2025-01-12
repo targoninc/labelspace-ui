@@ -1,7 +1,7 @@
 import {compute, Signal, signal} from "../../fjsc/src/signals.ts";
 import {Api} from "../api/api.ts";
 import {Generics} from "./generics.ts";
-import {create, ifjs} from "../../fjsc/src/f2.ts";
+import {create, ifjs, nullElement} from "../../fjsc/src/f2.ts";
 import {Track} from "../models/db/tri/Track.ts";
 import {Route} from "../routing/Route.ts";
 import {Inputs} from "./inputs.ts";
@@ -14,6 +14,11 @@ import {Permissions} from "../enums/Permissions.ts";
 import {ServiceLink} from "../models/ServiceLink.ts";
 import {LinkServices} from "../enums/LinkServices.ts";
 import {Genre} from "../enums/Genre.ts";
+import {InputType} from "../../fjsc/src/Types.ts";
+import {target} from "../functions/templates.ts";
+import {Album} from "../models/db/tri/Album.ts";
+import {Statistic} from "../models/Statistic.ts";
+import {Statistics} from "./statistics.ts";
 
 export class Tracks {
     static trackPage(route: Route, params: any) {
@@ -69,13 +74,46 @@ export class Tracks {
                             console.error(e);
                         });
                     }
-                })
+                }),
+                ifjs(track$, Tracks.trackStatistics(track$))
+            ).build();
+    }
+
+    static trackStatistics(track: Signal<Track | null>) {
+        const loading = signal(false);
+        const stats = signal<Statistic[]>([]);
+        const isrc = compute(a => a?.isrc ?? "No ISRC", track);
+        const template = compute(s => {
+            if (s.length === 0) {
+                return nullElement();
+            }
+            return Statistics.royaltiesByMonthChart(s.map(s => s.label), s.map(s => s.value));
+        }, stats);
+        const load = () => {
+            loading.value = true;
+            Api.getRoyaltiesByMonth({ isrc: isrc.value })
+                .then(s => stats.value = s)
+                .finally(() => loading.value = false);
+        };
+        isrc.subscribe(load);
+        load();
+
+        return create("div")
+            .classes("flex-v", "statistic")
+            .children(
+                ifjs(loading, Generics.loading()),
+                template
             ).build();
     }
 
     static tracksTab(canManageReleases: Signal<boolean>) {
         const tracks = signal<Track[]>([]);
-        const count = compute(a => a.length + " Tracks", tracks);
+        const filter = signal("");
+        const filteredTracks = compute((a, f) => a.filter(a => {
+            return a.title.toLowerCase().includes(f.toLowerCase()) ||
+                a.artists.toLowerCase().includes(f.toLowerCase());
+        }), tracks, filter);
+        const count = compute(a => a.length + " Tracks", filteredTracks);
         const loading = signal(false);
         Api.getTracks()
             .then(a => tracks.value = a)
@@ -85,11 +123,11 @@ export class Tracks {
             .classes("flex-v")
             .children(
                 Generics.heading(2, count),
-                ifjs(canManageReleases, Tracks.createSection()),
+                Tracks.tracksTabActions(canManageReleases, filter),
                 ifjs(loading, Generics.loading()),
                 Generics.table(
                     ["Title", "Release date"],
-                    tracks,
+                    filteredTracks,
                     (track) => create("tr")
                         .onclick(() => navigate(`/track/${track.id}`))
                         .children(
@@ -105,18 +143,29 @@ export class Tracks {
             ).build();
     }
 
-    private static createSection() {
+    private static tracksTabActions(canManageReleases: Signal<boolean>, filter: Signal<string>) {
         return create("div")
             .classes("flex")
             .children(
-                FJSC.button({
+                ifjs(canManageReleases, FJSC.button({
                     text: "Create track",
                     icon: {icon: "add"},
                     classes: ["positive"],
                     onclick: () => {
                         navigate("/new-track");
                     }
-                })
+                })),
+                FJSC.input({
+                    type: InputType.text,
+                    name: "filter",
+                    placeholder: "Filter",
+                    value: filter,
+                    onkeydown: (e) => {
+                        setTimeout(() => {
+                            filter.value = target(e).value;
+                        }, 10);
+                    },
+                }),
             ).build();
     }
 

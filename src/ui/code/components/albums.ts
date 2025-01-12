@@ -2,7 +2,7 @@ import {compute, Signal, signal} from "../../fjsc/src/signals.ts";
 import {Album} from "../models/db/tri/Album.ts";
 import {Api} from "../api/api.ts";
 import {Generics} from "./generics.ts";
-import {create, ifjs} from "../../fjsc/src/f2.ts";
+import {create, ifjs, nullElement} from "../../fjsc/src/f2.ts";
 import {navigate, reload} from "../routing/Router.ts";
 import {FJSC} from "../../fjsc";
 import {Inputs} from "./inputs.ts";
@@ -19,6 +19,8 @@ import {Modals} from "./modals.ts";
 import {SearchResult} from "../models/SearchResult.ts";
 import {target} from "../functions/templates.ts";
 import { InputType } from "../../fjsc/src/Types.ts";
+import {Statistic} from "../models/Statistic.ts";
+import {Statistics} from "./statistics.ts";
 
 export class Albums {
     static page() {
@@ -185,9 +187,37 @@ export class Albums {
                 .children(
                     Generics.heading(2, "Album"),
                     ifjs(loading, Generics.loading()),
-                    ifjs(album, Albums.album(album, load))
+                    ifjs(album, Albums.album(album, load)),
+                    ifjs(album, Albums.albumStatistics(album))
                 ).build()
         );
+    }
+
+    static albumStatistics(album: Signal<Album | null>) {
+        const loading = signal(false);
+        const stats = signal<Statistic[]>([]);
+        const upc = compute(a => a?.upc ?? "No UPC", album);
+        const template = compute(s => {
+            if (s.length === 0) {
+                return nullElement();
+            }
+            return Statistics.royaltiesByMonthChart(s.map(s => s.label), s.map(s => s.value));
+        }, stats);
+        const load = () => {
+            loading.value = true;
+            Api.getRoyaltiesByMonth({ upc: upc.value })
+                .then(s => stats.value = s)
+                .finally(() => loading.value = false);
+        };
+        upc.subscribe(load);
+        load();
+
+        return create("div")
+            .classes("flex-v", "statistic")
+            .children(
+                ifjs(loading, Generics.loading()),
+                template
+            ).build();
     }
 
     static album(album: Signal<Album | null>, load: Function) {
