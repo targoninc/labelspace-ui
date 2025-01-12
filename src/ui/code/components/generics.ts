@@ -51,7 +51,14 @@ export class Generics {
                                 }));
                             })
                     ).build(),
-                ifjs(loginShown, Account.navLogin()),
+                ifjs(loginShown, FJSC.button({
+                    text: "Login",
+                    icon: { icon: "login" },
+                    classes: ["positive"],
+                    onclick: () => {
+                        navigate("/login");
+                    }
+                })),
                 ifjs(userLoading, Generics.loading()),
                 ifjs(currentUser, Nav.navUser(currentUser))
             ).build();
@@ -249,6 +256,12 @@ export const routes: Route[] = [
         title: "404",
         aliases: ["error", "not-found"],
         template: Generics.notFound,
+        allowWithoutLogin: true
+    },
+    {
+        path: "login",
+        title: "Login",
+        template: Account.loginPage,
         allowWithoutLogin: true
     },
     {

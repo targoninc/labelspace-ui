@@ -8,7 +8,18 @@ import {navigate} from "../routing/Router.ts";
 import {Inputs} from "./inputs.ts";
 
 export class Account {
-    static navLogin() {
+    static loginPage() {
+        return Generics.pageFrame(
+            create("div")
+                .classes("flex-v")
+                .children(
+                    Generics.heading(2, "Login"),
+                    Account.login(),
+                ).build()
+        );
+    }
+
+    static login() {
         const username = signal("");
         const password = signal("");
         const filledUsername = compute(u => u.length > 0, username);
@@ -33,7 +44,7 @@ export class Account {
             .classes("flex-v")
             .children(
                 create("div")
-                    .classes("flex", "center-items")
+                    .classes("flex-v")
                     .children(
                         Inputs.text(username, "Username", "username"),
                         Inputs.password(password),
@@ -46,6 +57,7 @@ export class Account {
                         ifjs(username, FJSC.button({
                             icon: { icon: "question_mark" },
                             title: "Send password reset mail",
+                            text: "Reset password",
                             onclick: forgotPassword,
                         }))
                     ).build(),
