@@ -27,39 +27,52 @@ export class Account {
         const filledBoth = compute((u, p) => u && p, filledUsername, filledPassword);
 
         const message = signal("");
+        const loading = signal(false);
         const login = async () => {
+            loading.value = true;
             await Api.login({
                 username: username.value,
                 password: password.value
-            });
-            currentUser.value = await Api.getUser();
-            navigate("dashboard");
+            }).then(async () => {
+                currentUser.value = await Api.getUser();
+                navigate("dashboard");
+            }).finally(() => loading.value = false);
         };
         const forgotPassword = async (e: MouseEvent) => {
-            await Api.requestPasswordReset(username.value);
-            message.value = "Password reset email sent.";
+            loading.value = true;
+            Api.requestPasswordReset(username.value)
+                .then(() => message.value = "Password reset email sent.")
+                .finally(() => loading.value = false);
         };
 
         return create("div")
             .classes("flex-v")
+            .styles("max-width", "400px")
             .children(
                 create("div")
                     .classes("flex-v")
                     .children(
                         Inputs.text(username, "Username", "username"),
                         Inputs.password(password),
-                        ifjs(filledBoth, FJSC.button({
-                            text: "Login",
-                            icon: { icon: "login" },
-                            onclick: login,
-                            classes: ["positive"]
-                        })),
-                        ifjs(username, FJSC.button({
-                            icon: { icon: "question_mark" },
-                            title: "Send password reset mail",
-                            text: "Reset password",
-                            onclick: forgotPassword,
-                        }))
+                        create("div")
+                            .classes("flex", "center-items")
+                            .children(
+                                ifjs(filledBoth, FJSC.button({
+                                    text: "Login",
+                                    icon: { icon: "login" },
+                                    disabled: loading,
+                                    onclick: login,
+                                    classes: ["positive"]
+                                })),
+                                ifjs(username, FJSC.button({
+                                    icon: { icon: "question_mark" },
+                                    title: "Send password reset mail",
+                                    text: "Reset password",
+                                    disabled: loading,
+                                    onclick: forgotPassword,
+                                })),
+                                ifjs(loading, Generics.loading()),
+                            ).build(),
                     ).build(),
                 Generics.message(message)
             ).build();

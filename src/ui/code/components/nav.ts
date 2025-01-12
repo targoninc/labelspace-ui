@@ -23,7 +23,7 @@ export class Nav {
                     onclick: async () => {
                         await Api.logout();
                         currentUser.value = null;
-                        reload();
+                        navigate("login");
                     }
                 })
             ).build();
