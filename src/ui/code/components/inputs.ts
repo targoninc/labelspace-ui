@@ -42,8 +42,8 @@ export class Inputs {
         });
     }
 
-    static date(value: Signal<Date>, label: string, name: string) {
-        return FJSC.input<Date>({
+    static date(value: Signal<string>, label: string, name: string) {
+        return FJSC.input<string>({
             type: InputType.date,
             name,
             label,

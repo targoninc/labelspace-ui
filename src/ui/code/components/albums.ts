@@ -21,6 +21,7 @@ import {target} from "../functions/templates.ts";
 import { InputType } from "../../fjsc/src/Types.ts";
 import {Statistic} from "../models/Statistic.ts";
 import {Statistics} from "./statistics.ts";
+import {dayFrom, today} from "../functions/dates.ts";
 
 export class Albums {
     static page() {
@@ -121,7 +122,7 @@ export class Albums {
         const title = signal("");
         const upc = signal("");
         const artists = signal("");
-        const release_date = signal(new Date());
+        const release_date = signal(today());
         const price = signal(10);
         const anyEmpty = compute((t, u, a, r, p) => t === "" || u === "" || a === "" || r === null || p === 0, title, upc, artists, release_date, price);
         if (!currentUser.value?.permissions?.some(p => p.name === Permissions.releaseManagement)) {
@@ -155,7 +156,7 @@ export class Albums {
                             Api.createAlbum({
                                 title: title.value,
                                 upc: upc.value,
-                                release_date: release_date.value,
+                                release_date: new Date(release_date.value),
                                 price: price.value,
                                 artists: artists.value,
                             }).then((album) => {
@@ -223,12 +224,14 @@ export class Albums {
     static album(album: Signal<Album | null>, load: Function) {
         const title = compute(a => a?.title ?? "Album", album);
         const upc = compute(a => a?.upc ?? "No UPC", album);
-        const releaseDate = compute(a => new Date(a?.release_date ?? new Date().toISOString()), album);
+        const releaseDate = compute(a => {
+            return dayFrom(a?.release_date ?? new Date());
+        }, album);
         const price = compute(a => a?.price ?? 0, album);
         const tracks = compute(a => a?.tracks ?? [], album);
         const id = compute(a => a?.id ?? 0, album);
         const noneChanged = compute((t, u, r, p) => {
-            return t === album.value?.title && u === album.value?.upc && r.getTime() === new Date(album.value?.release_date).getTime() && p === album.value?.price;
+            return t === album.value?.title && u === album.value?.upc && new Date(r).getTime() === new Date(album.value?.release_date).getTime() && p === album.value?.price;
         }, title, upc, releaseDate, price);
         const loading = signal(false);
         const search = signal("");
@@ -269,7 +272,7 @@ export class Albums {
                                         Api.updateAlbum(id.value, {
                                             title: title.value,
                                             upc: upc.value,
-                                            release_date: releaseDate.value,
+                                            release_date: new Date(releaseDate.value),
                                             price: price.value,
                                         }).then(() => {
                                             notify("Album updated", NotificationType.success);

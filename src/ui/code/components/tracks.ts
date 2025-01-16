@@ -19,6 +19,7 @@ import {target} from "../functions/templates.ts";
 import {Album} from "../models/db/tri/Album.ts";
 import {Statistic} from "../models/Statistic.ts";
 import {Statistics} from "./statistics.ts";
+import {dayFrom, today} from "../functions/dates.ts";
 
 export class Tracks {
     static trackPage(route: Route, params: any) {
@@ -42,12 +43,14 @@ export class Tracks {
     private static track(track$: Signal<Track | null>) {
         const title = compute(t => t?.title ?? "Track", track$);
         const isrc = compute(t => t?.isrc ?? "No ISRC", track$);
-        const releaseDate = compute(t => new Date(t?.release_date), track$);
+        const releaseDate = compute(t => {
+            return dayFrom(t?.release_date ?? new Date());
+        }, track$);
         const price = compute(t => t?.price ?? 0, track$);
         const notChanged = signal(true);
         title.subscribe(t => notChanged.value = t === track$.value?.title);
         isrc.subscribe(t => notChanged.value = t === track$.value?.isrc);
-        releaseDate.subscribe(t => notChanged.value = t === track$.value?.release_date);
+        releaseDate.subscribe(t => notChanged.value = t === dayFrom(track$.value?.release_date ?? new Date()));
         price.subscribe(t => notChanged.value = t === track$.value?.price);
 
         return create("div")
@@ -65,7 +68,7 @@ export class Tracks {
                         Api.updateTrack(track$.value?.id ?? 0, {
                             title: title.value,
                             isrc: isrc.value,
-                            release_date: releaseDate.value,
+                            release_date: new Date(releaseDate.value),
                             price: price.value,
                         }).then(() => {
                             notify("Track updated", NotificationType.success);
@@ -187,7 +190,7 @@ export class Tracks {
         const artists = signal("");
         const isrc = signal("");
         const credits = signal("");
-        const release_date = signal(new Date());
+        const release_date = signal(today());
         const price = signal(1);
         const serviceLinks = signal<ServiceLink[]>([]);
         const genre = signal<string>("");
@@ -229,7 +232,7 @@ export class Tracks {
                             Api.createTrack({
                                 title: title.value,
                                 artists: artists.value,
-                                release_date: release_date.value.toISOString(),
+                                release_date: release_date.value,
                                 price: price.value,
                                 isrc: isrc.value,
                                 credits: credits.value,
