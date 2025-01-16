@@ -10,7 +10,7 @@ import {notify} from "../functions/notifications.ts";
 import {NotificationType} from "../enums/NotificationType.ts";
 
 export class Inputs {
-    static password(password: Signal<string>, placeholder: string = "Password", name: string = "password") {
+    static password(password: Signal<string>, placeholder: string = "Password", name: string = "password", onEnter: Function = () => {}) {
         return FJSC.input<string>({
             type: InputType.password,
             name,
@@ -20,6 +20,11 @@ export class Inputs {
             attributes: ["autocomplete", name],
             onchange: (v) => {
                 password.value = v;
+            },
+            onkeydown: e => {
+                if (e.key === "Enter") {
+                    onEnter();
+                }
             }
         });
     }

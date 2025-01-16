@@ -53,7 +53,11 @@ export class Account {
                     .classes("flex-v")
                     .children(
                         Inputs.text(username, "Username", "username"),
-                        Inputs.password(password),
+                        Inputs.password(password, "Password", "password", async () => {
+                            if (filledBoth.value) {
+                                await login();
+                            }
+                        }),
                         create("div")
                             .classes("flex", "center-items")
                             .children(
