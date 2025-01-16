@@ -1,6 +1,6 @@
 import {compute, signal} from "../../fjsc/src/signals.ts";
 import {Generics} from "./generics.ts";
-import {create, ifjs} from "../../fjsc/src/f2.ts";
+import {create, ifjs, signalMap} from "../../fjsc/src/f2.ts";
 import {User} from "../models/db/tri/User.ts";
 import {Api} from "../api/api.ts";
 import {Artist} from "../models/db/tri/Artist.ts";
@@ -65,21 +65,23 @@ export class Users {
 
     private static yourArtists() {
         const artists = compute(u => u?.artists ?? [], currentUser);
-        const headers = ["Artist name"];
 
-        return Generics.container(1, [
-            Generics.heading(3, "Your artists"),
-            Generics.table(
-                headers,
-                artists,
-                (artist: Artist) => create("tr")
-                    .children(
-                        create("td")
-                            .text(artist.name)
-                            .build(),
-                    ).build()
-            )
-        ]);
+        return create("div")
+            .classes("flex-v")
+            .children(
+                Generics.heading(2, "Your artists"),
+                signalMap(artists, create("div").classes("flex-v"), a => {
+                    return Generics.container(1, [
+                        create("div")
+                            .classes("flex")
+                            .children(
+                                create("td")
+                                    .text(a.name)
+                                    .build()
+                            ).build()
+                    ]);
+                })
+            ).build();
     }
 
     static personalData() {
