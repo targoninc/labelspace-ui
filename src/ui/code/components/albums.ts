@@ -17,11 +17,13 @@ import {Tab} from "../models/Tab.ts";
 import {Tracks} from "./tracks.ts";
 import {Modals} from "./modals.ts";
 import {SearchResult} from "../models/SearchResult.ts";
-import {target} from "../functions/templates.ts";
-import { InputType } from "../../fjsc/src/Types.ts";
+import {getImageUrl, target} from "../functions/templates.ts";
+import {InputType} from "../../fjsc/src/Types.ts";
 import {Statistic} from "../models/Statistic.ts";
 import {Statistics} from "./statistics.ts";
 import {dayFrom, today} from "../functions/dates.ts";
+import {MediaFileType} from "../enums/MediaFileType.ts";
+import {RequestableImageSize} from "./requestableImageSize.ts";
 
 export class Albums {
     static page() {
@@ -73,10 +75,14 @@ export class Albums {
                 Albums.listActions(canManageReleases, filter),
                 ifjs(loading, Generics.loading()),
                 Generics.table(
-                    ["Title", "Release date", "Tracks"],
+                    ["Cover", "Title", "Release date", "Tracks"],
                     filteredAlbums,
                     (album) => create("tr")
                         .children(
+                            create("td")
+                                .children(
+                                    Generics.image(getImageUrl(MediaFileType.albumCover, album.id, RequestableImageSize.s50))
+                                ).build(),
                             create("td")
                                 .children(
                                     Generics.link("/album/" + album.id, album.title)
@@ -87,7 +93,8 @@ export class Albums {
                             create("td")
                                 .text(album.tracks?.length ?? 0)
                                 .build(),
-                        ).build()
+                        ).build(),
+                    ["scroll-table"]
                 )
             ).build();
     }

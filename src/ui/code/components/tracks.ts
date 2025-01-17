@@ -15,11 +15,12 @@ import {ServiceLink} from "../models/ServiceLink.ts";
 import {LinkServices} from "../enums/LinkServices.ts";
 import {Genre} from "../enums/Genre.ts";
 import {InputType} from "../../fjsc/src/Types.ts";
-import {target} from "../functions/templates.ts";
-import {Album} from "../models/db/tri/Album.ts";
+import {getImageUrl, target} from "../functions/templates.ts";
 import {Statistic} from "../models/Statistic.ts";
 import {Statistics} from "./statistics.ts";
 import {dayFrom, today} from "../functions/dates.ts";
+import {MediaFileType} from "../enums/MediaFileType.ts";
+import {RequestableImageSize} from "./requestableImageSize.ts";
 
 export class Tracks {
     static trackPage(route: Route, params: any) {
@@ -129,11 +130,15 @@ export class Tracks {
                 Tracks.tracksTabActions(canManageReleases, filter),
                 ifjs(loading, Generics.loading()),
                 Generics.table(
-                    ["Title", "Release date"],
+                    ["Cover", "Title", "Release date"],
                     filteredTracks,
                     (track) => create("tr")
                         .onclick(() => navigate(`/track/${track.id}`))
                         .children(
+                            create("td")
+                                .children(
+                                    Generics.image(getImageUrl(MediaFileType.trackCover, track.id, RequestableImageSize.s50))
+                                ).build(),
                             create("td")
                                 .children(
                                     Generics.link("/track/" + track.id, track.title)
@@ -141,7 +146,8 @@ export class Tracks {
                             create("td")
                                 .text(new Date(track.release_date).toLocaleString())
                                 .build(),
-                        ).build()
+                        ).build(),
+                    ["scroll-table"]
                 )
             ).build();
     }

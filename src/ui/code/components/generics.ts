@@ -135,7 +135,15 @@ export class Generics {
             .build();
     }
 
-    static table<T>(headers: StringOrSignal[], entries: Signal<T[]>|T[], rowTemplate: (entry: T) => AnyElement) {
+    static table<T>(headers: StringOrSignal[], entries: Signal<T[]>|T[], rowTemplate: (entry: T) => AnyElement, classes: StringOrSignal[] = []) {
+        return create("div")
+            .classes("table-wrapper", ...classes)
+            .children(
+                Generics.tableInternal(entries, headers, rowTemplate)
+            ).build();
+    }
+
+    private static tableInternal<T>(entries: Signal<T[]> | T[], headers: StringOrSignal[], rowTemplate: (entry: T) => AnyElement) {
         if (entries instanceof Signal) {
             return create("table")
                 .classes("container", "layer-2")
