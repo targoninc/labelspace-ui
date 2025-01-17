@@ -9,10 +9,13 @@ import {CreateAlbumRequestBody} from "../models/CreateAlbumRequestBody.ts";
 import {Track} from "../models/db/tri/Track.ts";
 import {UploadTrackRequestBody} from "../models/UploadTrackRequestBody.ts";
 import {SearchResult} from "../models/SearchResult.ts";
+import { MediaFileType } from "../enums/MediaFileType.ts";
 
 const base = window.location.origin.includes("localhost") ? "http://localhost:8090" : "https://artists-api.trirecords.eu";
 
 export class Api {
+    static baseUrl = base;
+
     static async getUser() {
         return await Fetcher.get<User>(base + "/user/get");
     }
@@ -133,6 +136,13 @@ export class Api {
         return Fetcher.post(base + "/albums/actions/addTrack", {
             track_id,
             album_ids: [album_id]
+        });
+    }
+
+    static deleteMedia(type: MediaFileType, referenceId: number) {
+        return Fetcher.post(base + "/media/delete", {
+            type,
+            referenceId
         });
     }
 }

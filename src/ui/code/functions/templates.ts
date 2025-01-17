@@ -1,6 +1,9 @@
 import {compute, Signal} from "../../fjsc/src/signals.ts";
 import {Statistic} from "../models/Statistic.ts";
 import {nullElement} from "../../fjsc/src/f2.ts";
+import {MediaFileType} from "../enums/MediaFileType.ts";
+import {Api} from "../api/api.ts";
+import {RequestableImageSize} from "../components/requestableImageSize.ts";
 
 export function statisticsFromSignal(stats: Signal<Statistic[]>, template: Function) {
     return compute(s => {
@@ -22,4 +25,8 @@ export function mapStatistics(stats: Statistic[]) {
 
 export function target<T = HTMLInputElement>(e: Event) {
     return e.target as T;
+}
+
+export function getImageUrl(type: MediaFileType, id: number, quality: RequestableImageSize) {
+    return `${Api.baseUrl}/media/image?mediaFileType=${type}&id=${id}&quality=${quality}`;
 }

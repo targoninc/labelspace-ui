@@ -10,6 +10,10 @@ import {NotificationType} from "../enums/NotificationType.ts";
 import {notify} from "../functions/notifications.ts";
 import {FJSC} from "../../fjsc";
 import {Permissions} from "../enums/Permissions.ts";
+import {MediaFileType} from "../enums/MediaFileType.ts";
+import {reload} from "../routing/Router.ts";
+import {Images} from "./images.ts";
+import { ImageSize } from "./imageSize.ts";
 
 export class Users {
     static listPage() {
@@ -75,9 +79,14 @@ export class Users {
                         create("div")
                             .classes("flex")
                             .children(
-                                create("td")
-                                    .text(a.name)
-                                    .build()
+                                Images.changeableImage(a.id, a.has_logo, MediaFileType.artistLogo, {
+                                    changeable: true,
+                                    deletable: false,
+                                    afterChange: reload,
+                                    size: ImageSize.p100,
+                                    classes: ["artist-logo"]
+                                }, "/images/LOGO512.png"),
+                                Generics.heading(2, a.name)
                             ).build()
                     ]);
                 })
