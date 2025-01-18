@@ -15,7 +15,6 @@ export interface User extends Express.User {
     mfa_enabled: boolean;
     emails: UserEmail[];
     password_hash: string;
-    description: string;
     password_token: string|null;
     verified: boolean;
     verification_status: string;

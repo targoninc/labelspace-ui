@@ -10,6 +10,7 @@ import {Track} from "../models/db/tri/Track.ts";
 import {UploadTrackRequestBody} from "../models/UploadTrackRequestBody.ts";
 import {SearchResult} from "../models/SearchResult.ts";
 import { MediaFileType } from "../enums/MediaFileType.ts";
+import {Artist} from "../models/db/tri/Artist.ts";
 
 const base = window.location.origin.includes("localhost") ? "http://localhost:8090" : "https://artists-api.trirecords.eu";
 
@@ -143,6 +144,13 @@ export class Api {
         return Fetcher.post(base + "/media/delete", {
             type,
             referenceId
+        });
+    }
+
+    static updateArtist(name: string, artist: Partial<Artist>) {
+        return Fetcher.post(base + "/artists/update", {
+            ...artist,
+            name,
         });
     }
 }

@@ -6,4 +6,5 @@ export interface Artist {
     country: string|null;
     state: string|null;
     has_logo: boolean;
+    description: string|null;
 }

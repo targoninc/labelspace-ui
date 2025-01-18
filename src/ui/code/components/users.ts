@@ -75,6 +75,12 @@ export class Users {
             .children(
                 Generics.heading(2, "Your artists"),
                 signalMap(artists, create("div").classes("flex-v"), a => {
+                    const description = signal(a.description ?? "");
+                    const anyEmpty = compute((d) => {
+                        return d.length === 0;
+                    }, description);
+                    const loading = signal(false);
+
                     return Generics.container(1, [
                         create("div")
                             .classes("flex")
@@ -86,7 +92,23 @@ export class Users {
                                     size: ImageSize.p100,
                                     classes: ["artist-logo"]
                                 }, "/images/LOGO512.png"),
-                                Generics.heading(2, a.name)
+                                create("div")
+                                    .classes("flex-v")
+                                    .children(
+                                        Generics.heading(2, a.name),
+                                        Inputs.longtext(description, "Description", "description"),
+                                        FJSC.button({
+                                            text: "Update",
+                                            icon: { icon: "save" },
+                                            classes: ["positive"],
+                                            disabled: compute((a, l) => a || l, anyEmpty, loading),
+                                            onclick: () => {
+                                                Api.updateArtist(a.name, <Partial<Artist>>{
+                                                    description: description.value
+                                                }).finally(() => loading.value = false);
+                                            }
+                                        })
+                                    ).build()
                             ).build()
                     ]);
                 })
@@ -98,21 +120,18 @@ export class Users {
         const legalName = compute(u => u?.legal_name ?? "", user);
         const country = compute(u => u?.country ?? "", user);
         const state = compute(u => u?.state ?? "", user);
-        const description = compute(u => u?.description ?? "", user);
-        const notChanged = signal(true);
-        compute((l, c, s, d) => {
-            notChanged.value = false;
-        }, legalName, country, state, description);
+        const changed = compute((u, l, c, s) => {
+            return l !== u?.legal_name || c !== u?.country || s !== u?.state;
+        }, user, legalName, country, state);
         const message = signal("");
         const loading = signal(false);
-        const disabled = compute((nc, l) => nc || l, notChanged, loading);
+        const disabled = compute((c, l) => !c || l, changed, loading);
 
         return Generics.container(1, [
             Generics.heading(3, "Personal Data"),
             Inputs.password(legalName, "Legal name", "legal_name"),
             Inputs.text(country, "Country", "country"),
             Inputs.text(state, "State", "state"),
-            Inputs.text(description, "Description", "description"),
             create("div")
                 .classes("flex", "center-items")
                 .children(

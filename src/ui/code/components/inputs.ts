@@ -29,6 +29,18 @@ export class Inputs {
         });
     }
 
+    static longtext(value: Signal<string>, label: string, name: string) {
+        return FJSC.textarea({
+            name,
+            label,
+            value,
+            attributes: ["autocomplete", name],
+            onchange: (v) => {
+                value.value = v;
+            }
+        });
+    }
+
     static text(value: Signal<string>, label: string, name: string) {
         return FJSC.input<string>({
             type: InputType.text,
