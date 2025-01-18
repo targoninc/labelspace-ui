@@ -95,7 +95,7 @@ export class Users {
                                 create("div")
                                     .classes("flex-v")
                                     .children(
-                                        Generics.heading(2, a.name),
+                                        Generics.link("/artist/" + a.name, a.name),
                                         Inputs.longtext(description, "Description", "description"),
                                         FJSC.button({
                                             text: "Update",
