@@ -455,7 +455,7 @@ button.fjsc {
 }
 
 .artist-logo {
-    background: var(--black);
+    background: black;
     border-radius: 999px;
     padding: var(--layout-gap);
     box-sizing: border-box;
