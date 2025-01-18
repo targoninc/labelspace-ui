@@ -24,6 +24,8 @@ import {Statistics} from "./statistics.ts";
 import {dayFrom, today} from "../functions/dates.ts";
 import {MediaFileType} from "../enums/MediaFileType.ts";
 import {RequestableImageSize} from "./requestableImageSize.ts";
+import {Images} from "./images.ts";
+import {ImageSize} from "./imageSize.ts";
 
 export class Albums {
     static page() {
@@ -256,10 +258,20 @@ export class Albums {
                     .finally();
             }, debounce);
         });
+        const hasImage = compute(a => a?.has_cover ?? false, album);
 
         return create("div")
             .classes("flex")
             .children(
+                create("div")
+                    .classes("flex-v")
+                    .children(
+                        Images.changeableImage(id, hasImage, MediaFileType.albumCover, {
+                            changeable: true,
+                            deletable: true,
+                            size: ImageSize.p500
+                        }),
+                    ).build(),
                 create("div")
                     .classes("flex-v", "flex-grow")
                     .children(

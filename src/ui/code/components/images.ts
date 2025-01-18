@@ -1,10 +1,10 @@
-import {create, ifjs} from "../../fjsc/src/f2";
+import {create, getValue, ifjs} from "../../fjsc/src/f2";
 import {Signal, signal} from "../../fjsc/src/signals.ts";
 import {getImageUrl} from "../functions/templates.ts";
 import {MediaFileType} from "../enums/MediaFileType.ts";
 import {RequestableImageSize} from "./requestableImageSize.ts";
 import {ImageSize} from "./imageSize.ts";
-import {FJSC} from "../../fjsc/src/FJSC.ts";
+import {FJSC} from "../../fjsc";
 import { uploadImage } from "../functions/media.ts";
 import { Generics } from "./generics.ts";
 import { Api } from "../api/api.ts";
@@ -20,16 +20,16 @@ interface ChangeableImageOptions {
 }
 
 export class Images {
-    static changeableImage(id: number, hasImage: boolean, type: MediaFileType, options: ChangeableImageOptions, fallback: string = "") {
+    static changeableImage(id: number|Signal<number>, hasImage: boolean|Signal<boolean>, type: MediaFileType, options: ChangeableImageOptions, fallback: string = "") {
         const src = signal(fallback);
-        if (hasImage) {
-            let size: ImageSize = options.size ?? ImageSize.adaptive;
-            if (size === ImageSize.adaptive) {
-                size = ImageSize.p50;
-            } else if (size === ImageSize.fill) {
-                size = ImageSize.p200;
-            }
-            src.value = getImageUrl(type, id, size as unknown as RequestableImageSize);
+        if (hasImage instanceof Signal) {
+            (hasImage as Signal<boolean>).subscribe(h => {
+                if (h) {
+                    Images.setSrc(options, getValue(id), src, type);
+                }
+            });
+        } else {
+            Images.setSrc(options, getValue(id), src, type);
         }
         const loading = signal(false);
 
@@ -45,7 +45,7 @@ export class Images {
                             text: "Change",
                             disabled: loading,
                             onclick: () => {
-                                uploadImage(loading, type, id);
+                                uploadImage(loading, type, getValue(id));
                             }
                         })),
                         ifjs(options.deletable, FJSC.button({
@@ -54,7 +54,7 @@ export class Images {
                             disabled: loading,
                             onclick: () => {
                                 loading.value = true;
-                                Api.deleteMedia(type, id).then(() => {
+                                Api.deleteMedia(type, getValue(id)).then(() => {
                                     notify("Deleted media", NotificationType.success);
                                 }).finally(() => loading.value = false);
                             }
@@ -62,6 +62,16 @@ export class Images {
                         ifjs(loading, Generics.loading())
                     ).build()
             ).build();
+    }
+
+    private static setSrc(options: ChangeableImageOptions, id: number, src: Signal<string>, type: MediaFileType) {
+        let size: ImageSize = options.size ?? ImageSize.adaptive;
+        if (size === ImageSize.adaptive) {
+            size = ImageSize.p50;
+        } else if (size === ImageSize.fill) {
+            size = ImageSize.p500;
+        }
+        src.value = getImageUrl(type, (id as number), size as unknown as RequestableImageSize);
     }
 
     static image(src: Signal<string>, size: ImageSize, classes: string[] = []) {

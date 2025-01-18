@@ -21,6 +21,8 @@ import {Statistics} from "./statistics.ts";
 import {dayFrom, today} from "../functions/dates.ts";
 import {MediaFileType} from "../enums/MediaFileType.ts";
 import {RequestableImageSize} from "./requestableImageSize.ts";
+import {Images} from "./images.ts";
+import {ImageSize} from "./imageSize.ts";
 
 export class Tracks {
     static trackPage(route: Route, params: any) {
@@ -53,33 +55,52 @@ export class Tracks {
         isrc.subscribe(t => notChanged.value = t === track$.value?.isrc);
         releaseDate.subscribe(t => notChanged.value = t === dayFrom(track$.value?.release_date ?? new Date()));
         price.subscribe(t => notChanged.value = t === track$.value?.price);
+        const id = compute(t => t?.id ?? 0, track$);
+        const hasImage = compute(t => t?.has_cover ?? false, track$);
 
         return create("div")
             .classes("flex-v")
             .children(
-                Inputs.text(title, "Title", "title"),
-                Inputs.text(isrc, "ISRC", "isrc"),
-                Inputs.date(releaseDate, "Release date", "release_date"),
-                Inputs.number(price, "Price", "price"),
-                FJSC.button({
-                    text: "Update track",
-                    classes: ["positive"],
-                    disabled: notChanged,
-                    onclick: () => {
-                        Api.updateTrack(track$.value?.id ?? 0, {
-                            title: title.value,
-                            isrc: isrc.value,
-                            release_date: new Date(releaseDate.value),
-                            price: price.value,
-                        }).then(() => {
-                            notify("Track updated", NotificationType.success);
-                            navigate("/track/" + track$.value?.id);
-                        }).catch(e => {
-                            console.error(e);
-                        });
-                    }
-                }),
-                ifjs(track$, Tracks.trackStatistics(track$))
+                create("div")
+                    .classes("flex")
+                    .children(
+                        create("div")
+                            .classes("flex-v")
+                            .children(
+                                Images.changeableImage(id, hasImage, MediaFileType.trackCover, {
+                                    changeable: true,
+                                    deletable: true,
+                                    size: ImageSize.p500
+                                }),
+                            ).build(),
+                        create("div")
+                            .classes("flex-v", "flex-grow")
+                            .children(
+                                Inputs.text(title, "Title", "title"),
+                                Inputs.text(isrc, "ISRC", "isrc"),
+                                Inputs.date(releaseDate, "Release date", "release_date"),
+                                Inputs.number(price, "Price", "price"),
+                                FJSC.button({
+                                    text: "Update track",
+                                    classes: ["positive"],
+                                    disabled: notChanged,
+                                    onclick: () => {
+                                        Api.updateTrack(track$.value?.id ?? 0, {
+                                            title: title.value,
+                                            isrc: isrc.value,
+                                            release_date: new Date(releaseDate.value),
+                                            price: price.value,
+                                        }).then(() => {
+                                            notify("Track updated", NotificationType.success);
+                                            navigate("/track/" + track$.value?.id);
+                                        }).catch(e => {
+                                            console.error(e);
+                                        });
+                                    }
+                                }),
+                            ).build(),
+                    ).build(),
+                ifjs(track$, Tracks.trackStatistics(track$)),
             ).build();
     }
 
