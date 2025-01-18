@@ -241,7 +241,7 @@ export class Generics {
                 create("a")
                     .classes("underline")
                     .href(url)
-                    .rel(isRemote ? "_blank" : "_self")
+                    .target(isRemote ? "_blank" : "_self")
                     .title(url)
                     .text(title)
                     .onclick(e => {
