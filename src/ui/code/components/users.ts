@@ -76,8 +76,8 @@ export class Users {
                 Generics.heading(2, "Your artists"),
                 signalMap(artists, create("div").classes("flex-v"), a => {
                     const description = signal(a.description ?? "");
-                    const anyEmpty = compute((d) => {
-                        return d.length === 0;
+                    const anyInvalid = compute((d) => {
+                        return d === a.description;
                     }, description);
                     const loading = signal(false);
 
@@ -101,11 +101,15 @@ export class Users {
                                             text: "Update",
                                             icon: { icon: "save" },
                                             classes: ["positive"],
-                                            disabled: compute((a, l) => a || l, anyEmpty, loading),
+                                            disabled: compute((a, l) => a || l, anyInvalid, loading),
                                             onclick: () => {
                                                 Api.updateArtist(a.name, <Partial<Artist>>{
                                                     description: description.value
-                                                }).finally(() => loading.value = false);
+                                                }).then(() => {
+                                                    notify("Updated artist", NotificationType.success);
+                                                    reload();
+                                                })
+                                                .finally(() => loading.value = false);
                                             }
                                         })
                                     ).build()
