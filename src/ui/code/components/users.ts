@@ -107,7 +107,9 @@ export class Users {
                                                     description: description.value
                                                 }).then(() => {
                                                     notify("Updated artist", NotificationType.success);
-                                                    reload();
+                                                    Api.getUser().then(u => {
+                                                        currentUser.value = u;
+                                                    });
                                                 })
                                                 .finally(() => loading.value = false);
                                             }
