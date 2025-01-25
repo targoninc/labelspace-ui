@@ -294,6 +294,7 @@ export class Albums {
                                                 upc: upc.value,
                                                 release_date: new Date(releaseDate.value),
                                                 price: price.value,
+                                                artists: artists.value,
                                             }).then(() => {
                                                 notify("Album updated", NotificationType.success);
                                                 reload();
