@@ -2,7 +2,7 @@ import {compute, Signal, signal} from "../../fjsc/src/signals.ts";
 import {Album} from "../models/db/tri/Album.ts";
 import {Api} from "../api/api.ts";
 import {Generics} from "./generics.ts";
-import {create, ifjs, nullElement} from "../../fjsc/src/f2.ts";
+import {AnyNode, create, ifjs, nullElement} from "../../fjsc/src/f2.ts";
 import {navigate, reload} from "../routing/Router.ts";
 import {FJSC} from "../../fjsc";
 import {Inputs} from "./inputs.ts";
@@ -204,29 +204,16 @@ export class Albums {
     }
 
     static albumStatistics(album: Signal<Album | null>) {
-        const loading = signal(false);
-        const stats = signal<Statistic[]>([]);
         const upc = compute(a => a?.upc ?? "No UPC", album);
-        const template = compute(s => {
-            if (s.length === 0) {
-                return nullElement();
-            }
-            return Statistics.royaltiesByMonthChart(s.map(s => s.label), s.map(s => s.value));
-        }, stats);
-        const load = () => {
-            loading.value = true;
-            Api.getRoyaltiesByMonth({ upc: upc.value })
-                .then(s => stats.value = s)
-                .finally(() => loading.value = false);
-        };
-        upc.subscribe(load);
-        load();
+        const options = compute(a => {
+            return { upc: a };
+        }, upc);
 
         return create("div")
-            .classes("flex-v", "statistic")
+            .classes("flex")
             .children(
-                ifjs(loading, Generics.loading()),
-                template
+                Statistics.singleStatistic("Royalties by month", Api.getRoyaltiesByMonth, Statistics.royaltiesByMonthChart, null, options),
+                Statistics.singleStatistic("Royalties by service", Api.getRoyaltiesByService, Statistics.royaltiesByServiceChart, null, options),
             ).build();
     }
 
@@ -239,6 +226,7 @@ export class Albums {
         const price = compute(a => a?.price ?? 0, album);
         const tracks = compute(a => a?.tracks ?? [], album);
         const id = compute(a => a?.id ?? 0, album);
+        const earnings = compute(a => a?.earnings ?? 0, album);
         const noneChanged = compute((t, u, r, p) => {
             return t === album.value?.title && u === album.value?.upc && new Date(r).getTime() === new Date(album.value?.release_date).getTime() && p === album.value?.price;
         }, title, upc, releaseDate, price);
@@ -300,14 +288,15 @@ export class Albums {
                                             console.error(e);
                                         });
                                     }
-                                })
+                                }),
+                                Generics.earnings(earnings)
                             ).build(),
                     ).build(),
                 create("div")
                     .classes("flex-v", "flex-grow")
                     .children(
                         Generics.table(
-                            ["Track", "Price", "Actions"],
+                            ["Track", "Price", "Earnings", "Actions"],
                             tracks,
                             (track: Track) => create("tr")
                                 .children(
@@ -317,6 +306,9 @@ export class Albums {
                                         ).build(),
                                     create("td")
                                         .text(currency(track.price))
+                                        .build(),
+                                    create("td")
+                                        .text(currency(track.earnings))
                                         .build(),
                                     create("td")
                                         .children(

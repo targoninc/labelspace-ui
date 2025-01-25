@@ -2,6 +2,7 @@ import {Album} from "./Album.js";
 import {User} from "./User.js";
 
 export interface Track {
+    earnings?: number;
     repost_user_id?: number;
     user?: User;
     comments?: Comment[];

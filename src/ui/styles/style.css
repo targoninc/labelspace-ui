@@ -336,6 +336,8 @@ th, td {
     position: relative;
     box-sizing: border-box;
     border-top: 1px solid transparent;
+    border-left: 1px solid transparent;
+    border-right: 1px solid transparent;
 }
 
 tr:hover td {
@@ -351,11 +353,7 @@ tr:hover td:last-child {
     border-right: 1px solid var(--black);
 }
 
-tr:nth-child(even) {
-    background: var(--gray-2);
-}
-
-tr:nth-child(odd) {
+tr {
     background: var(--gray-1);
 }
 

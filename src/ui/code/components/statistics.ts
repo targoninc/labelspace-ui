@@ -4,7 +4,7 @@ import {create, HtmlPropertyValue, ifjs} from "../../fjsc/src/f2.ts";
 import {CustomChartOptions} from "../enums/CustomChartOptions.ts";
 import {Colors} from "../enums/Colors.ts";
 import {Statistic} from "../models/Statistic.ts";
-import {compute, signal} from "../../fjsc/src/signals.ts";
+import {compute, Signal, signal} from "../../fjsc/src/signals.ts";
 import {Api} from "../api/api.ts";
 import {statisticsFromSignal} from "../functions/templates.ts";
 import {currentUser} from "../state.ts";
@@ -20,7 +20,7 @@ Chart.register(...registerables);
 const usedColors = Colors.themedList;
 
 export class Statistics {
-    static donutChart(labels, values, valueTitle, title, id, colors = usedColors) {
+    static donutChart(labels: string[], values: number[], valueTitle: string, title: string, id: string, colors = usedColors) {
         const ctx = create("canvas")
             .classes("chart")
             .id(id)
@@ -58,7 +58,7 @@ export class Statistics {
             ).build();
     }
 
-    static barChart(labels, values, valueTitle, title, id, colors = usedColors, opts: ExtendedChartOptions = {}) {
+    static barChart(labels: string[], values: number[], valueTitle: string, title: string, id: string, colors = usedColors, opts: ExtendedChartOptions = {}) {
         const ctx = create("canvas")
             .classes("chart")
             .id(id)
@@ -93,7 +93,7 @@ export class Statistics {
             ).build();
     }
 
-    static boxPlotChart(values, title, id, colors = usedColors) {
+    static boxPlotChart(values: number[], title: string, id: string, colors = usedColors) {
         const ctx = create("canvas")
             .classes("chart")
             .id(id)
@@ -171,6 +171,13 @@ export class Statistics {
         return Statistics.barChart(labels, values, "Royalties", "Royalties by artist", "royaltiesByArtistChart");
     }
 
+    static royaltiesByServiceChart(labels: string[], values: number[]) {
+        if (labels.length === 0) {
+            return Statistics.noData("Royalties by service");
+        }
+        return Statistics.barChart(labels, values, "Royalties", "Royalties by service", "royaltiesByServiceChart");
+    }
+
     static page() {
         const hasImportPermission = compute(u => u?.permissions?.some(p => p.name === Permissions.importData), currentUser);
 
@@ -197,18 +204,20 @@ export class Statistics {
                 Statistics.singleStatistic("Royalties by year", Api.getRoyaltiesByYear, Statistics.royaltiesByYearChart),
                 Statistics.singleStatistic("Royalties by track", Api.getRoyaltiesByTrack, Statistics.royaltiesByTrackChart),
                 Statistics.singleStatistic("Royalties by artist", Api.getRoyaltiesByArtist, Statistics.royaltiesByArtistChart),
+                Statistics.singleStatistic("Royalties by service", Api.getRoyaltiesByService, Statistics.royaltiesByServiceChart),
             ).build();
     }
 
-    static singleStatistic(title: string, apiFunction: Function, template: Function, info: string|null = null) {
+    static singleStatistic(title: string, apiFunction: Function, template: Function, info: string|null = null, options: Signal<any> = signal({})) {
         const stats = signal<Statistic[]>([]);
         const loading = signal(false);
         const loadStatistic = () => {
             loading.value = true;
-            apiFunction().then(r => stats.value = r)
+            apiFunction(options.value).then((r: Statistic[]) => stats.value = r)
                 .finally(() => loading.value = false);
         };
         loadStatistic();
+        options.subscribe(loadStatistic);
 
         return create("div")
             .classes("flex-v", "statistic")

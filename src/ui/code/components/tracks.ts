@@ -50,6 +50,10 @@ export class Tracks {
             return dayFrom(t?.release_date ?? new Date());
         }, track$);
         const price = compute(t => t?.price ?? 0, track$);
+        const earnings = compute(t => t?.earnings ?? 0, track$);
+        const album = compute(t => t?.album ?? null, track$);
+        const albumLink = compute(album => `/album/${album?.id}`, album);
+        const albumTitle = compute(album => album?.title ?? "Unknown album", album);
         const notChanged = signal(true);
         title.subscribe(t => notChanged.value = t === track$.value?.title);
         isrc.subscribe(t => notChanged.value = t === track$.value?.isrc);
@@ -76,6 +80,14 @@ export class Tracks {
                         create("div")
                             .classes("flex-v", "flex-grow")
                             .children(
+                                create("div")
+                                    .classes("flex")
+                                    .children(
+                                        create("span")
+                                            .text("In")
+                                            .build(),
+                                        Generics.link(albumLink, albumTitle)
+                                    ).build(),
                                 Inputs.text(title, "Title", "title"),
                                 Inputs.text(isrc, "ISRC", "isrc"),
                                 Inputs.date(releaseDate, "Release date", "release_date"),
@@ -98,6 +110,7 @@ export class Tracks {
                                         });
                                     }
                                 }),
+                                Generics.earnings(earnings)
                             ).build(),
                     ).build(),
                 ifjs(track$, Tracks.trackStatistics(track$)),

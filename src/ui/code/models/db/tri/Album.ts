@@ -2,6 +2,7 @@ import {User} from "./User.js";
 import type {Track} from "./Track.ts";
 
 export interface Album {
+    earnings?: number;
     tracks?: Track[];
     user?: User;
     id: number;

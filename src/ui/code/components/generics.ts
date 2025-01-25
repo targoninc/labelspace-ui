@@ -17,6 +17,7 @@ import {Tracks} from "./tracks.ts";
 import {Tab} from "../models/Tab.ts";
 import {FJSC} from "../../fjsc";
 import {navigate} from "../routing/Router.ts";
+import {currency} from "../functions/formatters.ts";
 
 export class Generics {
     static notFound() {
@@ -232,8 +233,10 @@ export class Generics {
             .build();
     }
 
-    static link(url: string, title: string) {
-        const isRemote = url.includes("http");
+    static link(url: StringOrSignal, title: StringOrSignal) {
+        const urlSignal: Signal<string> = url.constructor === Signal ? url : signal(url as string);
+        const isRemote = compute(u => !!(u && u.includes("http")), urlSignal);
+        const target = compute((u): string => u ? "_blank" : "_self", isRemote);
 
         return create("div")
             .classes("link-container")
@@ -241,13 +244,13 @@ export class Generics {
                 create("a")
                     .classes("underline")
                     .href(url)
-                    .target(isRemote ? "_blank" : "_self")
+                    .target(target)
                     .title(url)
                     .text(title)
                     .onclick(e => {
                         if (!isRemote && e.button === 0) {
                             e.preventDefault();
-                            navigate(url);
+                            navigate(urlSignal.value);
                         }
                     }).build()
             ).build();
@@ -256,6 +259,21 @@ export class Generics {
     static divider() {
         return create("hr")
             .build();
+    }
+
+    static earnings(number: Signal<number>) {
+        const asCurrency = compute(n => currency(n), number);
+
+        return create("div")
+            .classes("flex")
+            .children(
+                create("span")
+                    .text("Earnings")
+                    .build(),
+                create("span")
+                    .text(asCurrency)
+                    .build(),
+            ).build();
     }
 }
 
