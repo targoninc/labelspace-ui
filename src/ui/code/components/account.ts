@@ -33,6 +33,8 @@ export class Account {
             await Api.login({
                 username: username.value,
                 password: password.value
+            }).catch(e => {
+                message.value = e.message;
             }).then(async () => {
                 currentUser.value = await Api.getUser();
                 navigate("dashboard");
