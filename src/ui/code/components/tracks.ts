@@ -23,6 +23,7 @@ import {MediaFileType} from "../enums/MediaFileType.ts";
 import {RequestableImageSize} from "./requestableImageSize.ts";
 import {Images} from "./images.ts";
 import {ImageSize} from "./imageSize.ts";
+import {Time} from "../functions/time.ts";
 
 export class Tracks {
     static trackPage(route: Route, params: any) {
@@ -61,6 +62,8 @@ export class Tracks {
         price.subscribe(t => notChanged.value = t === track$.value?.price);
         const id = compute(t => t?.id ?? 0, track$);
         const hasImage = compute(t => t?.has_cover ?? false, track$);
+        const hasReleaseManagementPermission = compute(u => u?.permissions?.some(p => p.name === Permissions.releaseManagement), currentUser);
+        const length = compute(t => t?.length ?? 0, track$);
 
         return create("div")
             .classes("flex-v")
@@ -88,28 +91,42 @@ export class Tracks {
                                             .build(),
                                         Generics.link(albumLink, albumTitle)
                                     ).build(),
-                                Inputs.text(title, "Title", "title"),
-                                Inputs.text(isrc, "ISRC", "isrc"),
-                                Inputs.date(releaseDate, "Release date", "release_date"),
-                                Inputs.number(price, "Price", "price"),
-                                FJSC.button({
-                                    text: "Update track",
-                                    classes: ["positive"],
-                                    disabled: notChanged,
-                                    onclick: () => {
-                                        Api.updateTrack(track$.value?.id ?? 0, {
-                                            title: title.value,
-                                            isrc: isrc.value,
-                                            release_date: new Date(releaseDate.value),
-                                            price: price.value,
-                                        }).then(() => {
-                                            notify("Track updated", NotificationType.success);
-                                            navigate("/track/" + track$.value?.id);
-                                        }).catch(e => {
-                                            console.error(e);
-                                        });
-                                    }
-                                }),
+                                ifjs(hasReleaseManagementPermission, create("div")
+                                    .classes("flex-v")
+                                    .children(
+                                        Generics.heading(2, title),
+                                        Generics.property("ISRC", isrc),
+                                        Generics.property("Release date", releaseDate),
+                                        Generics.property("Price", price),
+                                        Generics.property("Length", compute(l => Time.toTimeFromSeconds(l), length)),
+                                    ).build(), true),
+                                ifjs(hasReleaseManagementPermission, create("div")
+                                    .classes("flex-v")
+                                    .children(
+                                        Inputs.text(title, "Title", "title"),
+                                        Inputs.text(isrc, "ISRC", "isrc"),
+                                        Inputs.date(releaseDate, "Release date", "release_date"),
+                                        Inputs.number(price, "Price", "price"),
+                                        Inputs.number(length, "Length", "length"),
+                                        FJSC.button({
+                                            text: "Update track",
+                                            classes: ["positive"],
+                                            disabled: notChanged,
+                                            onclick: () => {
+                                                Api.updateTrack(track$.value?.id ?? 0, {
+                                                    title: title.value,
+                                                    isrc: isrc.value,
+                                                    release_date: new Date(releaseDate.value),
+                                                    price: price.value,
+                                                }).then(() => {
+                                                    notify("Track updated", NotificationType.success);
+                                                    navigate("/track/" + track$.value?.id);
+                                                }).catch(e => {
+                                                    console.error(e);
+                                                });
+                                            }
+                                        }),
+                                    ).build()),
                                 Generics.earnings(earnings)
                             ).build(),
                     ).build(),

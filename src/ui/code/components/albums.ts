@@ -26,6 +26,7 @@ import {MediaFileType} from "../enums/MediaFileType.ts";
 import {RequestableImageSize} from "./requestableImageSize.ts";
 import {Images} from "./images.ts";
 import {ImageSize} from "./imageSize.ts";
+import {Time} from "../functions/time.ts";
 
 export class Albums {
     static page() {
@@ -247,6 +248,7 @@ export class Albums {
             }, debounce);
         });
         const hasImage = compute(a => a?.has_cover ?? false, album);
+        const hasReleaseManagementPermission = compute(u => u?.permissions?.some(p => p.name === Permissions.releaseManagement), currentUser);
 
         return create("div")
             .classes("flex")
@@ -263,7 +265,15 @@ export class Albums {
                 create("div")
                     .classes("flex-v", "flex-grow")
                     .children(
-                        create("div")
+                        ifjs(hasReleaseManagementPermission, create("div")
+                            .classes("flex-v")
+                            .children(
+                                Generics.heading(2, title),
+                                Generics.property("UPC", upc),
+                                Generics.property("Release date", releaseDate),
+                                Generics.property("Price", price),
+                            ).build(), true),
+                        ifjs(hasReleaseManagementPermission, create("div")
                             .classes("flex-v")
                             .children(
                                 Inputs.text(title, "Title", "title"),
@@ -290,13 +300,13 @@ export class Albums {
                                     }
                                 }),
                                 Generics.earnings(earnings)
-                            ).build(),
+                            ).build()),
                     ).build(),
                 create("div")
                     .classes("flex-v", "flex-grow")
                     .children(
                         Generics.table(
-                            ["Track", "Price", "Earnings", "Actions"],
+                            ["Track", "Length", "Earnings", "Actions"],
                             tracks,
                             (track: Track) => create("tr")
                                 .children(
@@ -305,14 +315,14 @@ export class Albums {
                                             Generics.link("/track/" + track.id, track.title)
                                         ).build(),
                                     create("td")
-                                        .text(currency(track.price))
+                                        .text(Time.toTimeFromSeconds(track.length))
                                         .build(),
                                     create("td")
                                         .text(currency(track.earnings))
                                         .build(),
                                     create("td")
                                         .children(
-                                            FJSC.button({
+                                            ifjs(hasReleaseManagementPermission, FJSC.button({
                                                 icon: { icon: "link_off" },
                                                 disabled: loading,
                                                 onclick: () => {
@@ -323,62 +333,70 @@ export class Albums {
                                                         }).finally(() => loading.value = false);
                                                     }, "Remove track from album", "Are you sure you want to remove this track from the album?");
                                                 }
-                                            }),
+                                            })),
                                         ).build()
                                 ).build()
                         ),
-                        Generics.divider(),
-                        FJSC.input({
-                            type: InputType.text,
-                            name: "search",
-                            label: "Add tracks",
-                            placeholder: "Search",
-                            value: search,
-                            onkeydown: (e) => {
-                                setTimeout(() => {
-                                    search.value = target(e).value;
-                                }, 10);
-                            }
-                        }),
-                        Generics.table(
-                            ["Title", "Artists", "Actions"],
-                            searchResults,
-                            (track) => create("tr")
-                                .children(
-                                    create("td")
-                                        .children(
-                                            Generics.link("/track/" + track.id, track.display)
-                                        ).build(),
-                                    create("td")
-                                        .text(track.subtitle)
-                                        .build(),
-                                    create("td")
-                                        .children(
-                                            FJSC.button({
-                                                icon: { icon: "add_link" },
-                                                disabled: loading,
-                                                onclick: () => {
-                                                    loading.value = true;
-                                                    const add = () => {
-                                                        Api.addTrackToAlbum(track.id, album.value?.id ?? 0).then(() => {
-                                                            load();
-                                                        }).finally(() => loading.value = false);
-                                                    }
-
-                                                    Api.getTrack(track.id)
-                                                        .then(track => {
-                                                            if (track.album_id) {
-                                                                Modals.confirm(add, "Conflict", "This track is already in an album. Do you want to add it to this album? This will remove it from the other album.");
-                                                            } else {
-                                                                add();
-                                                            }
-                                                        });
-                                                }
-                                            }),
-                                        ).build()
-                                ).build()
-                        ),
+                        ifjs(hasReleaseManagementPermission, Albums.addTracksSection(search, searchResults, loading, album, load)),
                     ).build(),
+            ).build();
+    }
+
+    private static addTracksSection(search: Signal<string>, searchResults: Signal<SearchResult[]>, loading: Signal<boolean>, album: Signal<Album | null>, load: Function) {
+        return create("div")
+            .classes("flex-v")
+            .children(
+                Generics.divider(),
+                FJSC.input({
+                    type: InputType.text,
+                    name: "search",
+                    label: "Add tracks",
+                    placeholder: "Search",
+                    value: search,
+                    onkeydown: (e) => {
+                        setTimeout(() => {
+                            search.value = target(e).value;
+                        }, 10);
+                    }
+                }),
+                Generics.table(
+                    ["Title", "Artists", "Actions"],
+                    searchResults,
+                    (track) => create("tr")
+                        .children(
+                            create("td")
+                                .children(
+                                    Generics.link("/track/" + track.id, track.display)
+                                ).build(),
+                            create("td")
+                                .text(track.subtitle)
+                                .build(),
+                            create("td")
+                                .children(
+                                    FJSC.button({
+                                        icon: {icon: "add_link"},
+                                        disabled: loading,
+                                        onclick: () => {
+                                            loading.value = true;
+                                            const add = () => {
+                                                Api.addTrackToAlbum(track.id, album.value?.id ?? 0).then(() => {
+                                                    load();
+                                                }).finally(() => loading.value = false);
+                                            }
+
+                                            Api.getTrack(track.id)
+                                                .then(track => {
+                                                    if (track.album_id) {
+                                                        Modals.confirm(add, "Conflict", "This track is already in an album. Do you want to add it to this album? This will remove it from the other album.");
+                                                    } else {
+                                                        add();
+                                                    }
+                                                });
+                                        }
+                                    }),
+                                ).build()
+                        ).build()
+                ),
             ).build();
     }
 }

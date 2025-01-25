@@ -263,14 +263,18 @@ export class Generics {
     static earnings(number: Signal<number>) {
         const asCurrency = compute(n => currency(n), number);
 
+        return Generics.property("Earnings", asCurrency);
+    }
+
+    static property(name: string, value: any|Signal<any>) {
         return create("div")
-            .classes("flex")
+            .classes("flex", "align-children")
             .children(
-                create("span")
-                    .text("Earnings")
+                create("b")
+                    .text(name)
                     .build(),
                 create("span")
-                    .text(asCurrency)
+                    .text(value)
                     .build(),
             ).build();
     }
@@ -336,7 +340,7 @@ export const routes: Route[] = [
         title: "Releases",
         template: Albums.page,
         icon: "album",
-        showInNav: (u) => !!u && (u.permissions?.some(p => p.name === Permissions.releaseManagement) ?? false)
+        showInNav: (u) => !!u
     },
     {
         path: "new-album",
