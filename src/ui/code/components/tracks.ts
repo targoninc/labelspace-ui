@@ -24,6 +24,7 @@ import {RequestableImageSize} from "./requestableImageSize.ts";
 import {Images} from "./images.ts";
 import {ImageSize} from "./imageSize.ts";
 import {Time} from "../functions/time.ts";
+import {currency} from "../functions/formatters.ts";
 
 export class Tracks {
     static trackPage(route: Route, params: any) {
@@ -99,7 +100,7 @@ export class Tracks {
                                         Generics.heading(3, artists),
                                         Generics.property("ISRC", isrc),
                                         Generics.property("Release date", releaseDate),
-                                        Generics.property("Price", price),
+                                        Generics.property("Price", currency(price)),
                                         Generics.property("Length", compute(l => Time.toTimeFromSeconds(l), length)),
                                     ).build(), true),
                                 ifjs(hasReleaseManagementPermission, create("div")

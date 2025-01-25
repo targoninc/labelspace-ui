@@ -273,7 +273,7 @@ export class Albums {
                                 Generics.heading(3, artists),
                                 Generics.property("UPC", upc),
                                 Generics.property("Release date", releaseDate),
-                                Generics.property("Price", price),
+                                Generics.property("Price", currency(price)),
                             ).build(), true),
                         ifjs(hasReleaseManagementPermission, create("div")
                             .classes("flex-v")

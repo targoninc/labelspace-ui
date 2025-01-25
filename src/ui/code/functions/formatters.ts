@@ -1,4 +1,14 @@
-export function currency(value: number|undefined|null, currency = "USD") {
+import {compute, Signal} from "../../fjsc/src/signals.ts";
+
+export function currency(value: number|undefined|null|Signal<number>, currency = "USD") {
+    if (value instanceof Signal) {
+        return compute(v => formatCurrency(v, currency), value);
+    }
+
+    return formatCurrency(value, currency);
+}
+
+function formatCurrency(value: number|undefined|null, currency = "USD") {
     if (!value) {
         return "--";
     }
