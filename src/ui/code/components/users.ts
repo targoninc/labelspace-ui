@@ -132,6 +132,7 @@ export class Users {
         const message = signal("");
         const loading = signal(false);
         const disabled = compute((c, l) => !c || l, changed, loading);
+        const emails = compute(u => u?.emails ??  [], user);
 
         return Generics.container(1, [
             Generics.heading(3, "Personal Data"),
@@ -166,7 +167,25 @@ export class Users {
                     }),
                     ifjs(loading, Generics.loading())
                 ).build(),
-            Generics.message(message)
+            Generics.message(message),
+            Generics.table(
+                ["Email", "Primary", "Verified", "Actions"],
+                emails,
+                (email) => create("tr")
+                    .children(
+                        create("td")
+                            .text(email.email)
+                            .build(),
+                        create("td")
+                            .text(email.primary ? "Yes" : "No")
+                            .build(),
+                        create("td")
+                            .text(email.verified ? "Yes" : "No")
+                            .build(),
+                        create("td")
+                            .build()
+                    ).build(),
+            ),
         ], ["flex-v"]);
     }
 }
