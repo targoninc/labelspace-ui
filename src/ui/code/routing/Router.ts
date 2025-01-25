@@ -89,7 +89,7 @@ router.value = new Router([], async (route: Route, params: any) => {
 
     if (!currentUser.value && !userLoading.value) {
         if (!route.allowWithoutLogin) {
-            navigate("404");
+            navigate("login");
             return;
         }
     }

@@ -290,6 +290,7 @@ export const routes: Route[] = [
     },
     {
         path: "login",
+        aliases: [""],
         title: "Login",
         template: Account.loginPage,
         allowWithoutLogin: true

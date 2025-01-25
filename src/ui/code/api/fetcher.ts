@@ -7,10 +7,10 @@ export class Fetcher {
         if (!res.ok) {
             const json = JSON.parse(text);
             if (json.error) {
-                notify(`Failed POST (${res.status}): ${json.error}`, NotificationType.error);
+                console.error(`Failed POST (${res.status}): ${json.error}`);
                 throw new Error(json.error);
             }
-            notify(`Failed POST (${res.status}): ${text}`, NotificationType.error);
+            console.error(`Failed POST (${res.status}): ${text}`);
             throw new Error(text);
         }
 
