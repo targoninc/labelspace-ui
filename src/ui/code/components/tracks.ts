@@ -26,6 +26,23 @@ import {ImageSize} from "./imageSize.ts";
 import {Time} from "../functions/time.ts";
 import {currency} from "../functions/formatters.ts";
 
+function getServiceLinks(track$: Signal<Track | null>): Signal<ServiceLink[]> {
+    return compute((t: Track|null) => {
+        const links: ServiceLink[] = [];
+        const properties: (keyof Track)[] = Object.keys(t ?? {}).filter(k => k.startsWith("link_")) as (keyof Track)[];
+        for (const property of properties) {
+            const service = property.replace("link_", "") as LinkServices;
+            if (t?.[property]) {
+                links.push(<ServiceLink>{
+                    service,
+                    link: t?.[property]
+                });
+            }
+        }
+        return links;
+    }, track$);
+}
+
 export class Tracks {
     static trackPage(route: Route, params: any) {
         const track = signal<Track|null>(null);
@@ -55,17 +72,24 @@ export class Tracks {
         const price = compute(t => t?.price ?? 0, track$);
         const earnings = compute(t => t?.earnings ?? 0, track$);
         const album = compute(t => t?.album ?? null, track$);
+        const serviceLinks = getServiceLinks(track$);
         const albumLink = compute(album => `/album/${album?.id}`, album);
         const albumTitle = compute(album => album?.title ?? "Unknown album", album);
-        const notChanged = signal(true);
-        title.subscribe(t => notChanged.value = t === track$.value?.title);
-        isrc.subscribe(t => notChanged.value = t === track$.value?.isrc);
-        releaseDate.subscribe(t => notChanged.value = t === dayFrom(track$.value?.release_date ?? new Date()));
-        price.subscribe(t => notChanged.value = t === track$.value?.price);
         const id = compute(t => t?.id ?? 0, track$);
         const hasImage = compute(t => t?.has_cover ?? false, track$);
         const hasReleaseManagementPermission = compute(u => u?.permissions?.some(p => p.name === Permissions.releaseManagement) ?? false, currentUser);
         const length = compute(t => t?.length ?? 0, track$);
+        const genre = compute(t => t?.genre ?? "", track$);
+        const genres = Object.values(Genre).map((genre: string) => {
+            return {
+                name: genre.charAt(0).toUpperCase() + genre.slice(1),
+                id: genre
+            };
+        });
+        const credits = compute(t => t?.credits ?? "", track$);
+        const release_date = compute(t => {
+            return dayFrom(t?.release_date ?? new Date());
+        }, track$);
 
         return create("div")
             .classes("flex-v")
@@ -103,38 +127,49 @@ export class Tracks {
                                         Generics.property("Price", currency(price)),
                                         Generics.property("Length", compute(l => Time.toTimeFromSeconds(l), length)),
                                     ).build(), true),
-                                ifjs(hasReleaseManagementPermission, create("div")
-                                    .classes("flex-v")
-                                    .children(
-                                        Inputs.text(title, "Title", "title"),
-                                        Inputs.text(artists, "Artists", "artists"),
-                                        Inputs.text(isrc, "ISRC", "isrc"),
-                                        Inputs.date(releaseDate, "Release date", "release_date"),
-                                        Inputs.number(price, "Price", "price"),
-                                        Inputs.number(length, "Length", "length"),
-                                        FJSC.button({
-                                            text: "Update track",
-                                            classes: ["positive"],
-                                            disabled: notChanged,
-                                            onclick: () => {
-                                                Api.updateTrack(track$.value?.id ?? 0, {
-                                                    title: title.value,
-                                                    isrc: isrc.value,
-                                                    release_date: new Date(releaseDate.value),
-                                                    price: price.value,
-                                                }).then(() => {
-                                                    notify("Track updated", NotificationType.success);
-                                                    navigate("/track/" + track$.value?.id);
-                                                }).catch(e => {
-                                                    console.error(e);
-                                                });
-                                            }
-                                        }),
-                                    ).build()),
-                                Generics.earnings(earnings)
+                                ifjs(hasReleaseManagementPermission, Generics.container(1, [
+                                    create("div")
+                                        .classes("flex-v")
+                                        .children(
+                                            Tracks.trackProperties(title, artists, credits, release_date, isrc, genres, genre, price),
+                                            FJSC.button({
+                                                text: "Update track",
+                                                classes: ["positive", "fit-content"],
+                                                icon: { icon: "save" },
+                                                onclick: () => {
+                                                    const links = serviceLinks.value;
+
+                                                    Api.updateTrack(track$.value?.id ?? 0, {
+                                                        title: title.value,
+                                                        isrc: isrc.value,
+                                                        release_date: new Date(releaseDate.value),
+                                                        price: price.value,
+                                                        length: length.value,
+                                                        credits: credits.value,
+                                                        genre: genre.value,
+                                                        link_spotify: links.find(l => l.service === LinkServices.spotify)?.link ?? "",
+                                                        link_youtube: links.find(l => l.service === LinkServices.youtube)?.link ?? "",
+                                                        link_soundcloud: links.find(l => l.service === LinkServices.soundcloud)?.link ?? "",
+                                                        link_applemusic: links.find(l => l.service === LinkServices.applemusic)?.link ?? "",
+                                                        link_bandcamp: links.find(l => l.service === LinkServices.bandcamp)?.link ?? "",
+                                                        link_lyda: links.find(l => l.service === LinkServices.lyda)?.link ?? "",
+                                                    }).then(() => {
+                                                        notify("Track updated", NotificationType.success);
+                                                        navigate("/track/" + track$.value?.id);
+                                                    }).catch(e => {
+                                                        console.error(e);
+                                                    });
+                                                }
+                                            }),
+                                        ).build()
+                                ])),
                             ).build(),
                     ).build(),
-                ifjs(track$, Tracks.trackStatistics(track$)),
+                ifjs(hasReleaseManagementPermission, Generics.container(1, [
+                    Inputs.serviceLinks(serviceLinks)
+                ])),
+                Generics.earnings(earnings),
+                ifjs(track$, Tracks.trackStatistics(track$))
             ).build();
     }
 
@@ -268,24 +303,11 @@ export class Tracks {
                 .classes("flex-v")
                 .children(
                     Generics.heading(2, "Create track"),
-                    Inputs.text(title, "Title", "title"),
-                    Inputs.text(artists, "Artists", "artists"),
-                    Inputs.date(release_date, "Release date", "release_date"),
-                    Inputs.text(isrc, "ISRC", "isrc"),
-                    FJSC.searchableSelect({
-                        label: "Genre",
-                        options: signal(genres),
-                        value: genre,
-                        onchange: (v) => {
-                            genre.value = v;
-                        }
-                    }),
-                    Inputs.text(credits, "Credits", "credits"),
-                    Inputs.number(price, "Price", "price"),
+                    Tracks.trackProperties(title, artists, credits, release_date, isrc, genres, genre, price),
                     Inputs.serviceLinks(serviceLinks),
                     FJSC.button({
                         text: "Create",
-                        classes: ["positive"],
+                        classes: ["positive", "fit-content"],
                         disabled: anyEmpty,
                         onclick: () => {
                             const links = serviceLinks.value;
@@ -314,5 +336,29 @@ export class Tracks {
                     })
                 ).build(),
         );
+    }
+
+    private static trackProperties(title: Signal<string>, artists: Signal<string>, credits: Signal<string>, release_date: Signal<string>, isrc: Signal<string>, genres: {
+        name: string;
+        id: string
+    }[], genre: Signal<string>, price: Signal<number>) {
+        return create("div")
+            .classes("flex-v")
+            .children(
+                Inputs.text(title, "Title", "title"),
+                Inputs.text(artists, "Artists", "artists"),
+                Inputs.text(credits, "Credits", "credits"),
+                Inputs.date(release_date, "Release date", "release_date"),
+                Inputs.text(isrc, "ISRC", "isrc"),
+                FJSC.searchableSelect({
+                    label: "Genre",
+                    options: signal(genres),
+                    value: genre,
+                    onchange: (v) => {
+                        genre.value = v;
+                    }
+                }),
+                Inputs.number(price, "Price", "price"),
+            ).build();
     }
 }

@@ -114,6 +114,10 @@ a.button {
     height: max-content;
 }
 
+.fit-content {
+    max-width: max-content;
+}
+
 a.button:hover {
     background: var(--gray-2);
     color: var(--black);

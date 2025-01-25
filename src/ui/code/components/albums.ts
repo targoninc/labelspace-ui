@@ -19,7 +19,6 @@ import {Modals} from "./modals.ts";
 import {SearchResult} from "../models/SearchResult.ts";
 import {getImageUrl, target} from "../functions/templates.ts";
 import {InputType} from "../../fjsc/src/Types.ts";
-import {Statistic} from "../models/Statistic.ts";
 import {Statistics} from "./statistics.ts";
 import {dayFrom, today} from "../functions/dates.ts";
 import {MediaFileType} from "../enums/MediaFileType.ts";
@@ -275,35 +274,37 @@ export class Albums {
                                 Generics.property("Release date", releaseDate),
                                 Generics.property("Price", currency(price)),
                             ).build(), true),
-                        ifjs(hasReleaseManagementPermission, create("div")
-                            .classes("flex-v")
-                            .children(
-                                Inputs.text(title, "Title", "title"),
-                                Inputs.text(artists, "Artists", "artists"),
-                                Inputs.text(upc, "UPC", "upc"),
-                                Inputs.date(releaseDate, "Release date", "release_date"),
-                                Inputs.number(price, "Price", "price"),
-                                FJSC.button({
-                                    text: "Update",
-                                    icon: {icon: "save"},
-                                    classes: ["positive"],
-                                    disabled: compute((l, n) => l || n, loading, noneChanged),
-                                    onclick: () => {
-                                        Api.updateAlbum(id.value, {
-                                            title: title.value,
-                                            upc: upc.value,
-                                            release_date: new Date(releaseDate.value),
-                                            price: price.value,
-                                        }).then(() => {
-                                            notify("Album updated", NotificationType.success);
-                                            reload();
-                                        }).catch((e: any) => {
-                                            console.error(e);
-                                        });
-                                    }
-                                }),
-                                Generics.earnings(earnings)
-                            ).build()),
+                        ifjs(hasReleaseManagementPermission, Generics.container(1, [
+                            create("div")
+                                .classes("flex-v")
+                                .children(
+                                    Inputs.text(title, "Title", "title"),
+                                    Inputs.text(artists, "Artists", "artists"),
+                                    Inputs.text(upc, "UPC", "upc"),
+                                    Inputs.date(releaseDate, "Release date", "release_date"),
+                                    Inputs.number(price, "Price", "price"),
+                                    FJSC.button({
+                                        text: "Update",
+                                        icon: {icon: "save"},
+                                        classes: ["positive", "fit-content"],
+                                        disabled: compute((l, n) => l || n, loading, noneChanged),
+                                        onclick: () => {
+                                            Api.updateAlbum(id.value, {
+                                                title: title.value,
+                                                upc: upc.value,
+                                                release_date: new Date(releaseDate.value),
+                                                price: price.value,
+                                            }).then(() => {
+                                                notify("Album updated", NotificationType.success);
+                                                reload();
+                                            }).catch((e: any) => {
+                                                console.error(e);
+                                            });
+                                        }
+                                    })
+                                ).build()
+                        ])),
+                        Generics.earnings(earnings)
                     ).build(),
                 create("div")
                     .classes("flex-v", "flex-grow")
