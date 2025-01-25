@@ -131,7 +131,7 @@ export class Tracks {
                                     create("div")
                                         .classes("flex-v")
                                         .children(
-                                            Tracks.trackProperties(title, artists, credits, release_date, isrc, genres, genre, price),
+                                            Tracks.trackProperties(title, artists, credits, release_date, isrc, genres, genre, length, price),
                                             FJSC.button({
                                                 text: "Update track",
                                                 classes: ["positive", "fit-content"],
@@ -290,6 +290,7 @@ export class Tracks {
         const price = signal(1);
         const serviceLinks = signal<ServiceLink[]>([]);
         const genre = signal<string>("");
+        const length = signal(0);
         const genres = Object.values(Genre).map((genre: string) => {
             return {
                 name: genre.charAt(0).toUpperCase() + genre.slice(1),
@@ -303,7 +304,7 @@ export class Tracks {
                 .classes("flex-v")
                 .children(
                     Generics.heading(2, "Create track"),
-                    Tracks.trackProperties(title, artists, credits, release_date, isrc, genres, genre, price),
+                    Tracks.trackProperties(title, artists, credits, release_date, isrc, genres, genre, length, price),
                     Inputs.serviceLinks(serviceLinks),
                     FJSC.button({
                         text: "Create",
@@ -341,7 +342,7 @@ export class Tracks {
     private static trackProperties(title: Signal<string>, artists: Signal<string>, credits: Signal<string>, release_date: Signal<string>, isrc: Signal<string>, genres: {
         name: string;
         id: string
-    }[], genre: Signal<string>, price: Signal<number>) {
+    }[], genre: Signal<string>, length: Signal<number>, price: Signal<number>) {
         return create("div")
             .classes("flex-v")
             .children(
@@ -358,6 +359,7 @@ export class Tracks {
                         genre.value = v;
                     }
                 }),
+                Inputs.number(length, "Length", "length"),
                 Inputs.number(price, "Price", "price"),
             ).build();
     }
