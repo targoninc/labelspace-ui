@@ -12,8 +12,8 @@ import { NotificationType } from "../enums/NotificationType.ts";
 import { notify } from "../functions/notifications.ts";
 
 interface ChangeableImageOptions {
-    changeable?: boolean;
-    deletable?: boolean;
+    changeable?: boolean|Signal<boolean>;
+    deletable?: boolean|Signal<boolean>;
     afterChange?: () => void;
     size?: ImageSize;
     classes?: string[];

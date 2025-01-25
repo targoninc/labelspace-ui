@@ -249,7 +249,7 @@ export class Albums {
             }, debounce);
         });
         const hasImage = compute(a => a?.has_cover ?? false, album);
-        const hasReleaseManagementPermission = compute(u => u?.permissions?.some(p => p.name === Permissions.releaseManagement), currentUser);
+        const hasReleaseManagementPermission = compute(u => u?.permissions?.some(p => p.name === Permissions.releaseManagement) ?? false, currentUser);
 
         return create("div")
             .classes("flex")
@@ -258,8 +258,8 @@ export class Albums {
                     .classes("flex-v")
                     .children(
                         Images.changeableImage(id, hasImage, MediaFileType.albumCover, {
-                            changeable: true,
-                            deletable: true,
+                            changeable: hasReleaseManagementPermission,
+                            deletable: hasReleaseManagementPermission,
                             size: ImageSize.p500
                         }),
                     ).build(),

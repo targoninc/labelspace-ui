@@ -63,7 +63,7 @@ export class Tracks {
         price.subscribe(t => notChanged.value = t === track$.value?.price);
         const id = compute(t => t?.id ?? 0, track$);
         const hasImage = compute(t => t?.has_cover ?? false, track$);
-        const hasReleaseManagementPermission = compute(u => u?.permissions?.some(p => p.name === Permissions.releaseManagement), currentUser);
+        const hasReleaseManagementPermission = compute(u => u?.permissions?.some(p => p.name === Permissions.releaseManagement) ?? false, currentUser);
         const length = compute(t => t?.length ?? 0, track$);
 
         return create("div")
@@ -76,8 +76,8 @@ export class Tracks {
                             .classes("flex-v")
                             .children(
                                 Images.changeableImage(id, hasImage, MediaFileType.trackCover, {
-                                    changeable: true,
-                                    deletable: true,
+                                    changeable: hasReleaseManagementPermission,
+                                    deletable: hasReleaseManagementPermission,
                                     size: ImageSize.p500
                                 }),
                             ).build(),
