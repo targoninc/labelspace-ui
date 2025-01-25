@@ -174,8 +174,9 @@ export class Users {
                 (email) => create("tr")
                     .children(
                         create("td")
-                            .text(email.email)
-                            .build(),
+                            .children(
+                                Generics.privateText(email.email)
+                            ).build(),
                         create("td")
                             .text(email.primary ? "Yes" : "No")
                             .build(),
