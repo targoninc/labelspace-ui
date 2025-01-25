@@ -78,21 +78,21 @@ export class Time {
                 if (typeof format[2] == "string")
                     return format[list_choice] as string;
                 else
-                    return Math.floor(seconds / format[2]) + " " + format[1] + " " + token;
+                    return Math.floor(seconds / format[2]) + "" + format[1] + " " + token;
             }
         }
         return time.toString();
     }
 
-    static #shouldUpdateInSeconds(time: string) {
-        return time.includes("seconds") || time === "Just now";
+    static #shouldUpdateInSeconds(time: string, short = false) {
+        return time.includes("seconds") || (short && time.includes("s")) || time === "Just now";
     }
 
     static agoUpdating(time: number|string|Date, useShort = false) {
         const state = signal(Time.ago(time, useShort));
         const update = () => {
             state.value = Time.ago(time, useShort);
-            const updateInterval = Time.#shouldUpdateInSeconds(state.value) ? 1000 : 60000;
+            const updateInterval = Time.#shouldUpdateInSeconds(state.value, useShort) ? 1000 : 60000;
             if (state.value.includes("hours")) {
                 return;
             }

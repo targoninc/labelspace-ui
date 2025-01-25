@@ -14,6 +14,7 @@ import {MediaFileType} from "../enums/MediaFileType.ts";
 import {reload} from "../routing/Router.ts";
 import {Images} from "./images.ts";
 import { ImageSize } from "./imageSize.ts";
+import {Time} from "../functions/time.ts";
 
 export class Users {
     static listPage() {
@@ -33,7 +34,7 @@ export class Users {
             ifjs(loading, Generics.loading()),
             Generics.heading(2, "Users"),
             Generics.table(
-                ["Username", "Artists", "Permissions"],
+                ["Username", "Artists", "Last login", "Permissions"],
                 users,
                 (user: User) => Users.userInTable(user)
             )
@@ -44,10 +45,13 @@ export class Users {
         return create("tr")
             .children(
                 create("td")
-                    .text(`@${user.username}`)
+                    .text(user.username)
                     .build(),
                 create("td")
                     .text(user.artists?.map(a => a.name).join(", ") ?? "No artists")
+                    .build(),
+                create("td")
+                    .text(user.lastlogin ? Time.agoUpdating(new Date(user.lastlogin), true) : "--")
                     .build(),
                 create("td")
                     .text(user.permissions?.map(p => p.name).join(", ") ?? "No permissions")
