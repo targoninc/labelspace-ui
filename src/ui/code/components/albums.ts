@@ -225,6 +225,7 @@ export class Albums {
             return dayFrom(a?.release_date ?? new Date());
         }, album);
         const price = compute(a => a?.price ?? 0, album);
+        const artists = compute(a => a?.artists ?? "Unknown artists", album);
         const tracks = compute(a => a?.tracks ?? [], album);
         const id = compute(a => a?.id ?? 0, album);
         const earnings = compute(a => a?.earnings ?? 0, album);
@@ -269,6 +270,7 @@ export class Albums {
                             .classes("flex-v")
                             .children(
                                 Generics.heading(2, title),
+                                Generics.heading(3, artists),
                                 Generics.property("UPC", upc),
                                 Generics.property("Release date", releaseDate),
                                 Generics.property("Price", price),
@@ -277,6 +279,7 @@ export class Albums {
                             .classes("flex-v")
                             .children(
                                 Inputs.text(title, "Title", "title"),
+                                Inputs.text(artists, "Artists", "artists"),
                                 Inputs.text(upc, "UPC", "upc"),
                                 Inputs.date(releaseDate, "Release date", "release_date"),
                                 Inputs.number(price, "Price", "price"),

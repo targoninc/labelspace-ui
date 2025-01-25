@@ -50,6 +50,7 @@ export class Tracks {
         const releaseDate = compute(t => {
             return dayFrom(t?.release_date ?? new Date());
         }, track$);
+        const artists = compute(t => t?.artists ?? "Unknown artists", track$);
         const price = compute(t => t?.price ?? 0, track$);
         const earnings = compute(t => t?.earnings ?? 0, track$);
         const album = compute(t => t?.album ?? null, track$);
@@ -95,6 +96,7 @@ export class Tracks {
                                     .classes("flex-v")
                                     .children(
                                         Generics.heading(2, title),
+                                        Generics.heading(3, artists),
                                         Generics.property("ISRC", isrc),
                                         Generics.property("Release date", releaseDate),
                                         Generics.property("Price", price),
@@ -104,6 +106,7 @@ export class Tracks {
                                     .classes("flex-v")
                                     .children(
                                         Inputs.text(title, "Title", "title"),
+                                        Inputs.text(artists, "Artists", "artists"),
                                         Inputs.text(isrc, "ISRC", "isrc"),
                                         Inputs.date(releaseDate, "Release date", "release_date"),
                                         Inputs.number(price, "Price", "price"),
