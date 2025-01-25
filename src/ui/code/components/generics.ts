@@ -236,7 +236,6 @@ export class Generics {
     static link(url: StringOrSignal, title: StringOrSignal) {
         const urlSignal: Signal<string> = url.constructor === Signal ? url : signal(url as string);
         const isRemote = compute(u => !!(u && u.includes("http")), urlSignal);
-        const target = compute((u): string => u ? "_blank" : "_self", isRemote);
 
         return create("div")
             .classes("link-container")
@@ -244,11 +243,11 @@ export class Generics {
                 create("a")
                     .classes("underline")
                     .href(url)
-                    .target(target)
+                    .target("_blank")
                     .title(url)
                     .text(title)
                     .onclick(e => {
-                        if (!isRemote && e.button === 0) {
+                        if (!isRemote.value && e.button === 0) {
                             e.preventDefault();
                             navigate(urlSignal.value);
                         }
