@@ -148,7 +148,7 @@ export class Generics {
     private static tableInternal<T>(entries: Signal<T[]> | T[], headers: StringOrSignal[], rowTemplate: (entry: T) => AnyElement) {
         if (entries instanceof Signal) {
             return create("table")
-                .classes("container", "layer-2")
+                .classes("container")
                 .children(
                     create("thead")
                         .children(

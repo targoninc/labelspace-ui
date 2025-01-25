@@ -1,6 +1,7 @@
 :root {
     --red: #ed1c24;
     --green: #00a651;
+    --light-green: #03c679;
     --blue: #567afc;
     --cyan: #00aeef;
     --yellow: #fff200;
@@ -34,7 +35,7 @@
     --default-font-family: "IBM Plex Mono", monospace;
     --fjsc-font: var(--default-font-family);
 
-    --radius: 0px;
+    --radius: 4px;
 
     --fjsc-text-color: var(--black);
     --fjsc-error-color: var(--red);
@@ -236,10 +237,11 @@ b {
     padding: var(--layout-gap);
     box-sizing: border-box;
     background: var(--white);
+    border-radius: var(--radius);
 }
 
 .border {
-    border: 1px solid var(--black);
+    border: 1px solid var(--gray-2);
 }
 
 .layer-1 {
@@ -265,6 +267,7 @@ b {
 button.positive, .button.positive {
     background: var(--green);
     --fjsc-text-color: var(--white);
+    border-color: var(--light-green);
 }
 
 button.positive:hover, .button.positive:hover {
@@ -327,8 +330,8 @@ table {
 }
 
 th {
-    background: var(--black);
-    color: var(--white);
+    background: var(--gray-2);
+    color: var(--black);
 }
 
 th, td {
@@ -338,6 +341,7 @@ th, td {
     border-top: 1px solid transparent;
     border-left: 1px solid transparent;
     border-right: 1px solid transparent;
+    padding: var(--small-gap);
 }
 
 tr:hover td {
@@ -353,7 +357,23 @@ tr:hover td:last-child {
     border-right: 1px solid var(--black);
 }
 
-tr {
+th:first-child {
+    border-top-left-radius: var(--radius);
+}
+
+th:last-child {
+    border-top-right-radius: var(--radius);
+}
+
+tr:last-child td:first-child {
+    border-bottom-left-radius: var(--radius);
+}
+
+tr:last-child td:last-child {
+    border-bottom-right-radius: var(--radius);
+}
+
+td {
     background: var(--gray-1);
 }
 
@@ -369,8 +389,9 @@ button.fjsc {
 
 .statistic {
     width: min(100%, 600px);
-    border: 1px solid var(--gray-5);
+    border: 1px solid var(--gray-2);
     padding: var(--layout-gap);
+    border-radius: var(--radius);
 }
 
 .question-cursor {
