@@ -42,6 +42,11 @@ export class Payments {
                                 disabled: loading,
                                 onclick: load,
                             }),
+                            FJSC.icon({
+                                icon: "info",
+                                classes: ["question-cursor"],
+                                title: "It can take a while for status changes to appear.",
+                            }),
                             ifjs(loading, Generics.loading()),
                         ).build(),
                     Generics.table(
