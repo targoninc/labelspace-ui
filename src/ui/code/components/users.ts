@@ -77,10 +77,15 @@ export class Users {
                 .classes("flex-v")
                 .children(
                     Generics.heading(2, "Profile"),
-                    Users.personalData(),
-                    Users.totpSection(),
-                    Users.devicesSection(),
-                    Users.yourArtists()
+                    ifjs(currentUser, Generics.loading(), true),
+                    ifjs(currentUser, create("div")
+                        .classes("flex-v")
+                        .children(
+                            Users.personalData(),
+                            Users.totpSection(),
+                            Users.devicesSection(),
+                            Users.yourArtists()
+                        ).build())
                 ).build()
         );
     }
