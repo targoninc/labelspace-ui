@@ -160,7 +160,7 @@ export class Modals {
                                             if (!token.value) {
                                                 return;
                                             }
-                                            await Api.verifyTotp(currentUser.value?.id ?? 0, token.value).then(() => {
+                                            await Api.verifyTotp(currentUser.value?.id ?? 0, token.value, "totp").then(() => {
                                                 Api.getUser().then(u => {
                                                     currentUser.value = u;
                                                 });

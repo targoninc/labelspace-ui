@@ -91,8 +91,8 @@ export class Users {
     }
 
     static totpSection() {
-        const totopMethods = compute(u => u?.totp ?? [], currentUser);
-        const hasMethods = compute(m => m.length > 0, totopMethods);
+        const totpMethods = compute(u => u?.totp ?? [], currentUser);
+        const hasMethods = compute(m => m.length > 0, totpMethods);
         const userId = compute(u => u?.id ?? 0, currentUser);
         const loading = signal(false);
 
@@ -103,11 +103,7 @@ export class Users {
                 ifjs(hasMethods, create("span")
                     .text("You have no TOTP methods configured")
                     .build(), true),
-                ifjs(hasMethods, Generics.table(
-                    ["Name", "Verified", "Created", "Updated", "Actions"],
-                    totopMethods,
-                    (method) => Totp.totpMethodInTable(method, loading, userId)
-                )),
+                ifjs(hasMethods, Users.totpDevices(totpMethods, loading, userId)),
                 FJSC.button({
                     text: "Add TOTP method",
                     icon: {icon: "add"},
@@ -128,6 +124,10 @@ export class Users {
                     }
                 })
             ).build();
+    }
+
+    private static totpDevices(totpMethods: Signal<UserTotp[]>, loading: Signal<boolean>, userId: Signal<any>) {
+        return signalMap(totpMethods, create("div").classes("flex"), method => Totp.totpMethodInTable(method, loading, userId));
     }
 
     static devicesSection() {
