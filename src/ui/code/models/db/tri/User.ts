@@ -3,11 +3,10 @@ import {UserEmail} from "./UserEmail.js";
 import type {Artist} from "./Artist.ts";
 import type {Permission} from "./Permission.ts";
 import {UserTotp} from "./UserTotp.ts";
-import {UserWebauthnCredential} from "./UserWebauthnCredential.ts";
+import {PublicKey} from "./PublicKey.ts";
 
 export interface User extends Express.User {
     totp?: UserTotp[];
-    webauthn?: UserWebauthnCredential[];
     permissions?: Permission[];
     artists?: Artist[];
     settings?: Usersetting[];
@@ -33,4 +32,6 @@ export interface User extends Express.User {
     has_avatar: boolean;
     has_banner: boolean;
     email_mfa_code: string;
+    passkey_user_id: string;
+    public_keys?: PublicKey[];
 }

@@ -11,7 +11,7 @@ import {UploadTrackRequestBody} from "../models/UploadTrackRequestBody.ts";
 import {SearchResult} from "../models/SearchResult.ts";
 import { MediaFileType } from "../enums/MediaFileType.ts";
 import {Artist} from "../models/db/tri/Artist.ts";
-import {RegistrationJSON} from "@passwordless-id/webauthn/dist/esm/types";
+import {AuthenticationJSON, CredentialDescriptor, RegistrationJSON} from "@passwordless-id/webauthn/dist/esm/types";
 
 const base = window.location.origin.includes("localhost") ? "http://localhost:8090" : "https://artists-api.trirecords.eu";
 
@@ -185,6 +185,8 @@ export class Api {
     static mfaRequest(username: string, password: string) {
         return Fetcher.postWithResponse<{
             mfa_needed: boolean;
+            type?: "totp" | "email" | "webauthn";
+            credentialDescriptors?: CredentialDescriptor[];
             userId?: number;
             user?: User;
         }>(base + "/user/actions/mfa-request", {
@@ -193,15 +195,23 @@ export class Api {
         });
     }
 
-    static addWebauthnMethod() {
+    static getWebauthnChallenge() {
         return Fetcher.postWithResponse<{
             challenge: string;
-        }>(base + "/webauthn/add");
+        }>(base + "/webauthn/challenge");
     }
 
-    static registerWebauthnMethod(registration: RegistrationJSON, challenge: string) {
+    static registerWebauthnMethod(registration: RegistrationJSON, challenge: string, name: string) {
         return Fetcher.post(base + "/webauthn/register", {
             registration,
+            challenge,
+            name
+        });
+    }
+
+    static verifyWebauthn(json: AuthenticationJSON, challenge: string) {
+        return Fetcher.post(base + "/webauthn/verify", {
+            verification: json,
             challenge
         });
     }

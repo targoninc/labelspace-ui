@@ -3,11 +3,8 @@ import {create, ifjs} from "../../fjsc/src/f2.ts";
 import {compute, signal} from "../../fjsc/src/signals.ts";
 import {FJSC} from "../../fjsc";
 import {Api} from "../api/api.ts";
-import {currentUser} from "../state.ts";
-import {navigate} from "../routing/Router.ts";
 import {Inputs} from "./inputs.ts";
-import {InputType} from "../../fjsc/src/Types.ts";
-import {Modals} from "./modals.ts";
+import {startLogin} from "../functions/startLogin.ts";
 
 export class Account {
     static loginPage() {
@@ -30,38 +27,6 @@ export class Account {
 
         const message = signal("");
         const loading = signal(false);
-        const login = async () => {
-            loading.value = true;
-
-            const actualLogin = () => {
-                Api.login({
-                    username: username.value,
-                    password: password.value
-                }).catch(e => {
-                    message.value = e.message;
-                }).then(async () => {
-                    currentUser.value = await Api.getUser();
-                    navigate("dashboard");
-                }).finally(() => loading.value = false);
-            }
-
-            Api.mfaRequest(username.value, password.value)
-                .then(async (res) => {
-                    if (res.mfa_needed) {
-                        Modals.input<string>((token: string) => {
-                            Api.verifyTotp(res.userId ?? 0, token).then(actualLogin);
-                        }, "MFA verification", InputType.text, true, () => {
-                            message.value = "MFA verification cancelled";
-                            loading.value = false;
-                        }, {
-                            name: "mfa-token",
-                            label: "MFA token"
-                        });
-                    } else {
-                        actualLogin();
-                    }
-                }).catch(e => message.value = e.message);
-        };
         const forgotPassword = async (e: MouseEvent) => {
             loading.value = true;
             Api.requestPasswordReset(username.value)
@@ -76,10 +41,10 @@ export class Account {
                 create("div")
                     .classes("flex-v")
                     .children(
-                        Inputs.text(username, "Username", "username"),
+                        Inputs.text(username, "Username", "username webauthn"),
                         Inputs.password(password, "Password", "password", async () => {
                             if (filledBoth.value) {
-                                await login();
+                                startLogin(loading, username, password, message);
                             }
                         }),
                         create("div")
@@ -89,7 +54,7 @@ export class Account {
                                     text: "Login",
                                     icon: {icon: "login"},
                                     disabled: loading,
-                                    onclick: login,
+                                    onclick: () => startLogin(loading, username, password, message),
                                     classes: ["positive"]
                                 })),
                                 ifjs(username, FJSC.button({

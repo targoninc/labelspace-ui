@@ -76,7 +76,7 @@ export class Users {
                     Generics.heading(2, "Profile"),
                     Users.personalData(),
                     Users.totpSection(),
-                    ifjs(isLoudar, Users.webauthnSection()),
+                    ifjs(isLoudar, Users.devicesSection()),
                     Users.yourArtists()
                 ).build()
         );
@@ -122,27 +122,54 @@ export class Users {
             ).build();
     }
 
-    static webauthnSection() {
-        const webauthnCredentials = compute(u => u?.webauthn ?? [], currentUser);
-        const hasCredentials = compute(m => m.length > 0, webauthnCredentials);
-        const userId = compute(u => u?.id ?? 0, currentUser);
+    static devicesSection() {
+        const public_keys = compute(u => u?.public_keys ?? [], currentUser);
+        const hasCredentials = compute(m => m.length > 0, public_keys);
         const loading = signal(false);
 
         return create("div")
             .classes("flex-v")
             .children(
-                Generics.heading(2, "WebAuthn methods"),
+                Generics.heading(2, "Passkeys"),
                 ifjs(hasCredentials, create("span")
-                    .text("You have no WebAuthn methods configured")
+                    .text("You have no passkeys configured")
                     .build(), true),
+                ifjs(hasCredentials, create("div")
+                    .classes("flex-v")
+                    .children(
+                        Generics.table(
+                            ["Name", "Created", "Actions"],
+                            public_keys,
+                            (key) => create("tr")
+                                .children(
+                                    create("td")
+                                        .text(key.name)
+                                        .build(),
+                                    create("td")
+                                        .text(Time.agoUpdating(new Date(key.created_at), true))
+                                        .build(),
+                                    create("td")
+                                        .children(
+                                            FJSC.button({
+                                                text: "Delete",
+                                                icon: {icon: "delete"},
+                                                classes: ["negative"],
+                                                onclick: () => {
+                                                    // TODO
+                                                }
+                                            })
+                                        ).build()
+                                ).build(),
+                        ),
+                    ).build()),
                 FJSC.button({
-                    text: "Add WebAuthn method",
+                    text: "Add passkey",
                     icon: {icon: "add"},
                     classes: ["positive", "fit-content"],
                     onclick: async () => {
-                        Modals.input(async () => {
+                        Modals.input(async (name: string) => {
                             loading.value = true;
-                            await Api.addWebauthnMethod().then(async (res) => {
+                            await Api.getWebauthnChallenge().then(async (res) => {
                                 const user = currentUser.value;
                                 if (!user) {
                                     return;
@@ -154,14 +181,18 @@ export class Users {
                                     notify(`Error: ${e.message}`, NotificationType.error);
                                     return;
                                 }
-                                Api.registerWebauthnMethod(registration, res.challenge).then(() => {
-                                    console.log("Successfully registered WebAuthn method");
+                                Api.registerWebauthnMethod(registration, res.challenge, name).then(() => {
+                                    removeLastModal();
+                                    Api.getUser().then(u => {
+                                        currentUser.value = u;
+                                    });
+                                    notify("Successfully registered passkey", NotificationType.success);
                                 }).finally(() => loading.value = false);
                             }).catch(e => {
                                 loading.value = false;
                             });
-                        }, "Add WebAuthn method", InputType.text, false, () => {}, {
-                            label: "WebAuthn method name"
+                        }, "Add passkey", InputType.text, false, () => {}, {
+                            label: "Passkey name"
                         });
                     }
                 })
