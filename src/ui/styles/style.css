@@ -194,7 +194,7 @@ b {
     content: "";
     position: absolute;
     background: black;
-    opacity: .7;
+    opacity: .95;
     top: 0;
     left: 0;
     width: 100%;
@@ -208,7 +208,7 @@ b {
 
 .modal {
     position: absolute;
-    border: 1px solid var(--black);
+    border: 1px solid var(--gray-3);
     box-shadow: 0 0 20dvw 0 black;
     border-radius: calc(var(--radius) * 2);
     top: 50%;
