@@ -79,6 +79,7 @@ export class Users {
 
     static mfa() {
         const methods = compute(u => u?.totp ?? [], currentUser);
+        const hasMethods = compute(m => m.length > 0, methods);
         const userId = compute(u => u?.id ?? 0, currentUser);
         const loading = signal(false);
 
@@ -86,11 +87,14 @@ export class Users {
             .classes("flex-v")
             .children(
                 Generics.heading(2, "Multi-factor authentication"),
-                Generics.table(
+                ifjs(hasMethods, create("span")
+                    .text("You have no TOTP methods configured")
+                    .build(), true),
+                ifjs(hasMethods, Generics.table(
                     ["Name", "Verified", "Created", "Updated", "Actions"],
                     methods,
                     (method) => Totp.totpMethodInTable(method, loading, userId)
-                ),
+                )),
                 FJSC.button({
                     text: "Add TOTP method",
                     icon: {icon: "add"},
@@ -140,7 +144,7 @@ export class Users {
                                         Inputs.longtext(description, "Description", "description"),
                                         FJSC.button({
                                             text: "Update",
-                                            icon: { icon: "save" },
+                                            icon: {icon: "save"},
                                             classes: ["positive"],
                                             disabled: compute((a, l) => a || l, anyInvalid, loading),
                                             onclick: () => {
@@ -152,7 +156,7 @@ export class Users {
                                                         currentUser.value = u;
                                                     });
                                                 })
-                                                .finally(() => loading.value = false);
+                                                    .finally(() => loading.value = false);
                                             }
                                         })
                                     ).build()
@@ -173,61 +177,63 @@ export class Users {
         const message = signal("");
         const loading = signal(false);
         const disabled = compute((c, l) => !c || l, changed, loading);
-        const emails = compute(u => u?.emails ??  [], user);
+        const emails = compute(u => u?.emails ?? [], user);
 
-        return Generics.container(1, [
-            Generics.heading(3, "Personal Data"),
-            Inputs.password(legalName, "Legal name", "legal_name"),
-            Inputs.text(country, "Country", "country"),
-            Inputs.text(state, "State", "state"),
-            create("div")
-                .classes("flex", "center-items")
-                .children(
-                    FJSC.button({
-                        text: "Save",
-                        icon: { icon: "save" },
-                        classes: ["positive"],
-                        disabled: disabled,
-                        onclick: () => {
-                            loading.value = true;
-                            Api.updateUser(<Partial<User>>{
-                                legal_name: legalName.value,
-                                country: country.value,
-                                state: state.value,
-                            }).then(() => {
-                                notify("Saved", NotificationType.success);
-                                Api.getUser().then(u => {
-                                    currentUser.value = u;
-                                });
-                            }).catch(e => {
-                                message.value = e.message;
-                            }).finally(() => {
-                                loading.value = false;
-                            });
-                        }
-                    }),
-                    ifjs(loading, Generics.loading())
-                ).build(),
-            Generics.message(message),
-            Generics.table(
-                ["Email", "Primary", "Verified", "Actions"],
-                emails,
-                (email) => create("tr")
+        return create("div")
+            .classes("flex-v")
+            .children(
+                Generics.heading(3, "Personal Data"),
+                Inputs.password(legalName, "Legal name", "legal_name"),
+                Inputs.text(country, "Country", "country"),
+                Inputs.text(state, "State", "state"),
+                create("div")
+                    .classes("flex", "center-items")
                     .children(
-                        create("td")
-                            .children(
-                                Generics.privateText(email.email)
-                            ).build(),
-                        create("td")
-                            .text(email.primary ? "Yes" : "No")
-                            .build(),
-                        create("td")
-                            .text(email.verified ? "Yes" : "No")
-                            .build(),
-                        create("td")
-                            .build()
+                        FJSC.button({
+                            text: "Save",
+                            icon: {icon: "save"},
+                            classes: ["positive"],
+                            disabled: disabled,
+                            onclick: () => {
+                                loading.value = true;
+                                Api.updateUser(<Partial<User>>{
+                                    legal_name: legalName.value,
+                                    country: country.value,
+                                    state: state.value,
+                                }).then(() => {
+                                    notify("Saved", NotificationType.success);
+                                    Api.getUser().then(u => {
+                                        currentUser.value = u;
+                                    });
+                                }).catch(e => {
+                                    message.value = e.message;
+                                }).finally(() => {
+                                    loading.value = false;
+                                });
+                            }
+                        }),
+                        ifjs(loading, Generics.loading())
                     ).build(),
-            ),
-        ], ["flex-v"]);
+                Generics.message(message),
+                Generics.table(
+                    ["Email", "Primary", "Verified", "Actions"],
+                    emails,
+                    (email) => create("tr")
+                        .children(
+                            create("td")
+                                .children(
+                                    Generics.privateText(email.email)
+                                ).build(),
+                            create("td")
+                                .text(email.primary ? "Yes" : "No")
+                                .build(),
+                            create("td")
+                                .text(email.verified ? "Yes" : "No")
+                                .build(),
+                            create("td")
+                                .build()
+                        ).build(),
+                ),
+            ).build();
     }
 }
