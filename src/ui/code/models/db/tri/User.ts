@@ -3,9 +3,11 @@ import {UserEmail} from "./UserEmail.js";
 import type {Artist} from "./Artist.ts";
 import type {Permission} from "./Permission.ts";
 import {UserTotp} from "./UserTotp.ts";
+import {UserWebauthnCredential} from "./UserWebauthnCredential.ts";
 
 export interface User extends Express.User {
     totp?: UserTotp[];
+    webauthn?: UserWebauthnCredential[];
     permissions?: Permission[];
     artists?: Artist[];
     settings?: Usersetting[];

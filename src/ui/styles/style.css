@@ -190,6 +190,15 @@ b {
     max-height: 100dvh;
 }
 
+#modals:not(:empty) {
+    position: fixed;
+    z-index: 999;
+    width: 100dvw;
+    height: 100dvh;
+    top: 0;
+    left: 0;
+}
+
 #modals:before {
     content: "";
     position: absolute;

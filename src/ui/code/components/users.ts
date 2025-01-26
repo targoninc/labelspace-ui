@@ -20,6 +20,8 @@ import {InputType} from "../../fjsc/src/Types.ts";
 import {UserTotp} from "../models/db/tri/UserTotp.ts";
 import {Totp} from "./totp.ts";
 import {removeLastModal} from "../functions/modals.ts";
+import {registerWebauthnMethod} from "../functions/webauthn.ts";
+import {RegistrationJSON} from "@passwordless-id/webauthn/dist/esm/types";
 
 export class Users {
     static listPage() {
@@ -65,34 +67,37 @@ export class Users {
     }
 
     static profile() {
+        const isLoudar = compute(u => u?.username === "loudar", currentUser);
+
         return Generics.pageFrame(
             create("div")
                 .classes("flex-v")
                 .children(
                     Generics.heading(2, "Profile"),
                     Users.personalData(),
-                    Users.mfa(),
+                    Users.totpSection(),
+                    ifjs(isLoudar, Users.webauthnSection()),
                     Users.yourArtists()
                 ).build()
         );
     }
 
-    static mfa() {
-        const methods = compute(u => u?.totp ?? [], currentUser);
-        const hasMethods = compute(m => m.length > 0, methods);
+    static totpSection() {
+        const totopMethods = compute(u => u?.totp ?? [], currentUser);
+        const hasMethods = compute(m => m.length > 0, totopMethods);
         const userId = compute(u => u?.id ?? 0, currentUser);
         const loading = signal(false);
 
         return create("div")
             .classes("flex-v")
             .children(
-                Generics.heading(2, "Multi-factor authentication"),
+                Generics.heading(2, "TOTP methods"),
                 ifjs(hasMethods, create("span")
                     .text("You have no TOTP methods configured")
                     .build(), true),
                 ifjs(hasMethods, Generics.table(
                     ["Name", "Verified", "Created", "Updated", "Actions"],
-                    methods,
+                    totopMethods,
                     (method) => Totp.totpMethodInTable(method, loading, userId)
                 )),
                 FJSC.button({
@@ -111,6 +116,52 @@ export class Users {
                             }).finally(() => loading.value = false);
                         }, "Add TOTP method", InputType.text, false, () => {}, {
                             label: "TOTP method name"
+                        });
+                    }
+                })
+            ).build();
+    }
+
+    static webauthnSection() {
+        const webauthnCredentials = compute(u => u?.webauthn ?? [], currentUser);
+        const hasCredentials = compute(m => m.length > 0, webauthnCredentials);
+        const userId = compute(u => u?.id ?? 0, currentUser);
+        const loading = signal(false);
+
+        return create("div")
+            .classes("flex-v")
+            .children(
+                Generics.heading(2, "WebAuthn methods"),
+                ifjs(hasCredentials, create("span")
+                    .text("You have no WebAuthn methods configured")
+                    .build(), true),
+                FJSC.button({
+                    text: "Add WebAuthn method",
+                    icon: {icon: "add"},
+                    classes: ["positive", "fit-content"],
+                    onclick: async () => {
+                        Modals.input(async () => {
+                            loading.value = true;
+                            await Api.addWebauthnMethod().then(async (res) => {
+                                const user = currentUser.value;
+                                if (!user) {
+                                    return;
+                                }
+                                let registration: RegistrationJSON;
+                                try {
+                                    registration = await registerWebauthnMethod(user, res.challenge);
+                                } catch (e: any) {
+                                    notify(`Error: ${e.message}`, NotificationType.error);
+                                    return;
+                                }
+                                Api.registerWebauthnMethod(registration, res.challenge).then(() => {
+                                    console.log("Successfully registered WebAuthn method");
+                                }).finally(() => loading.value = false);
+                            }).catch(e => {
+                                loading.value = false;
+                            });
+                        }, "Add WebAuthn method", InputType.text, false, () => {}, {
+                            label: "WebAuthn method name"
                         });
                     }
                 })

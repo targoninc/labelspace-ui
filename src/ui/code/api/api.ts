@@ -11,6 +11,7 @@ import {UploadTrackRequestBody} from "../models/UploadTrackRequestBody.ts";
 import {SearchResult} from "../models/SearchResult.ts";
 import { MediaFileType } from "../enums/MediaFileType.ts";
 import {Artist} from "../models/db/tri/Artist.ts";
+import {RegistrationJSON} from "@passwordless-id/webauthn/dist/esm/types";
 
 const base = window.location.origin.includes("localhost") ? "http://localhost:8090" : "https://artists-api.trirecords.eu";
 
@@ -189,6 +190,19 @@ export class Api {
         }>(base + "/user/actions/mfa-request", {
             username,
             password
+        });
+    }
+
+    static addWebauthnMethod() {
+        return Fetcher.postWithResponse<{
+            challenge: string;
+        }>(base + "/webauthn/add");
+    }
+
+    static registerWebauthnMethod(registration: RegistrationJSON, challenge: string) {
+        return Fetcher.post(base + "/webauthn/register", {
+            registration,
+            challenge
         });
     }
 }
