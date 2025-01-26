@@ -72,8 +72,6 @@ export class Users {
     }
 
     static profile() {
-        const isLoudar = compute(u => u?.username === "loudar", currentUser);
-
         return Generics.pageFrame(
             create("div")
                 .classes("flex-v")
@@ -81,7 +79,7 @@ export class Users {
                     Generics.heading(2, "Profile"),
                     Users.personalData(),
                     Users.totpSection(),
-                    ifjs(isLoudar, Users.devicesSection()),
+                    Users.devicesSection(),
                     Users.yourArtists()
                 ).build()
         );
