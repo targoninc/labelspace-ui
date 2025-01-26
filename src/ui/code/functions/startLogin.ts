@@ -46,13 +46,13 @@ function loginWithTotp(res: {
     user?: User
 }, loading: Signal<boolean>, username: Signal<string>, password: Signal<string>, message: Signal<string>) {
     Modals.input<string>((token: string) => {
-        Api.verifyTotp(res.userId ?? 0, token).then(() => login(loading, username, password, message));
-    }, `MFA verification via ${res.type}`, InputType.text, true, () => {
-        message.value = "MFA verification cancelled";
+        Api.verifyTotp(res.userId ?? 0, token, res.type).then(() => login(loading, username, password, message));
+    }, `2FA verification via ${res.type}`, InputType.text, true, () => {
+        message.value = "2FA verification cancelled";
         loading.value = false;
     }, {
         name: "mfa-token",
-        label: "MFA token"
+        label: "2FA token"
     });
 }
 

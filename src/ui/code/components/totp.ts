@@ -55,7 +55,7 @@ export class Totp {
                                                 });
                                             }).finally(() => loading.value = false);
                                         }, "Verify TOTP method", InputType.text, true, () => {}, {
-                                            label: "MFA token"
+                                            label: "2FA token"
                                         });
                                     }
                                 }), true),
@@ -83,7 +83,7 @@ export class Totp {
                                                 });
                                             }).finally(() => loading.value = false);
                                         }, "Delete TOTP method", InputType.text, true, () => {}, {
-                                            label: "MFA token"
+                                            label: "2FA token"
                                         });
                                     }
                                 })

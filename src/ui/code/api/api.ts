@@ -159,10 +159,11 @@ export class Api {
         });
     }
 
-    static async verifyTotp(userId: number, token: string) {
+    static async verifyTotp(userId: number, token: string, type: "email" | "totp") {
         return await Fetcher.post(base + "/totp/verify", {
             userId,
-            token
+            token,
+            type
         });
     }
 
