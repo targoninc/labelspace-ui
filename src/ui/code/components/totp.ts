@@ -6,6 +6,7 @@ import {Modals} from "./modals.ts";
 import {Api} from "../api/api.ts";
 import {currentUser} from "../state.ts";
 import {InputType} from "../../fjsc/src/Types.ts";
+import {Time} from "../functions/time.ts";
 
 export class Totp {
     static qrCode(dataUrl: string) {
@@ -29,6 +30,12 @@ export class Totp {
                     ).build(),
                 create("td")
                     .text(method.verified ? "Yes" : "No")
+                    .build(),
+                create("td")
+                    .text(Time.agoUpdating(new Date(method.created_at)))
+                    .build(),
+                create("td")
+                    .text(Time.agoUpdating(new Date(method.updated_at)))
                     .build(),
                 create("td")
                     .children(

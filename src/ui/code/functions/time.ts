@@ -78,7 +78,7 @@ export class Time {
                 if (typeof format[2] == "string")
                     return format[list_choice] as string;
                 else
-                    return Math.floor(seconds / format[2]) + "" + format[1] + " " + token;
+                    return Math.floor(seconds / format[2]) + (useShort ? "" : " ") + format[1] + " " + token;
             }
         }
         return time.toString();

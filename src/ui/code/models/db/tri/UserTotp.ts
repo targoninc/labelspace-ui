@@ -4,4 +4,6 @@ export interface UserTotp {
     secret: string;
     verified: boolean;
     name: string;
+    created_at: Date;
+    updated_at: Date;
 }

@@ -87,7 +87,7 @@ export class Users {
             .children(
                 Generics.heading(2, "Multi-factor authentication"),
                 Generics.table(
-                    ["Name", "Verified", "Actions"],
+                    ["Name", "Verified", "Created", "Updated", "Actions"],
                     methods,
                     (method) => Totp.totpMethodInTable(method, loading, userId)
                 ),
