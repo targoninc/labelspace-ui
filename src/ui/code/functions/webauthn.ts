@@ -9,7 +9,7 @@ export async function registerWebauthnMethod(user: User, challenge: string) {
     return await client.register({
         user: user.username,
         challenge,
-        domain: window.location.origin,
+        domain: window.location.hostname,
         hints: ["hybrid", "client-device", "security-key"],
     });
 }
