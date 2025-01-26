@@ -8,6 +8,9 @@ userLoading.value = true;
 Api.getUser()
     .then(user => {
         currentUser.value = user;
+        if (user) {
+            navigate("dashboard");
+        }
     })
     .catch(e => {
         navigate("login");
