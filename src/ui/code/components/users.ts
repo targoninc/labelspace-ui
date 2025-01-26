@@ -20,8 +20,13 @@ import {InputType} from "../../fjsc/src/Types.ts";
 import {UserTotp} from "../models/db/tri/UserTotp.ts";
 import {Totp} from "./totp.ts";
 import {removeLastModal} from "../functions/modals.ts";
-import {registerWebauthnMethod} from "../functions/webauthn.ts";
-import {RegistrationJSON} from "@passwordless-id/webauthn/dist/esm/types";
+import {registerWebauthnMethod, webauthnLogin} from "../functions/webauthn.ts";
+import {
+    CredentialDescriptor,
+    ExtendedAuthenticatorTransport,
+    RegistrationJSON
+} from "@passwordless-id/webauthn/dist/esm/types";
+import {login} from "../functions/startLogin.ts";
 
 export class Users {
     static listPage() {
@@ -126,6 +131,7 @@ export class Users {
         const public_keys = compute(u => u?.public_keys ?? [], currentUser);
         const hasCredentials = compute(m => m.length > 0, public_keys);
         const loading = signal(false);
+        const message = signal("");
 
         return create("div")
             .classes("flex-v")
@@ -154,10 +160,32 @@ export class Users {
                                                 text: "Delete",
                                                 icon: {icon: "delete"},
                                                 classes: ["negative"],
+                                                disabled: loading,
                                                 onclick: () => {
-                                                    // TODO
+                                                    loading.value = true;
+                                                    Api.getWebauthnChallenge().then(async (res2) => {
+                                                        const challenge = res2.challenge;
+                                                        const cred: CredentialDescriptor = {
+                                                            id: key.key_id,
+                                                            transports: key.transports.split(",") as ExtendedAuthenticatorTransport[]
+                                                        };
+                                                        webauthnLogin(challenge, [cred]).then(async (verification) => {
+                                                            await Api.verifyWebauthn(verification, res2.challenge);
+                                                            await Api.deleteWebauthnMethod(key.key_id, res2.challenge);
+                                                            Api.getUser().then(u => {
+                                                                currentUser.value = u;
+                                                            });
+                                                        }).catch(e => {
+                                                            message.value = e.message;
+                                                        }).finally(() => {
+                                                            loading.value = false;
+                                                        });
+                                                    }).catch(e => {
+                                                        message.value = e.message;
+                                                    });
                                                 }
-                                            })
+                                            }),
+                                            Generics.message(message)
                                         ).build()
                                 ).build(),
                         ),
@@ -166,6 +194,7 @@ export class Users {
                     text: "Add passkey",
                     icon: {icon: "add"},
                     classes: ["positive", "fit-content"],
+                    disabled: loading,
                     onclick: async () => {
                         Modals.input(async (name: string) => {
                             loading.value = true;

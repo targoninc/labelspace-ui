@@ -8,11 +8,12 @@ import {webauthnLogin} from "./webauthn.ts";
 import {CredentialDescriptor} from "@passwordless-id/webauthn/dist/esm/types";
 import {User} from "../models/db/tri/User.ts";
 
-export function login(loading: Signal<boolean>, username: Signal<string>, password: Signal<string>, message: Signal<string>) {
+export function login(loading: Signal<boolean>, username: Signal<string>, password: Signal<string>, message: Signal<string>, challenge?: string) {
     loading.value = true;
     Api.login({
         username: username.value,
-        password: password.value
+        password: password.value,
+        challenge
     }).catch(e => {
         message.value = e.message;
     }).then(async () => {
@@ -27,7 +28,7 @@ function loginWithWebauthn(credentialDescriptors: CredentialDescriptor[] = [], l
         const challenge = res2.challenge;
         webauthnLogin(challenge, credentialDescriptors).then(async (verification) => {
             await Api.verifyWebauthn(verification, res2.challenge);
-            login(loading, username, password, message);
+            login(loading, username, password, message, challenge);
         }).catch(e => {
             message.value = e.message;
         }).finally(() => {

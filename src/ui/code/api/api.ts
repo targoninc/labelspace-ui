@@ -22,7 +22,7 @@ export class Api {
         return await Fetcher.get<User>(base + "/user/get");
     }
 
-    static async login(user: { username: string; password: string }) {
+    static async login(user: { username: string; password: string, challenge?: string }) {
         return await Fetcher.postWithResponse<User>(base + "/user/actions/login", user);
     }
 
@@ -159,7 +159,7 @@ export class Api {
         });
     }
 
-    static async verifyTotp(userId: number, token: string, type: "email" | "totp") {
+    static async verifyTotp(userId: number, token: string, type?: string) {
         return await Fetcher.post(base + "/totp/verify", {
             userId,
             token,
@@ -213,6 +213,13 @@ export class Api {
     static verifyWebauthn(json: AuthenticationJSON, challenge: string) {
         return Fetcher.post(base + "/webauthn/verify", {
             verification: json,
+            challenge
+        });
+    }
+
+    static async deleteWebauthnMethod(key_id: string, challenge: string) {
+        return await Fetcher.post(base + "/webauthn/delete", {
+            key_id,
             challenge
         });
     }
