@@ -4,6 +4,10 @@ import {FJSC} from "../../fjsc";
 import {addModal, removeLastModal} from "../functions/modals.ts";
 import {signal} from "../../fjsc/src/signals.ts";
 import {InputType} from "../../fjsc/src/Types.ts";
+import {Api} from "../api/api.ts";
+import {currentUser} from "../state.ts";
+import {target} from "../functions/templates.ts";
+import {Totp} from "./totp.ts";
 
 export class Modals {
     static modalBase(...content: AnyNode[]) {
@@ -36,7 +40,7 @@ export class Modals {
                             loading.value = false;
                             removeLastModal();
                         },
-                        icon: { icon: "check" },
+                        icon: {icon: "check"},
                     }),
                     FJSC.button({
                         text: "No",
@@ -48,14 +52,15 @@ export class Modals {
                             loading.value = false;
                             removeLastModal();
                         },
-                        icon: { icon: "cancel" },
+                        icon: {icon: "cancel"},
                     }),
                     ifjs(loading, Generics.loading())
                 ).build()
         ));
     }
 
-    static input(callback: Function, title: string, inputType: InputType, onCancel: Function = () => {}) {
+    static input(callback: Function, title: string, inputType: InputType, removeModalAfterCallback = true, onCancel: Function = () => {
+    }) {
         const value = signal("");
         const loading = signal(false);
 
@@ -81,30 +86,95 @@ export class Modals {
                         .children(
                             FJSC.button({
                                 text: "OK",
-                                icon: { icon: "save" },
+                                icon: {icon: "save"},
                                 classes: ["positive"],
                                 disabled: loading,
                                 onclick: async () => {
                                     loading.value = true;
                                     await callback(value.value);
                                     loading.value = false;
-                                    removeLastModal();
+                                    removeModalAfterCallback && removeLastModal();
                                 },
                             }),
                             FJSC.button({
                                 text: "Cancel",
-                                icon: { icon: "cancel" },
+                                icon: {icon: "cancel"},
                                 classes: ["negative"],
                                 disabled: loading,
-                                onclick: () => {
+                                onclick: async () => {
                                     loading.value = true;
-                                    onCancel();
+                                    await onCancel();
                                     loading.value = false;
-                                    removeLastModal();
+                                    removeModalAfterCallback && removeLastModal();
                                 },
                             }),
                             ifjs(loading, Generics.loading())
                         ).build()
+                ).build()
+        ));
+    }
+
+    static totpVerificationModal(secret: string, qrDataUrl: string) {
+        const token = signal("");
+
+        addModal(Modals.modalBase(
+            Generics.heading(1, "TOTP verification"),
+            create("div")
+                .classes("flex", "center-items")
+                .children(
+                    Totp.qrCode(qrDataUrl),
+                    create("div")
+                        .classes("flex-v")
+                        .children(
+                            create("div")
+                                .classes("flex", "center-items")
+                                .children(
+                                    FJSC.input({
+                                        type: InputType.text,
+                                        name: "token",
+                                        placeholder: "Token",
+                                        attributes: ["autocomplete", "off"],
+                                        value: token,
+                                        onchange: (v) => token.value = v
+                                    }),
+                                ).build(),
+                            create("div")
+                                .classes("flex", "center-items")
+                                .children(
+                                    FJSC.button({
+                                        text: "Verify",
+                                        icon: {icon: "verified"},
+                                        classes: ["positive"],
+                                        onclick: async (e) => {
+                                            if (!token.value) {
+                                                return;
+                                            }
+                                            await Api.verifyTotp(currentUser.value?.id ?? 0, token.value).then(() => {
+                                                Api.getUser().then(u => {
+                                                    currentUser.value = u;
+                                                });
+                                            });
+                                            removeLastModal();
+                                        }
+                                    }),
+                                    FJSC.button({
+                                        text: "Cancel",
+                                        icon: {icon: "cancel"},
+                                        classes: ["negative"],
+                                        onclick: async () => {
+                                            removeLastModal();
+                                        }
+                                    }),
+                                ).build()
+                        ).build()
+                ).build(),
+            Generics.heading(2, "Secret"),
+            create("div")
+                .classes("flex", "center-items")
+                .children(
+                    create("span")
+                        .text(secret)
+                        .build()
                 ).build()
         ));
     }

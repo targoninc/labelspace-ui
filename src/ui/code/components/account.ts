@@ -6,6 +6,8 @@ import {Api} from "../api/api.ts";
 import {currentUser} from "../state.ts";
 import {navigate} from "../routing/Router.ts";
 import {Inputs} from "./inputs.ts";
+import {InputType} from "../../fjsc/src/Types.ts";
+import {Modals} from "./modals.ts";
 
 export class Account {
     static loginPage() {
@@ -30,15 +32,32 @@ export class Account {
         const loading = signal(false);
         const login = async () => {
             loading.value = true;
-            await Api.login({
-                username: username.value,
-                password: password.value
-            }).catch(e => {
-                message.value = e.message;
-            }).then(async () => {
-                currentUser.value = await Api.getUser();
-                navigate("dashboard");
-            }).finally(() => loading.value = false);
+
+            const actualLogin = () => {
+                Api.login({
+                    username: username.value,
+                    password: password.value
+                }).catch(e => {
+                    message.value = e.message;
+                }).then(async () => {
+                    currentUser.value = await Api.getUser();
+                    navigate("dashboard");
+                }).finally(() => loading.value = false);
+            }
+
+            Api.mfaRequest(username.value, password.value)
+                .then(async (res) => {
+                    if (res.mfa_needed) {
+                        Modals.input((token: string) => {
+                            Api.verifyTotp(res.userId ?? 0, token).then(actualLogin);
+                        }, "MFA verification", InputType.text, true, () => {
+                            message.value = "MFA verification cancelled";
+                            loading.value = false;
+                        });
+                    } else {
+                        actualLogin();
+                    }
+                }).catch(e => message.value = e.message);
         };
         const forgotPassword = async (e: MouseEvent) => {
             loading.value = true;
@@ -65,13 +84,13 @@ export class Account {
                             .children(
                                 ifjs(filledBoth, FJSC.button({
                                     text: "Login",
-                                    icon: { icon: "login" },
+                                    icon: {icon: "login"},
                                     disabled: loading,
                                     onclick: login,
                                     classes: ["positive"]
                                 })),
                                 ifjs(username, FJSC.button({
-                                    icon: { icon: "question_mark" },
+                                    icon: {icon: "question_mark"},
                                     title: "Send password reset mail",
                                     text: "Reset password",
                                     disabled: loading,

@@ -157,4 +157,38 @@ export class Api {
             name,
         });
     }
+
+    static async verifyTotp(userId: number, token: string) {
+        return await Fetcher.post(base + "/totp/verify", {
+            userId,
+            token
+        });
+    }
+
+    static async deleteTotpMethod(id: number, token: string) {
+        return await Fetcher.post(base + "/totp/delete", {
+            id,
+            token
+        });
+    }
+
+    static addTotpMethod(name: string) {
+        return Fetcher.postWithResponse<{
+            secret: string;
+            qrDataUrl: string;
+        }>(base + "/totp/add", {
+            name
+        });
+    }
+
+    static mfaRequest(username: string, password: string) {
+        return Fetcher.postWithResponse<{
+            mfa_needed: boolean;
+            userId?: number;
+            user?: User;
+        }>(base + "/user/actions/mfa-request", {
+            username,
+            password
+        });
+    }
 }

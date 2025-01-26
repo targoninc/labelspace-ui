@@ -1,4 +1,4 @@
-import {compute, signal} from "../../fjsc/src/signals.ts";
+import {compute, Signal, signal} from "../../fjsc/src/signals.ts";
 import {Generics} from "./generics.ts";
 import {create, ifjs, signalMap} from "../../fjsc/src/f2.ts";
 import {User} from "../models/db/tri/User.ts";
@@ -13,8 +13,13 @@ import {Permissions} from "../enums/Permissions.ts";
 import {MediaFileType} from "../enums/MediaFileType.ts";
 import {reload} from "../routing/Router.ts";
 import {Images} from "./images.ts";
-import { ImageSize } from "./imageSize.ts";
+import {ImageSize} from "./imageSize.ts";
 import {Time} from "../functions/time.ts";
+import {Modals} from "./modals.ts";
+import {InputType} from "../../fjsc/src/Types.ts";
+import {UserTotp} from "../models/db/tri/UserTotp.ts";
+import {Totp} from "./totp.ts";
+import {removeLastModal} from "../functions/modals.ts";
 
 export class Users {
     static listPage() {
@@ -66,9 +71,41 @@ export class Users {
                 .children(
                     Generics.heading(2, "Profile"),
                     Users.personalData(),
+                    Users.mfa(),
                     Users.yourArtists()
                 ).build()
         );
+    }
+
+    static mfa() {
+        const methods = compute(u => u?.totp ?? [], currentUser);
+        const userId = compute(u => u?.id ?? 0, currentUser);
+        const loading = signal(false);
+
+        return create("div")
+            .classes("flex-v")
+            .children(
+                Generics.heading(2, "Multi-factor authentication"),
+                Generics.table(
+                    ["Name", "Verified", "Actions"],
+                    methods,
+                    (method) => Totp.totpMethodInTable(method, loading, userId)
+                ),
+                FJSC.button({
+                    text: "Add TOTP method",
+                    icon: {icon: "add"},
+                    classes: ["positive", "fit-content"],
+                    onclick: async () => {
+                        Modals.input(async (name: string) => {
+                            loading.value = true;
+                            await Api.addTotpMethod(name).then((res) => {
+                                removeLastModal();
+                                Modals.totpVerificationModal(res.secret, res.qrDataUrl);
+                            }).finally(() => loading.value = false);
+                        }, "Add TOTP method", InputType.text, false);
+                    }
+                })
+            ).build();
     }
 
     private static yourArtists() {
