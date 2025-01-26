@@ -278,6 +278,13 @@ export class Generics {
                     .build(),
             ).build();
     }
+
+    static pill(text: string, classes: string[]) {
+        return create("span")
+            .classes("pill", ...classes)
+            .text(text)
+            .build();
+    }
 }
 
 export const routes: Route[] = [

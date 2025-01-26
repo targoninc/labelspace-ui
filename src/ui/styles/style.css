@@ -133,6 +133,12 @@ a.button:hover {
     flex-direction: column;
 }
 
+.card {
+    padding: var(--layout-gap);
+    background: var(--gray-1);
+    border-radius: var(--radius);
+}
+
 html, body {
     margin: 0;
     padding: 0;
@@ -427,11 +433,32 @@ button.fjsc {
     --status-color: var(--red);
 }
 
-.status-tr .status {
+.status-tr .status, .pill {
     background: var(--status-color);
     border-radius: 999px;
     padding: var(--inline-padding);
     font-size: .8rem;
+    max-width: max-content;
+}
+
+.green {
+    --status-color: var(--green);
+}
+
+.blue {
+    --status-color: var(--blue);
+}
+
+.yellow {
+    --status-color: var(--yellow);
+}
+
+.orange {
+    --status-color: var(--orange);
+}
+
+.red {
+    --status-color: var(--red);
 }
 
 .clickable-icon {

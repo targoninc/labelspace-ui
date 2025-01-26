@@ -146,52 +146,19 @@ export class Users {
                 ifjs(hasCredentials, create("div")
                     .classes("flex-v")
                     .children(
-                        Generics.table(
-                            ["Name", "Created", "Actions"],
-                            public_keys,
-                            (key) => create("tr")
-                                .children(
-                                    create("td")
-                                        .text(key.name)
-                                        .build(),
-                                    create("td")
-                                        .text(Time.agoUpdating(new Date(key.created_at), true))
-                                        .build(),
-                                    create("td")
-                                        .children(
-                                            FJSC.button({
-                                                text: "Delete",
-                                                icon: {icon: "delete"},
-                                                classes: ["negative"],
-                                                disabled: loading,
-                                                onclick: () => {
-                                                    loading.value = true;
-                                                    Api.getWebauthnChallenge().then(async (res2) => {
-                                                        const challenge = res2.challenge;
-                                                        const cred: CredentialDescriptor = {
-                                                            id: key.key_id,
-                                                            transports: key.transports.split(",") as ExtendedAuthenticatorTransport[]
-                                                        };
-                                                        webauthnLogin(challenge, [cred]).then(async (verification) => {
-                                                            await Api.verifyWebauthn(verification, res2.challenge);
-                                                            await Api.deleteWebauthnMethod(key.key_id, res2.challenge);
-                                                            Api.getUser().then(u => {
-                                                                currentUser.value = u;
-                                                            });
-                                                        }).catch(e => {
-                                                            message.value = e.message;
-                                                        }).finally(() => {
-                                                            loading.value = false;
-                                                        });
-                                                    }).catch(e => {
-                                                        message.value = e.message;
-                                                    });
-                                                }
-                                            }),
-                                            Generics.message(message)
-                                        ).build()
-                                ).build(),
-                        ),
+                        signalMap(public_keys, create("div").classes("flex"), key => create("div")
+                            .classes("flex-v", "card")
+                            .children(
+                                create("div")
+                                    .classes("flex", "center-items")
+                                    .children(
+                                        Generics.heading(2, key.name),
+                                    ).build(),
+                                create("span")
+                                    .text(compute(t => `Created ${t}`, Time.agoUpdating(new Date(key.created_at), true)))
+                                    .build(),
+                                Users.webAuthNActions(loading, key, message)
+                            ).build()),
                     ).build()),
                 FJSC.button({
                     text: "Add passkey",
@@ -228,6 +195,43 @@ export class Users {
                         });
                     }
                 })
+            ).build();
+    }
+
+    private static webAuthNActions(loading: Signal<boolean>, key: PublicKey, message: Signal<string>) {
+        return create("div")
+            .classes("flex", "center-items")
+            .children(
+                FJSC.button({
+                    text: "Delete",
+                    icon: {icon: "delete"},
+                    classes: ["negative"],
+                    disabled: loading,
+                    onclick: () => {
+                        loading.value = true;
+                        Api.getWebauthnChallenge().then(async (res2) => {
+                            const challenge = res2.challenge;
+                            const cred: CredentialDescriptor = {
+                                id: key.key_id,
+                                transports: key.transports.split(",") as ExtendedAuthenticatorTransport[]
+                            };
+                            webauthnLogin(challenge, [cred]).then(async (verification) => {
+                                await Api.verifyWebauthn(verification, res2.challenge);
+                                await Api.deleteWebauthnMethod(key.key_id, res2.challenge);
+                                Api.getUser().then(u => {
+                                    currentUser.value = u;
+                                });
+                            }).catch(e => {
+                                message.value = e.message;
+                            }).finally(() => {
+                                loading.value = false;
+                            });
+                        }).catch(e => {
+                            message.value = e.message;
+                        });
+                    }
+                }),
+                Generics.message(message)
             ).build();
     }
 

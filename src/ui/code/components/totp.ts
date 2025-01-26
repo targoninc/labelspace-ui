@@ -21,19 +21,19 @@ export class Totp {
     }
 
     static totpMethodInTable(method: UserTotp, loading: Signal<boolean>, userId: Signal<any>) {
+        const times = compute((c, u) => `Created ${c}, updated ${u}`, Time.agoUpdating(new Date(method.created_at), true), Time.agoUpdating(new Date(method.updated_at), true));
+
         return create("div")
             .classes("card", "flex-v")
             .children(
-                Generics.heading(3, method.name),
-                ifjs(method.verified, create("span")
-                    .classes("positive")
-                    .text("Verified")
-                    .build(), true),
+                create("div")
+                    .classes("flex", "center-items")
+                    .children(
+                        Generics.heading(2, method.name),
+                        ifjs(method.verified, Generics.pill("Verified", ["green"])),
+                    ).build(),
                 create("span")
-                    .text(compute(t => `Created ${t}`, Time.agoUpdating(new Date(method.created_at))))
-                    .build(),
-                create("span")
-                    .text(compute(t => `Updated ${t}`, Time.agoUpdating(new Date(method.updated_at))))
+                    .text(times)
                     .build(),
                 Totp.totpMethodActions(method, loading, userId),
             ).build();
