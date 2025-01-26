@@ -47,14 +47,16 @@ export class Totp {
                                     icon: {icon: "verified"},
                                     classes: ["positive"],
                                     onclick: async () => {
-                                        Modals.input(async (token: string) => {
+                                        Modals.input<string>(async (token: string) => {
                                             loading.value = true;
                                             await Api.verifyTotp(userId.value, token).then(() => {
                                                 Api.getUser().then(u => {
                                                     currentUser.value = u;
                                                 });
                                             }).finally(() => loading.value = false);
-                                        }, "Verify TOTP method", InputType.text);
+                                        }, "Verify TOTP method", InputType.text, true, () => {}, {
+                                            label: "MFA token"
+                                        });
                                     }
                                 }), true),
                                 FJSC.button({
@@ -73,14 +75,16 @@ export class Totp {
                                             }, "Delete TOTP method", `Are you sure you want to delete TOTP method ${method.name}?`);
                                             return;
                                         }
-                                        Modals.input(async (token: string) => {
+                                        Modals.input<string>(async (token: string) => {
                                             loading.value = true;
                                             await Api.deleteTotpMethod(method.id, token).then(() => {
                                                 Api.getUser().then(u => {
                                                     currentUser.value = u;
                                                 });
                                             }).finally(() => loading.value = false);
-                                        }, "Delete TOTP method", InputType.text);
+                                        }, "Delete TOTP method", InputType.text, true, () => {}, {
+                                            label: "MFA token"
+                                        });
                                     }
                                 })
                             ).build(),

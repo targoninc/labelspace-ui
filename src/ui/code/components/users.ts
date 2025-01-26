@@ -109,7 +109,9 @@ export class Users {
                                 removeLastModal();
                                 Modals.totpVerificationModal(res.secret, res.qrDataUrl);
                             }).finally(() => loading.value = false);
-                        }, "Add TOTP method", InputType.text, false);
+                        }, "Add TOTP method", InputType.text, false, () => {}, {
+                            label: "TOTP method name"
+                        });
                     }
                 })
             ).build();

@@ -3,7 +3,7 @@ import {Generics} from "./generics.ts";
 import {FJSC} from "../../fjsc";
 import {addModal, removeLastModal} from "../functions/modals.ts";
 import {signal} from "../../fjsc/src/signals.ts";
-import {InputType} from "../../fjsc/src/Types.ts";
+import {InputConfig, InputType} from "../../fjsc/src/Types.ts";
 import {Api} from "../api/api.ts";
 import {currentUser} from "../state.ts";
 import {target} from "../functions/templates.ts";
@@ -59,10 +59,13 @@ export class Modals {
         ));
     }
 
-    static input(callback: Function, title: string, inputType: InputType, removeModalAfterCallback = true, onCancel: Function = () => {
-    }) {
-        const value = signal("");
+    static input<T>(callback: Function, title: string, inputType: InputType, removeModalAfterCallback = true, onCancel: Function = () => {}, inputConfig: InputConfig<T>|{} = {}) {
+        const value = signal<T>("" as T);
         const loading = signal(false);
+        const id = signal(Math.random().toString(36).substring(7));
+        setTimeout(() => {
+            document.getElementById(id.value)?.focus();
+        });
 
         addModal(Modals.modalBase(
             Generics.heading(1, title),
@@ -73,8 +76,9 @@ export class Modals {
                         .classes("flex", "center-items")
                         .children(
                             FJSC.input({
+                                ...inputConfig as InputConfig<T>,
                                 type: inputType,
-                                name: "text",
+                                id,
                                 value,
                                 attributes: ["autocomplete", "off"],
                                 onchange: (v) => value.value = v
@@ -104,7 +108,7 @@ export class Modals {
                                     loading.value = true;
                                     await onCancel();
                                     loading.value = false;
-                                    removeModalAfterCallback && removeLastModal();
+                                    removeLastModal();
                                 },
                             }),
                             ifjs(loading, Generics.loading())

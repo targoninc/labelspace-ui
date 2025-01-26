@@ -48,11 +48,14 @@ export class Account {
             Api.mfaRequest(username.value, password.value)
                 .then(async (res) => {
                     if (res.mfa_needed) {
-                        Modals.input((token: string) => {
+                        Modals.input<string>((token: string) => {
                             Api.verifyTotp(res.userId ?? 0, token).then(actualLogin);
                         }, "MFA verification", InputType.text, true, () => {
                             message.value = "MFA verification cancelled";
                             loading.value = false;
+                        }, {
+                            name: "mfa-token",
+                            label: "MFA token"
                         });
                     } else {
                         actualLogin();
