@@ -80,7 +80,6 @@ export class Modals {
                                 onchange: (v) => value.value = v
                             }),
                         ).build(),
-                    ifjs(loading, Generics.loading()),
                     create("div")
                         .classes("flex", "center-items")
                         .children(
@@ -120,9 +119,17 @@ export class Modals {
         addModal(Modals.modalBase(
             Generics.heading(1, "TOTP verification"),
             create("div")
-                .classes("flex", "center-items")
+                .classes("flex-v")
                 .children(
                     Totp.qrCode(qrDataUrl),
+                    Generics.heading(2, "Secret"),
+                    create("div")
+                        .classes("flex", "center-items")
+                        .children(
+                            create("span")
+                                .text(secret)
+                                .build()
+                        ).build(),
                     create("div")
                         .classes("flex-v")
                         .children(
@@ -167,14 +174,6 @@ export class Modals {
                                     }),
                                 ).build()
                         ).build()
-                ).build(),
-            Generics.heading(2, "Secret"),
-            create("div")
-                .classes("flex", "center-items")
-                .children(
-                    create("span")
-                        .text(secret)
-                        .build()
                 ).build()
         ));
     }

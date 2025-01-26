@@ -62,6 +62,17 @@ export class Totp {
                                     icon: {icon: "delete"},
                                     classes: ["negative"],
                                     onclick: async () => {
+                                        if (!method.verified) {
+                                            Modals.confirm(async () => {
+                                                loading.value = true;
+                                                await Api.deleteTotpMethod(method.id, "").then(() => {
+                                                    Api.getUser().then(u => {
+                                                        currentUser.value = u;
+                                                    });
+                                                }).finally(() => loading.value = false);
+                                            }, "Delete TOTP method", `Are you sure you want to delete TOTP method ${method.name}?`);
+                                            return;
+                                        }
                                         Modals.input(async (token: string) => {
                                             loading.value = true;
                                             await Api.deleteTotpMethod(method.id, token).then(() => {

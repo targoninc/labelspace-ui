@@ -103,6 +103,9 @@ export class Users {
                         Modals.input(async (name: string) => {
                             loading.value = true;
                             await Api.addTotpMethod(name).then((res) => {
+                                Api.getUser().then(u => {
+                                    currentUser.value = u;
+                                });
                                 removeLastModal();
                                 Modals.totpVerificationModal(res.secret, res.qrDataUrl);
                             }).finally(() => loading.value = false);
