@@ -27,6 +27,8 @@ import {
     RegistrationJSON
 } from "@passwordless-id/webauthn/dist/esm/types";
 import {login} from "../functions/startLogin.ts";
+import { PublicKey } from "../models/db/tri/PublicKey.ts";
+import { PermissionIcons } from "../enums/PermissionIcons.ts";
 
 export class Users {
     static listPage() {
@@ -46,7 +48,7 @@ export class Users {
             ifjs(loading, Generics.loading()),
             Generics.heading(2, "Users"),
             Generics.table(
-                ["Username", "Artists", "Last login", "Permissions"],
+                ["Username", "Artists", "Last login", "Email addresses", "TOTP methods", "Passkeys", "Permissions"],
                 users,
                 (user: User) => Users.userInTable(user)
             )
@@ -54,6 +56,8 @@ export class Users {
     }
 
     static userInTable(user: User) {
+        const permissions = user.permissions?.map(p => p.name) ?? [];
+
         return create("tr")
             .children(
                 create("td")
@@ -65,9 +69,17 @@ export class Users {
                 create("td")
                     .text(user.lastlogin ? Time.agoUpdating(new Date(user.lastlogin), true) : "--")
                     .build(),
+                create("td").text(user.emails?.length ?? 0).build(),
+                create("td").text(user.totp?.length ?? 0).build(),
+                create("td").text(user.public_keys?.length ?? 0).build(),
                 create("td")
-                    .text(user.permissions?.map(p => p.name).join(", ") ?? "No permissions")
-                    .build()
+                    .children(
+                        create("div")
+                            .classes("flex")
+                            .children(
+                                ...permissions.map(p => Generics.icon(PermissionIcons[p as Permissions]))
+                            ).build()
+                    ).build()
             ).build();
     }
 
