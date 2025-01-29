@@ -59,11 +59,11 @@ function loginWithTotp(res: {
 }
 
 export async function startLogin(loading: Signal<boolean>, username: Signal<string>, password: Signal<string>, message: Signal<string>) {
-    loading.value = true;
-
     let options = [];
     try {
+        loading.value = true;
         options = await Api.getMfaOptions(username.value, password.value);
+        loading.value = false;
         if (options.length === 0) {
             login(loading, username, password, message);
             return;
@@ -79,10 +79,10 @@ export async function startLogin(loading: Signal<boolean>, username: Signal<stri
     Modals.select(mappedOptions, "Select a 2FA method", "Please select one of the available options below.", "Method", (selected: MfaOption) => {
         if (!selected || options.every(o => o.type !== selected)) {
             notify("No value selected", NotificationType.error);
-            loading.value = false;
             return;
         }
 
+        loading.value = true;
         Api.mfaRequest(username.value, password.value, selected)
             .then(async (res) => {
                 if (res.mfa_needed) {
