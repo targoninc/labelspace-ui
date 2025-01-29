@@ -231,7 +231,6 @@ b {
     transform: translate(-50%, -50%);
     z-index: 5;
     max-height: calc(100% - 100px);
-    overflow: auto;
     max-width: 80dvw;
     width: max-content;
 }

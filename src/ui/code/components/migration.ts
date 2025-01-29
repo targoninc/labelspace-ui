@@ -4,7 +4,7 @@ import {notify} from "../functions/notifications.ts";
 import {NotificationType} from "../enums/NotificationType.ts";
 import {create, ifjs} from "../../fjsc/src/f2.ts";
 import {signal} from "../../fjsc/src/signals.ts";
-import {Generics} from "./generics.ts";
+import {Generics} from "./generic/generics.ts";
 
 export class Migration {
     static dataImport() {

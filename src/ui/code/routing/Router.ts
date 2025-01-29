@@ -1,7 +1,7 @@
 import {signal} from "../../fjsc/src/signals.ts";
 import {currentRoute, currentUser, router, userLoading} from "../state.ts";
 import {Route} from "./Route.ts";
-import {Generics} from "../components/generics.ts";
+import {Generics} from "../components/generic/generics.ts";
 
 export class Router {
     public currentRoute = signal<Route|null>(null);

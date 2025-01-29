@@ -7,7 +7,7 @@ import {Api} from "../api/api.ts";
 import {currentUser} from "../state.ts";
 import {InputType} from "../../fjsc/src/Types.ts";
 import {Time} from "../functions/time.ts";
-import {Generics} from "./generics.ts";
+import {Generics} from "./generic/generics.ts";
 
 export class Totp {
     static qrCode(dataUrl: string) {

@@ -1,7 +1,7 @@
 import {Log} from "../models/db/tri/Log.ts";
 import {signal} from "../../fjsc/src/signals.ts";
 import {Api} from "../api/api.ts";
-import {Generics} from "./generics.ts";
+import {Generics} from "./generic/generics.ts";
 import {ifjs} from "../../fjsc/src/f2.ts";
 
 export class Logs {

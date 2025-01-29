@@ -1,23 +1,23 @@
-import {AnyElement, create, ifjs, nullElement, signalMap, StringOrSignal} from "../../fjsc/src/f2.ts";
-import {NotificationType} from "../enums/NotificationType.ts";
-import {compute, signal, Signal} from "../../fjsc/src/signals.ts";
-import {Nav} from "./nav.ts";
-import {Route} from "../routing/Route.ts";
-import {Account} from "./account.ts";
-import {Users} from "./users.ts";
-import {User} from "../models/db/tri/User.ts";
-import {Permissions} from "../enums/Permissions.ts";
-import {currentUser, userLoading} from "../state.ts";
-import type {NavItem} from "../models/NavItem.ts";
-import {Statistics} from "./statistics.ts";
-import {Payments} from "./payments.ts";
-import {Logs} from "./logs.ts";
-import {Albums} from "./albums.ts";
-import {Tracks} from "./tracks.ts";
-import {Tab} from "../models/Tab.ts";
-import {FJSC} from "../../fjsc";
-import {navigate} from "../routing/Router.ts";
-import {currency} from "../functions/formatters.ts";
+import {AnyElement, create, ifjs, nullElement, signalMap, StringOrSignal} from "../../../fjsc/src/f2.ts";
+import {NotificationType} from "../../enums/NotificationType.ts";
+import {compute, signal, Signal} from "../../../fjsc/src/signals.ts";
+import {Nav} from "../nav.ts";
+import {Route} from "../../routing/Route.ts";
+import {Account} from "../account.ts";
+import {Users} from "../users.ts";
+import {User} from "../../models/db/tri/User.ts";
+import {Permissions} from "../../enums/Permissions.ts";
+import {currentUser, userLoading} from "../../state.ts";
+import type {NavItem} from "../../models/NavItem.ts";
+import {Statistics} from "../statistics.ts";
+import {Payments} from "../payments.ts";
+import {Logs} from "../logs.ts";
+import {Albums} from "../albums.ts";
+import {Tracks} from "../tracks.ts";
+import {Tab} from "../../models/Tab.ts";
+import {FJSC} from "../../../fjsc";
+import {navigate} from "../../routing/Router.ts";
+import {currency} from "../../functions/formatters.ts";
 
 export class Generics {
     static notFound() {
@@ -317,6 +317,7 @@ export const routes: Route[] = [
     },
     {
         path: "profile",
+        aliases: ["settings"],
         title: "Profile",
         template: Users.profile,
         icon: "person",

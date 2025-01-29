@@ -1,11 +1,11 @@
 import {compute, Signal, signal} from "../../fjsc/src/signals.ts";
 import {Album} from "../models/db/tri/Album.ts";
 import {Api} from "../api/api.ts";
-import {Generics} from "./generics.ts";
+import {Generics} from "./generic/generics.ts";
 import {AnyNode, create, ifjs, nullElement} from "../../fjsc/src/f2.ts";
 import {navigate, reload} from "../routing/Router.ts";
 import {FJSC} from "../../fjsc";
-import {Inputs} from "./inputs.ts";
+import {Inputs} from "./generic/inputs.ts";
 import {notify} from "../functions/notifications.ts";
 import {NotificationType} from "../enums/NotificationType.ts";
 import {Route} from "../routing/Route.ts";
@@ -22,9 +22,9 @@ import {InputType} from "../../fjsc/src/Types.ts";
 import {Statistics} from "./statistics.ts";
 import {dayFrom, today} from "../functions/dates.ts";
 import {MediaFileType} from "../enums/MediaFileType.ts";
-import {RequestableImageSize} from "./requestableImageSize.ts";
-import {Images} from "./images.ts";
-import {ImageSize} from "./imageSize.ts";
+import {RequestableImageSize} from "../enums/requestableImageSize.ts";
+import {Images} from "./generic/images.ts";
+import {ImageSize} from "../enums/imageSize.ts";
 import {Time} from "../functions/time.ts";
 
 export class Albums {

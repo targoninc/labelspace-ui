@@ -1,10 +1,10 @@
 import {compute, Signal, signal} from "../../fjsc/src/signals.ts";
 import {Api} from "../api/api.ts";
-import {Generics} from "./generics.ts";
+import {Generics} from "./generic/generics.ts";
 import {create, ifjs, nullElement} from "../../fjsc/src/f2.ts";
 import {Track} from "../models/db/tri/Track.ts";
 import {Route} from "../routing/Route.ts";
-import {Inputs} from "./inputs.ts";
+import {Inputs} from "./generic/inputs.ts";
 import {FJSC} from "../../fjsc";
 import {notify} from "../functions/notifications.ts";
 import {navigate} from "../routing/Router.ts";
@@ -20,9 +20,9 @@ import {Statistic} from "../models/Statistic.ts";
 import {Statistics} from "./statistics.ts";
 import {dayFrom, today} from "../functions/dates.ts";
 import {MediaFileType} from "../enums/MediaFileType.ts";
-import {RequestableImageSize} from "./requestableImageSize.ts";
-import {Images} from "./images.ts";
-import {ImageSize} from "./imageSize.ts";
+import {RequestableImageSize} from "../enums/requestableImageSize.ts";
+import {Images} from "./generic/images.ts";
+import {ImageSize} from "../enums/imageSize.ts";
 import {Time} from "../functions/time.ts";
 import {currency} from "../functions/formatters.ts";
 
