@@ -18,29 +18,26 @@ export function login(loading: Signal<boolean>, username: Signal<string>, passwo
         username: username.value,
         password: password.value,
         challenge
-    }).catch(e => {
-        message.value = e.message;
     }).then(async () => {
         currentUser.value = await Api.getUser();
         navigate("dashboard");
-    }).finally(() => loading.value = false);
+    }).catch(e => message.value = e.message)
+        .finally(() => loading.value = false);
 }
 
 function loginWithWebauthn(credentialDescriptors: CredentialDescriptor[] = [], loading: Signal<boolean>, username: Signal<string>, password: Signal<string>, message: Signal<string>) {
     loading.value = true;
-    Api.getWebauthnChallenge().then(async (res2) => {
-        const challenge = res2.challenge;
-        webauthnLogin(challenge, credentialDescriptors).then(async (verification) => {
-            await Api.verifyWebauthn(verification, res2.challenge);
-            login(loading, username, password, message, challenge);
-        }).catch(e => {
-            message.value = e.message;
-        }).finally(() => {
-            loading.value = false;
-        });
-    }).catch(e => {
-        message.value = e.message;
-    });
+    Api.getWebauthnChallenge()
+        .then(async (res2) => {
+            const challenge = res2.challenge;
+            webauthnLogin(challenge, credentialDescriptors)
+                .then(async (verification) => {
+                    await Api.verifyWebauthn(verification, res2.challenge);
+                    login(loading, username, password, message, challenge);
+                }).catch(e => message.value = e.message)
+                .finally(() => loading.value = false);
+        }).catch(e => message.value = e.message)
+        .finally(() => loading.value = false);
 }
 
 function loginWithTotp(res: {
@@ -64,9 +61,17 @@ function loginWithTotp(res: {
 export async function startLogin(loading: Signal<boolean>, username: Signal<string>, password: Signal<string>, message: Signal<string>) {
     loading.value = true;
 
-    const options = await Api.getMfaOptions(username.value, password.value);
-    if (options.length === 0) {
-        login(loading, username, password, message);
+    let options = [];
+    try {
+        options = await Api.getMfaOptions(username.value, password.value);
+        if (options.length === 0) {
+            login(loading, username, password, message);
+            return;
+        }
+    } catch (e: any) {
+        notify(e, NotificationType.error);
+        message.value = e.message;
+        loading.value = false;
         return;
     }
 
@@ -93,6 +98,7 @@ export async function startLogin(loading: Signal<boolean>, username: Signal<stri
                 } else {
                     login(loading, username, password, message);
                 }
-            }).catch(e => message.value = e.message);
+            }).catch(e => message.value = e.message)
+            .finally(() => loading.value = false);
     });
 }
