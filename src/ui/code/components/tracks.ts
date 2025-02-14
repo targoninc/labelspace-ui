@@ -87,9 +87,6 @@ export class Tracks {
             };
         });
         const credits = compute(t => t?.credits ?? "", track$);
-        const release_date = compute(t => {
-            return dayFrom(t?.release_date ?? new Date());
-        }, track$);
 
         return create("div")
             .classes("flex-v")
@@ -131,7 +128,7 @@ export class Tracks {
                                     create("div")
                                         .classes("flex-v")
                                         .children(
-                                            Tracks.trackProperties(title, artists, credits, release_date, isrc, genres, genre, length, price),
+                                            Tracks.trackProperties(title, artists, credits, releaseDate, isrc, genres, genre, length, price),
                                             FJSC.button({
                                                 text: "Update track",
                                                 classes: ["positive", "fit-content"],
