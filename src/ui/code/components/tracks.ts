@@ -107,7 +107,7 @@ export class Tracks {
                         create("div")
                             .classes("flex-v", "flex-grow")
                             .children(
-                                Generics.link(triRecordsLink, "Open on Tri Records website"),
+                                Generics.link(triRecordsLink, "Open on Tri Records"),
                                 create("div")
                                     .classes("flex")
                                     .children(

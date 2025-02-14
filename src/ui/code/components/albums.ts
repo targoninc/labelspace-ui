@@ -266,7 +266,7 @@ export class Albums {
                 create("div")
                     .classes("flex-v", "flex-grow")
                     .children(
-                        Generics.link(triRecordsLink, "Open on Tri Records website"),
+                        Generics.link(triRecordsLink, "Open on Tri Records"),
                         ifjs(hasReleaseManagementPermission, create("div")
                             .classes("flex-v")
                             .children(
