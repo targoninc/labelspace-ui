@@ -249,6 +249,7 @@ export class Albums {
         });
         const hasImage = compute(a => a?.has_cover ?? false, album);
         const hasReleaseManagementPermission = compute(u => u?.permissions?.some(p => p.name === Permissions.releaseManagement) ?? false, currentUser);
+        const triRecordsLink = compute(a => `https://trirecords.eu/album/${a?.id}`, album);
 
         return create("div")
             .classes("flex")
@@ -265,6 +266,7 @@ export class Albums {
                 create("div")
                     .classes("flex-v", "flex-grow")
                     .children(
+                        Generics.link(triRecordsLink, "Open on Tri Records website"),
                         ifjs(hasReleaseManagementPermission, create("div")
                             .classes("flex-v")
                             .children(

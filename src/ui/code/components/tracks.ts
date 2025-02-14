@@ -87,6 +87,7 @@ export class Tracks {
             };
         });
         const credits = compute(t => t?.credits ?? "", track$);
+        const triRecordsLink = compute(t => `https://trirecords.eu/track/${t?.id}`, track$);
 
         return create("div")
             .classes("flex-v")
@@ -106,6 +107,7 @@ export class Tracks {
                         create("div")
                             .classes("flex-v", "flex-grow")
                             .children(
+                                Generics.link(triRecordsLink, "Open on Tri Records website"),
                                 create("div")
                                     .classes("flex")
                                     .children(
