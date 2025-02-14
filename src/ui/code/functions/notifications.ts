@@ -1,5 +1,5 @@
 import {NotificationType} from "../enums/NotificationType.ts";
-import {Generics} from "../components/generics.ts";
+import {Generics} from "../components/generic/generics.ts";
 
 export function notify(text: string, type = NotificationType.info, time = 7000) {
     const notifications = document.querySelector("#notifications");

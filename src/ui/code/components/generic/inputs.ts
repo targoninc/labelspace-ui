@@ -1,13 +1,13 @@
-import {compute, signal, Signal} from "../../fjsc/src/signals.ts";
-import {FJSC} from "../../fjsc";
-import {InputType, SelectOption} from "../../fjsc/src/Types.ts";
-import {ServiceLink} from "../models/ServiceLink.ts";
-import {create, signalMap} from "../../fjsc/src/f2.ts";
-import {LinkServices} from "../enums/LinkServices.ts";
+import {compute, signal, Signal} from "../../../fjsc/src/signals.ts";
+import {FJSC} from "../../../fjsc";
+import {InputType, SelectOption} from "../../../fjsc/src/Types.ts";
+import {ServiceLink} from "../../models/ServiceLink.ts";
+import {create, signalMap} from "../../../fjsc/src/f2.ts";
+import {LinkServices} from "../../enums/LinkServices.ts";
 import {Generics} from "./generics.ts";
-import {linkPath} from "../functions/formatters.ts";
-import {notify} from "../functions/notifications.ts";
-import {NotificationType} from "../enums/NotificationType.ts";
+import {linkPath} from "../../functions/formatters.ts";
+import {notify} from "../../functions/notifications.ts";
+import {NotificationType} from "../../enums/NotificationType.ts";
 
 export class Inputs {
     static password(password: Signal<string>, placeholder: string = "Password", name: string = "password", onEnter: Function = () => {}) {

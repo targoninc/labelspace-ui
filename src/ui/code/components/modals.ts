@@ -1,9 +1,9 @@
 import {AnyNode, create, ifjs, StringOrSignal} from "../../fjsc/src/f2.ts";
-import {Generics} from "./generics.ts";
+import {Generics} from "./generic/generics.ts";
 import {FJSC} from "../../fjsc";
 import {addModal, removeLastModal} from "../functions/modals.ts";
-import {signal} from "../../fjsc/src/signals.ts";
-import {InputConfig, InputType} from "../../fjsc/src/Types.ts";
+import {signal, Signal} from "../../fjsc/src/signals.ts";
+import {InputConfig, InputType, SelectOption} from "../../fjsc/src/Types.ts";
 import {Api} from "../api/api.ts";
 import {currentUser} from "../state.ts";
 import {target} from "../functions/templates.ts";
@@ -84,37 +84,41 @@ export class Modals {
                                 onchange: (v) => value.value = v
                             }),
                         ).build(),
-                    create("div")
-                        .classes("flex", "center-items")
-                        .children(
-                            FJSC.button({
-                                text: "OK",
-                                icon: {icon: "save"},
-                                classes: ["positive"],
-                                disabled: loading,
-                                onclick: async () => {
-                                    loading.value = true;
-                                    await callback(value.value);
-                                    loading.value = false;
-                                    removeModalAfterCallback && removeLastModal();
-                                },
-                            }),
-                            FJSC.button({
-                                text: "Cancel",
-                                icon: {icon: "cancel"},
-                                classes: ["negative"],
-                                disabled: loading,
-                                onclick: async () => {
-                                    loading.value = true;
-                                    await onCancel();
-                                    loading.value = false;
-                                    removeLastModal();
-                                },
-                            }),
-                            ifjs(loading, Generics.loading())
-                        ).build()
+                    Modals.genericModalButtons(loading, callback, value, removeModalAfterCallback, onCancel)
                 ).build()
         ));
+    }
+
+    private static genericModalButtons<T>(loading: Signal<boolean>, callback: Function, value: Signal<T>, removeModalAfterCallback: boolean, onCancel: Function) {
+        return create("div")
+            .classes("flex", "center-items")
+            .children(
+                FJSC.button({
+                    text: "OK",
+                    icon: {icon: "save"},
+                    classes: ["positive"],
+                    disabled: loading,
+                    onclick: async () => {
+                        loading.value = true;
+                        await callback(value.value);
+                        loading.value = false;
+                        removeModalAfterCallback && removeLastModal();
+                    },
+                }),
+                FJSC.button({
+                    text: "Cancel",
+                    icon: {icon: "cancel"},
+                    classes: ["negative"],
+                    disabled: loading,
+                    onclick: async () => {
+                        loading.value = true;
+                        await onCancel();
+                        loading.value = false;
+                        removeLastModal();
+                    },
+                }),
+                ifjs(loading, Generics.loading())
+            ).build();
     }
 
     static totpVerificationModal(secret: string, qrDataUrl: string) {
@@ -178,6 +182,28 @@ export class Modals {
                                     }),
                                 ).build()
                         ).build()
+                ).build()
+        ));
+    }
+
+    static select(options: SelectOption[], title: StringOrSignal, message: StringOrSignal, label: StringOrSignal, callback: Function = () => {}) {
+        const loading = signal(false);
+        const selection = signal<any>(null);
+
+        addModal(Modals.modalBase(
+            Generics.heading(1, title),
+            create("div")
+                .classes("flex-v")
+                .children(
+                    create("p")
+                        .text(message)
+                        .build(),
+                    FJSC.searchableSelect({
+                        options: signal(options),
+                        value: selection,
+                        label
+                    }),
+                    Modals.genericModalButtons(loading, callback, selection, true, () => {})
                 ).build()
         ));
     }

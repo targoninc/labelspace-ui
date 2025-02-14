@@ -2,7 +2,7 @@ import {compute, Signal} from "../../fjsc/src/signals.ts";
 import {currentRoute} from "../state.ts";
 import {create} from "../../fjsc/src/f2.ts";
 import type {NavItem} from "../models/NavItem.ts";
-import {Generics} from "./generics.ts";
+import {Generics} from "./generic/generics.ts";
 import {navigate, reload} from "../routing/Router.ts";
 import {User} from "../models/db/tri/User.ts";
 import {FJSC} from "../../fjsc";

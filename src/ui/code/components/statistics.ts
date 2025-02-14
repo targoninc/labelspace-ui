@@ -8,7 +8,7 @@ import {compute, Signal, signal} from "../../fjsc/src/signals.ts";
 import {Api} from "../api/api.ts";
 import {statisticsFromSignal} from "../functions/templates.ts";
 import {currentUser} from "../state.ts";
-import {Generics} from "./generics.ts";
+import {Generics} from "./generic/generics.ts";
 import {FJSC} from "../../fjsc";
 import {Payments} from "./payments.ts";
 import {ExtendedChartOptions} from "../models/ExtendedChartOptions.ts";

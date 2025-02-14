@@ -3,7 +3,7 @@ import {Statistic} from "../models/Statistic.ts";
 import {nullElement} from "../../fjsc/src/f2.ts";
 import {MediaFileType} from "../enums/MediaFileType.ts";
 import {Api} from "../api/api.ts";
-import {RequestableImageSize} from "../components/requestableImageSize.ts";
+import {RequestableImageSize} from "../enums/requestableImageSize.ts";
 
 export function statisticsFromSignal(stats: Signal<Statistic[]>, template: Function) {
     return compute(s => {

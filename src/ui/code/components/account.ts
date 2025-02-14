@@ -1,9 +1,9 @@
-import {Generics} from "./generics.ts";
+import {Generics} from "./generic/generics.ts";
 import {create, ifjs} from "../../fjsc/src/f2.ts";
 import {compute, signal} from "../../fjsc/src/signals.ts";
 import {FJSC} from "../../fjsc";
 import {Api} from "../api/api.ts";
-import {Inputs} from "./inputs.ts";
+import {Inputs} from "./generic/inputs.ts";
 import {startLogin} from "../functions/startLogin.ts";
 
 export class Account {

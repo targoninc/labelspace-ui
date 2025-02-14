@@ -1,4 +1,4 @@
-import {Generics} from "./generics.ts";
+import {Generics} from "./generic/generics.ts";
 import {currentUser} from "../state.ts";
 import {Api} from "../api/api.ts";
 import {compute, signal} from "../../fjsc/src/signals.ts";

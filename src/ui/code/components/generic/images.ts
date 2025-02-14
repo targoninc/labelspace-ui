@@ -1,15 +1,15 @@
-import {create, getValue, ifjs} from "../../fjsc/src/f2";
-import {Signal, signal} from "../../fjsc/src/signals.ts";
-import {getImageUrl} from "../functions/templates.ts";
-import {MediaFileType} from "../enums/MediaFileType.ts";
-import {RequestableImageSize} from "./requestableImageSize.ts";
-import {ImageSize} from "./imageSize.ts";
-import {FJSC} from "../../fjsc";
-import { uploadImage } from "../functions/media.ts";
+import {create, getValue, ifjs} from "../../../fjsc/src/f2.ts";
+import {Signal, signal} from "../../../fjsc/src/signals.ts";
+import {getImageUrl} from "../../functions/templates.ts";
+import {MediaFileType} from "../../enums/MediaFileType.ts";
+import {RequestableImageSize} from "../../enums/requestableImageSize.ts";
+import {ImageSize} from "../../enums/imageSize.ts";
+import {FJSC} from "../../../fjsc";
+import { uploadImage } from "../../functions/media.ts";
 import { Generics } from "./generics.ts";
-import { Api } from "../api/api.ts";
-import { NotificationType } from "../enums/NotificationType.ts";
-import { notify } from "../functions/notifications.ts";
+import { Api } from "../../api/api.ts";
+import { NotificationType } from "../../enums/NotificationType.ts";
+import { notify } from "../../functions/notifications.ts";
 
 interface ChangeableImageOptions {
     changeable?: boolean|Signal<boolean>;

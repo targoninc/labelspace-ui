@@ -12,6 +12,7 @@ import {SearchResult} from "../models/SearchResult.ts";
 import { MediaFileType } from "../enums/MediaFileType.ts";
 import {Artist} from "../models/db/tri/Artist.ts";
 import {AuthenticationJSON, CredentialDescriptor, RegistrationJSON} from "@passwordless-id/webauthn/dist/esm/types";
+import {MfaOption} from "../enums/MfaOption.ts";
 
 const base = window.location.origin.includes("localhost") ? "http://localhost:8090" : "https://artists-api.trirecords.eu";
 
@@ -183,19 +184,6 @@ export class Api {
         });
     }
 
-    static mfaRequest(username: string, password: string) {
-        return Fetcher.postWithResponse<{
-            mfa_needed: boolean;
-            type?: "totp" | "email" | "webauthn";
-            credentialDescriptors?: CredentialDescriptor[];
-            userId?: number;
-            user?: User;
-        }>(base + "/user/actions/mfa-request", {
-            username,
-            password
-        });
-    }
-
     static getWebauthnChallenge() {
         return Fetcher.postWithResponse<{
             challenge: string;
@@ -221,6 +209,27 @@ export class Api {
         return await Fetcher.post(base + "/webauthn/delete", {
             key_id,
             challenge
+        });
+    }
+
+    static async getMfaOptions(username: string, password: string) {
+        return await Fetcher.postWithResponse<{ type: MfaOption }[]>(base + "/mfa/options", {
+            username,
+            password
+        });
+    }
+
+    static mfaRequest(username: string, password: string, method: MfaOption) {
+        return Fetcher.postWithResponse<{
+            mfa_needed: boolean;
+            type?: MfaOption;
+            credentialDescriptors?: CredentialDescriptor[];
+            userId?: number;
+            user?: User;
+        }>(base + "/mfa/request", {
+            username,
+            password,
+            method
         });
     }
 }
