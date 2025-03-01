@@ -518,3 +518,7 @@ button.fjsc {
     padding: var(--layout-gap);
     box-sizing: border-box;
 }
+
+.nowrap {
+    flex-wrap: nowrap;
+}

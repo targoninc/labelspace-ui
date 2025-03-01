@@ -212,12 +212,12 @@ export class Statistics {
         return create("div")
             .classes("flex")
             .children(
+                Statistics.singleStatistic("Royalties by country", Api.getRoyaltiesByCountry, Statistics.royaltiesByCountryChart),
                 Statistics.singleStatistic("Royalties by month", Api.getRoyaltiesByMonth, Statistics.royaltiesByMonthChart, "Royalty reporting is delayed by roughly 3 months. This is due to the fact that not all services report in time."),
                 Statistics.singleStatistic("Royalties by year", Api.getRoyaltiesByYear, Statistics.royaltiesByYearChart),
                 Statistics.singleStatistic("Royalties by track", Api.getRoyaltiesByTrack, Statistics.royaltiesByTrackChart),
                 Statistics.singleStatistic("Royalties by artist", Api.getRoyaltiesByArtist, Statistics.royaltiesByArtistChart),
                 Statistics.singleStatistic("Royalties by service", Api.getRoyaltiesByService, Statistics.royaltiesByServiceChart),
-                Statistics.singleStatistic("Royalties by country", Api.getRoyaltiesByCountry, Statistics.royaltiesByCountryChart),
             ).build();
     }
 
@@ -274,9 +274,9 @@ export class Statistics {
             animateIn: true,
             waitForGlobeReady: false
         }).height(300)
-            .width(300)
-            .backgroundColor("rgba(0, 0, 0, 0)")
-            .enablePointerInteraction(false);
+        .width(300)
+        .backgroundColor("rgba(0, 0, 0, 0)")
+        .enablePointerInteraction(false);
 
         // Map the provided `labels` and `values` into a dictionary
         const valueMap: Record<string, number> = {};
@@ -287,20 +287,34 @@ export class Statistics {
         // Normalize the values (values range from 0 to 1)
         const maxValue = Math.max(...values);
         const colorScale = d3.scaleLinear<string>()
-            .domain([0, maxValue]) // [0 -> minimal value, maxValue -> maximal value]
-            .range(["rgba(0, 255, 0, 0)", "rgba(0, 255, 0, 1)"]); // Green with transparency for lower values
+            .domain([0, maxValue])
+            .range(["rgba(0, 0, 0, 0.2)", "rgba(0, 255, 0, 1)"]);
 
         // Load GeoJSON and apply the color scale to countries
         globe
+            .globeImageUrl('//unpkg.com/three-globe/example/img/earth-night.jpg')
             .polygonsData(worldJson.features)
             .polygonCapColor((feature: any) => {
+                const countryCode = feature.properties.ISO_A3;
+                const value = valueMap[countryCode] || 0;
+                return colorScale(value);
+            })
+            //.polygonSideColor(() => "rgba(0, 0, 0, 0.1)")
+            .polygonStrokeColor(() => "#222")
+            .polygonsTransitionDuration(500)
+            .polygonLabel((feature: any) => {
                 const countryCode = feature.properties.ISO_A3; // Assuming GeoJSON has ISO_A2 country codes
                 const value = valueMap[countryCode] || 0; // Default to 0 if no value is provided
-                return colorScale(value); // Use color scaling based on country's value
-            })
-            .polygonSideColor(() => "rgba(0, 0, 0, 0.1)") // Side color of the polygons
-            .polygonStrokeColor(() => "#111") // Border color for countries
-            .polygonsTransitionDuration(500); // Smooth value transitions
+                return `${countryCode}: ${value}`;
+            });
+
+        // Automatic rotation logic
+        let angle = 0;
+        const rotationSpeed = 0.2;
+        setInterval(() => {
+            angle += rotationSpeed;
+            globe.pointOfView({ lat: 20, lng: angle % 360 });
+        }, 50);
 
         // Return DOM structure
         return create("div")
@@ -310,7 +324,29 @@ export class Statistics {
                     .classes("chart-title")
                     .text(title)
                     .build(),
-                globeContainer,
+                create("div")
+                    .classes("flex", "nowrap")
+                    .styles("max-height", "300px")
+                    .children(
+                        globeContainer,
+                        Generics.table(
+                            ["Country", "Value"],
+                            Object.entries(valueMap),
+                            (entry) => create("tr")
+                                .onclick(() => {
+
+                                })
+                                .children(
+                                    create("td")
+                                        .text(entry[0])
+                                        .build(),
+                                    create("td")
+                                        .text(entry[1])
+                                        .build(),
+                                ).build(),
+                            ["scroll-table"]
+                        )
+                    ).build(),
             ).build();
     }
 }
