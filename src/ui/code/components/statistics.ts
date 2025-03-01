@@ -310,11 +310,36 @@ export class Statistics {
 
         // Automatic rotation logic
         let angle = 0;
-        const rotationSpeed = 0.2;
-        setInterval(() => {
-            angle += rotationSpeed;
-            globe.pointOfView({ lat: 20, lng: angle % 360 });
-        }, 50);
+        const rotationSpeed = 0.2;;
+        function setRotation() {
+            return setInterval(() => {
+                angle += rotationSpeed;
+                globe.pointOfView({ lat: 20, lng: angle % 360 });
+            }, 50);
+        }
+        let interval = setRotation();
+
+        // Country focus logic
+        let lastClick = new Date().getTime();
+        const afterClickAutoScrollTimeout = 5000;
+        const focusCountry = (countryCode: string) => {
+            const countryFeature = worldJson.features.find(
+                (feature: any) => feature.properties.ISO_A3 === countryCode
+            );
+            if (countryFeature) {
+                lastClick = new Date().getTime();
+                const centroid = d3.geoCentroid(countryFeature);
+                globe.pointOfView({ lat: centroid[1], lng: centroid[0] }, 1000);
+                clearInterval(interval); // Stop auto-rotation
+                setTimeout(() => {
+                    if (new Date().getTime() - lastClick < afterClickAutoScrollTimeout) {
+                        return;
+                    }
+                    globe.pointOfView({ lat: 20, lng: 0 });
+                    interval = setRotation();
+                }, afterClickAutoScrollTimeout);
+            }
+        };
 
         // Return DOM structure
         return create("div")
@@ -334,7 +359,7 @@ export class Statistics {
                             Object.entries(valueMap),
                             (entry) => create("tr")
                                 .onclick(() => {
-
+                                    focusCountry(entry[0]);
                                 })
                                 .children(
                                     create("td")
