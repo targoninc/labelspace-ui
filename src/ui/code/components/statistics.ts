@@ -16,6 +16,7 @@ import {Permissions} from "../enums/Permissions.ts";
 import {Migration} from "./migration.ts";
 import Globe from 'globe.gl';
 import * as d3 from "d3";
+import {currency} from "../functions/formatters.ts";
 
 Chart.register(...registerables);
 
@@ -366,7 +367,7 @@ export class Statistics {
                                         .text(entry[0])
                                         .build(),
                                     create("td")
-                                        .text(entry[1])
+                                        .text(currency(entry[1]))
                                         .build(),
                                 ).build(),
                             ["scroll-table"]
