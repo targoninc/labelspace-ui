@@ -65,6 +65,10 @@ export class Api {
         return await Fetcher.get<Statistic[]>(base + "/statistics/royaltiesByService", options);
     }
 
+    static async getRoyaltiesByCountry() {
+        return await Fetcher.get<Statistic[]>(base + "/statistics/royaltiesByCountry");
+    }
+
     static async getPayments() {
         return await Fetcher.get<Payment[]>(base + "/payments/get");
     }

@@ -14,6 +14,7 @@ import {Payments} from "./payments.ts";
 import {ExtendedChartOptions} from "../models/ExtendedChartOptions.ts";
 import {Permissions} from "../enums/Permissions.ts";
 import {Migration} from "./migration.ts";
+import Globe from 'globe.gl';
 
 Chart.register(...registerables);
 
@@ -178,6 +179,13 @@ export class Statistics {
         return Statistics.barChart(labels, values, "Royalties", "Royalties by service", "royaltiesByServiceChart");
     }
 
+    static royaltiesByCountryChart(labels: string[], values: number[]) {
+        if (labels.length === 0) {
+            return Statistics.noData("Royalties by country");
+        }
+        return Statistics.globeChart(labels, values, "Royalties", "Royalties by country", "royaltiesByCountryChart");
+    }
+
     static page() {
         const hasImportPermission = compute(u => u?.permissions?.some(p => p.name === Permissions.importData), currentUser);
 
@@ -205,6 +213,7 @@ export class Statistics {
                 Statistics.singleStatistic("Royalties by track", Api.getRoyaltiesByTrack, Statistics.royaltiesByTrackChart),
                 Statistics.singleStatistic("Royalties by artist", Api.getRoyaltiesByArtist, Statistics.royaltiesByArtistChart),
                 Statistics.singleStatistic("Royalties by service", Api.getRoyaltiesByService, Statistics.royaltiesByServiceChart),
+                Statistics.singleStatistic("Royalties by country", Api.getRoyaltiesByCountry, Statistics.royaltiesByCountryChart),
             ).build();
     }
 
@@ -240,6 +249,27 @@ export class Statistics {
                         ifjs(loading, Generics.loading()),
                     ).build(),
                 statisticsFromSignal(stats, template)
+            ).build();
+    }
+
+    private static globeChart(labels: string[], values: number[], valueTitle: string, title: string, id: string) {
+        const globeContainer = create("div")
+            .classes("globe-container")
+            .build() as HTMLDivElement;
+
+        const globe = new Globe(globeContainer, {
+            animateIn: true,
+            waitForGlobeReady: false
+        });
+
+        return create("div")
+            .classes("chart-container", "flex-v")
+            .children(
+                create("h4")
+                    .classes("chart-title")
+                    .text(title)
+                    .build(),
+                globeContainer,
             ).build();
     }
 }
