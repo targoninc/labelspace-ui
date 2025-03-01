@@ -15,10 +15,14 @@ import {ExtendedChartOptions} from "../models/ExtendedChartOptions.ts";
 import {Permissions} from "../enums/Permissions.ts";
 import {Migration} from "./migration.ts";
 import Globe from 'globe.gl';
+import * as d3 from "d3";
 
 Chart.register(...registerables);
 
 const usedColors = Colors.themedList;
+
+const response = await (await fetch("/data/ne_110m_admin_0_countries.geojson")).json();
+const worldJson = response;
 
 export class Statistics {
     static donutChart(labels: string[], values: number[], valueTitle: string, title: string, id: string, colors = usedColors) {
@@ -252,6 +256,15 @@ export class Statistics {
             ).build();
     }
 
+    /**
+     *
+     * @param labels A list of 2 or 3-digit country codes.
+     * @param values A list of numeric values corresponding to the labels.
+     * @param valueTitle
+     * @param title
+     * @param id
+     * @private
+     */
     private static globeChart(labels: string[], values: number[], valueTitle: string, title: string, id: string) {
         const globeContainer = create("div")
             .classes("globe-container")
@@ -260,8 +273,36 @@ export class Statistics {
         const globe = new Globe(globeContainer, {
             animateIn: true,
             waitForGlobeReady: false
+        }).height(300)
+            .width(300)
+            .backgroundColor("rgba(0, 0, 0, 0)")
+            .enablePointerInteraction(false);
+
+        // Map the provided `labels` and `values` into a dictionary
+        const valueMap: Record<string, number> = {};
+        labels.forEach((label, index) => {
+            valueMap[label.toUpperCase()] = values[index];
         });
 
+        // Normalize the values (values range from 0 to 1)
+        const maxValue = Math.max(...values);
+        const colorScale = d3.scaleLinear<string>()
+            .domain([0, maxValue]) // [0 -> minimal value, maxValue -> maximal value]
+            .range(["rgba(0, 255, 0, 0)", "rgba(0, 255, 0, 1)"]); // Green with transparency for lower values
+
+        // Load GeoJSON and apply the color scale to countries
+        globe
+            .polygonsData(worldJson.features)
+            .polygonCapColor((feature: any) => {
+                const countryCode = feature.properties.ISO_A3; // Assuming GeoJSON has ISO_A2 country codes
+                const value = valueMap[countryCode] || 0; // Default to 0 if no value is provided
+                return colorScale(value); // Use color scaling based on country's value
+            })
+            .polygonSideColor(() => "rgba(0, 0, 0, 0.1)") // Side color of the polygons
+            .polygonStrokeColor(() => "#111") // Border color for countries
+            .polygonsTransitionDuration(500); // Smooth value transitions
+
+        // Return DOM structure
         return create("div")
             .classes("chart-container", "flex-v")
             .children(

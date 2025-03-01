@@ -12,7 +12,8 @@
     "update-submodules": "git submodule update --remote --merge"
   },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "@types/d3": "^7.4.3"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
@@ -21,6 +22,7 @@
     "@passwordless-id/webauthn": "^2.1.2",
     "@sgratzl/chartjs-chart-boxplot": "^4.4.4",
     "chart.js": "^4.4.7",
+    "d3": "^7.9.0",
     "dotenv": "^16.4.7",
     "globe.gl": "^2.40.0"
   }
