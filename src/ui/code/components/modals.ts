@@ -229,6 +229,18 @@ export class Modals {
                                     callback(option.id);
                                 }
                             }))
+                        ).build(),
+                    create("div")
+                        .classes("flex", "center-items")
+                        .children(
+                            FJSC.button({
+                                text: "Cancel",
+                                icon: {icon: "cancel"},
+                                classes: ["negative"],
+                                onclick: () => {
+                                    removeLastModal();
+                                }
+                            }),
                         ).build()
                 ).build()
         ));
