@@ -58,6 +58,27 @@ function loginWithTotp(res: {
     });
 }
 
+function sendMfaRequest(loading: Signal<boolean>, username: Signal<string>, password: Signal<string>, selected: MfaOption, message: Signal<string>) {
+    loading.value = true;
+    Api.mfaRequest(username.value, password.value, selected)
+        .then(async (res) => {
+            if (res.mfa_needed) {
+                switch (res.type) {
+                    case "email":
+                    case "totp":
+                        loginWithTotp(res, loading, username, password, message);
+                        break;
+                    case "webauthn":
+                        loginWithWebauthn(res.credentialDescriptors, loading, username, password, message);
+                        break;
+                }
+            } else {
+                login(loading, username, password, message);
+            }
+        }).catch(e => message.value = e.message)
+        .finally(() => loading.value = false);
+}
+
 export async function startLogin(loading: Signal<boolean>, username: Signal<string>, password: Signal<string>, message: Signal<string>) {
     let options = [];
     try {
@@ -68,6 +89,11 @@ export async function startLogin(loading: Signal<boolean>, username: Signal<stri
             login(loading, username, password, message);
             return;
         }
+
+        if (options.length === 1) {
+            sendMfaRequest(loading, username, password, options[0].type, message);
+            return;
+        }
     } catch (e: any) {
         notify(e, NotificationType.error);
         message.value = e.message;
@@ -76,29 +102,12 @@ export async function startLogin(loading: Signal<boolean>, username: Signal<stri
     }
 
     const mappedOptions: SelectOption[] = options.map(o => mfaOptionMap[o.type]);
-    Modals.select(mappedOptions, "Select a 2FA method", "Please select one of the available options below.", "Method", (selected: MfaOption) => {
+    Modals.buttons(mappedOptions, "Select a 2FA method", "Please select one of the available options below.", (selected: MfaOption) => {
         if (!selected || options.every(o => o.type !== selected)) {
             notify("No value selected", NotificationType.error);
             return;
         }
 
-        loading.value = true;
-        Api.mfaRequest(username.value, password.value, selected)
-            .then(async (res) => {
-                if (res.mfa_needed) {
-                    switch (res.type) {
-                        case "email":
-                        case "totp":
-                            loginWithTotp(res, loading, username, password, message);
-                            break;
-                        case "webauthn":
-                            loginWithWebauthn(res.credentialDescriptors, loading, username, password, message);
-                            break;
-                    }
-                } else {
-                    login(loading, username, password, message);
-                }
-            }).catch(e => message.value = e.message)
-            .finally(() => loading.value = false);
+        sendMfaRequest(loading, username, password, selected, message);
     });
 }

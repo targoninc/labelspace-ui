@@ -207,4 +207,30 @@ export class Modals {
                 ).build()
         ));
     }
+
+    static buttons(options: SelectOption[], title: StringOrSignal, message: StringOrSignal, callback: Function = () => {}) {
+        addModal(Modals.modalBase(
+            Generics.heading(1, title),
+            create("div")
+                .classes("flex-v")
+                .children(
+                    create("p")
+                        .text(message)
+                        .build(),
+                    create("div")
+                        .classes("flex", "center-items")
+                        .children(
+                            ...options.map(option => FJSC.button({
+                                text: option.name,
+                                icon: {
+                                    icon: option.image as StringOrSignal
+                                },
+                                onclick: () => {
+                                    callback(option.id);
+                                }
+                            }))
+                        ).build()
+                ).build()
+        ));
+    }
 }
