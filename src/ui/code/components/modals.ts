@@ -226,6 +226,7 @@ export class Modals {
                                     icon: option.image as StringOrSignal
                                 },
                                 onclick: () => {
+                                    removeLastModal();
                                     callback(option.id);
                                 }
                             }))
