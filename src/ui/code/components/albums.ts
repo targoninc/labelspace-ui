@@ -201,7 +201,7 @@ export class Albums {
                     Generics.heading(2, "Album"),
                     ifjs(loading, Generics.loading()),
                     ifjs(album, Albums.album(album, load)),
-                    ifjs(album, Files.files(files, MediaFileType.albumFile, id)),
+                    ifjs(album, Files.files(files, MediaFileType.albumFile, id, load)),
                     ifjs(album, Albums.albumStatistics(album))
                 ).build()
         );

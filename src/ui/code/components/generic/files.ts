@@ -12,14 +12,8 @@ import {NotificationType} from "../../enums/NotificationType.ts";
 import {Generics} from "./generics.ts";
 
 export class Files {
-    static file(type: MediaFileType, id: Signal<number>, fileName: string, changeable: TypeOrSignal<boolean>) {
+    static file(type: MediaFileType, id: Signal<number>, fileName: string, changeable: TypeOrSignal<boolean>, refresh = () => {}) {
         const loading = signal(false);
-        const deleteFile = () => {
-            loading.value = true;
-            Api.deleteMedia(type, getValue(id))
-                .then(() => notify("Deleted media", NotificationType.success))
-                .finally(() => loading.value = false);
-        }
 
         return create("div")
             .classes("flex-v", "container", "border", "layer-2")
@@ -44,9 +38,7 @@ export class Files {
                             text: "Replace",
                             disabled: loading,
                             onclick: () => {
-                                uploadFile(loading, type, id.value, null, "*/*", () => {
-                                    deleteFile();
-                                });
+                                uploadFile(loading, type, id.value, fileName, "*/*", refresh);
                             }
                         })),
                         ifjs(changeable, FJSC.button({
@@ -55,14 +47,20 @@ export class Files {
                             classes: ["negative"],
                             disabled: loading,
                             onclick: () => {
-                                deleteFile();
+                                loading.value = true;
+                                Api.deleteMedia(type, getValue(id))
+                                    .then(() => {
+                                        notify("Deleted media", NotificationType.success);
+                                        refresh();
+                                    })
+                                    .finally(() => loading.value = false);
                             }
                         })),
                     ).build()
             ).build();
     }
 
-    static files(files: Signal<string[]>, type: MediaFileType, id: Signal<number>) {
+    static files(files: Signal<string[]>, type: MediaFileType, id: Signal<number>, refresh = () => {}) {
         const hasFileManagementPermission = compute(u => u?.permissions?.some(p => p.name === Permissions.fileManagement) ?? false, currentUser);
         const loading = signal(false);
 
@@ -70,7 +68,7 @@ export class Files {
             .classes("container", "border", "layer-1", "flex-v")
             .children(
                 Generics.heading(2, "Files"),
-                signalMap(files, create("div").classes("flex"), fileName => Files.file(type, id, fileName, hasFileManagementPermission)),
+                signalMap(files, create("div").classes("flex"), fileName => Files.file(type, id, fileName, hasFileManagementPermission, refresh)),
                 create("div")
                     .classes("flex", "center-items")
                     .children(
@@ -80,7 +78,7 @@ export class Files {
                             classes: ["positive"],
                             disabled: loading,
                             onclick: () => {
-                                uploadFile(loading, type, id.value);
+                                uploadFile(loading, type, id.value, null, "*/*", refresh);
                             }
                         }))
                     ).build()
