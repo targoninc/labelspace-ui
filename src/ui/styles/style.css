@@ -1,5 +1,6 @@
 :root {
     --red: #ed1c24;
+    --light-red: #ff4646;
     --green: #00a651;
     --light-green: #03c679;
     --blue: #567afc;
@@ -55,6 +56,7 @@
 @media (prefers-color-scheme: dark) {
     :root {
         --red: #ed1c24;
+        --light-red: #ff4646;
         --green: #00a651;
         --blue: #2e3192;
         --cyan: #00aeef;
@@ -294,6 +296,12 @@ button.positive:hover, .button.positive:hover {
 
 button.negative, .button.negative {
     background: var(--red);
+    --fjsc-text-color: var(--white);
+    border-color: var(--light-red);
+}
+
+button.negative:hover, .button.negative:hover {
+    --fjsc-text-color: var(--black);
 }
 
 button.active, .button.active {
