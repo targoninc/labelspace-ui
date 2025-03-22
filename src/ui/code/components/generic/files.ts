@@ -78,9 +78,8 @@ export class Files {
                     .classes("flex", "center-items")
                     .children(
                         ifjs(hasFileManagementPermission, FJSC.button({
-                            text: "Add file",
-                            icon: {icon: "add"},
-                            classes: ["positive"],
+                            text: "Upload file",
+                            icon: {icon: "upload"},
                             disabled: loading,
                             onclick: () => {
                                 uploadFile(loading, type, id.value, null, "*/*", refresh);
