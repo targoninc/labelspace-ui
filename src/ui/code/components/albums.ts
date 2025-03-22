@@ -186,8 +186,9 @@ export class Albums {
         const files = compute(a => a?.files ?? [], album);
         const id = compute(a => a?.id ?? 0, album);
         const loading = signal(false);
-        const canView = compute((a, user) =>
-            a?.artists.split(",").some(art => user?.artists?.some(art2 => art2.name === art.trim())) ?? false, album, currentUser);
+        const hasFileManagementPermission = compute(u => u?.permissions?.some(p => p.name === Permissions.fileManagement) ?? false, currentUser);
+        const canView = compute((a, user, hasPermission) =>
+            a?.artists.split(",").some(art => user?.artists?.some(art2 => art2.name === art.trim())) ?? hasPermission, album, currentUser, hasFileManagementPermission);
         const load = () => {
             loading.value = true;
             Api.getAlbum(params.id ?? 0)
