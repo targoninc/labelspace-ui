@@ -10,6 +10,7 @@ import {Api} from "../../api/api.ts";
 import {notify} from "../../functions/notifications.ts";
 import {NotificationType} from "../../enums/NotificationType.ts";
 import {Generics} from "./generics.ts";
+import {Modals} from "../modals.ts";
 
 export class Files {
     static file(type: MediaFileType, id: Signal<number>, fileName: string, changeable: TypeOrSignal<boolean>, refresh = () => {}) {
@@ -38,7 +39,9 @@ export class Files {
                             text: "Replace",
                             disabled: loading,
                             onclick: () => {
-                                uploadFile(loading, type, id.value, fileName, "*/*", refresh);
+                                Modals.confirm(() => {
+                                    uploadFile(loading, type, id.value, fileName, "*/*", refresh);
+                                }, `Replace file`, `Are you sure you want to replace the file '${fileName}'?`);
                             }
                         })),
                         ifjs(changeable, FJSC.button({
@@ -47,13 +50,15 @@ export class Files {
                             classes: ["negative"],
                             disabled: loading,
                             onclick: () => {
-                                loading.value = true;
-                                Api.deleteMedia(type, getValue(id))
-                                    .then(() => {
-                                        notify("Deleted media", NotificationType.success);
-                                        refresh();
-                                    })
-                                    .finally(() => loading.value = false);
+                                Modals.confirm(() => {
+                                    loading.value = true;
+                                    Api.deleteMedia(type, getValue(id))
+                                        .then(() => {
+                                            notify("Deleted file", NotificationType.success);
+                                            refresh();
+                                        })
+                                        .finally(() => loading.value = false);
+                                }, `Delete file`, `Are you sure you want to delete the file '${fileName}'?`);
                             }
                         })),
                     ).build()
