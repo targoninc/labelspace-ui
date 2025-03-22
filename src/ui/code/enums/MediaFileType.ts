@@ -3,4 +3,5 @@ export enum MediaFileType {
     trackCover = "trackCover",
     albumCover = "albumCover",
     artistLogo = "artistLogo",
+    albumFile = "albumFile"
 }

@@ -7,6 +7,7 @@ export class MediaUploader {
         type: MediaFileType,
         referenceId: number,
         file: File,
+        fileName: string,
         onProgress?: (event: ProgressEvent) => void
     ): Promise<string> {
         return new Promise((resolve, reject) => {
@@ -15,6 +16,7 @@ export class MediaUploader {
 
             formData.append("type", type);
             formData.append("referenceId", referenceId.toString());
+            formData.append("fileName", fileName);
             formData.append("file", file);
 
             xhr.open("POST", Api.baseUrl + "/media/upload", true);

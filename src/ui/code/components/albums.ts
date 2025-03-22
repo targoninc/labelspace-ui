@@ -2,7 +2,7 @@ import {compute, Signal, signal} from "../../fjsc/src/signals.ts";
 import {Album} from "../models/db/tri/Album.ts";
 import {Api} from "../api/api.ts";
 import {Generics} from "./generic/generics.ts";
-import {AnyNode, create, ifjs, nullElement} from "../../fjsc/src/f2.ts";
+import {create, ifjs} from "../../fjsc/src/f2.ts";
 import {navigate, reload} from "../routing/Router.ts";
 import {FJSC} from "../../fjsc";
 import {Inputs} from "./generic/inputs.ts";
@@ -26,6 +26,7 @@ import {RequestableImageSize} from "../enums/requestableImageSize.ts";
 import {Images} from "./generic/images.ts";
 import {ImageSize} from "../enums/imageSize.ts";
 import {Time} from "../functions/time.ts";
+import {Files} from "./generic/files.ts";
 
 export class Albums {
     static page() {
@@ -182,6 +183,8 @@ export class Albums {
 
     static albumPage(route: Route, params: any) {
         const album = signal<Album | null>(null);
+        const files = compute(a => a?.files ?? [], album);
+        const id = compute(a => a?.id ?? 0, album);
         const loading = signal(false);
         const load = () => {
             loading.value = true;
@@ -198,6 +201,7 @@ export class Albums {
                     Generics.heading(2, "Album"),
                     ifjs(loading, Generics.loading()),
                     ifjs(album, Albums.album(album, load)),
+                    ifjs(album, Files.files(files, MediaFileType.albumFile, id)),
                     ifjs(album, Albums.albumStatistics(album))
                 ).build()
         );

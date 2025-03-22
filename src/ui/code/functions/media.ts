@@ -6,9 +6,13 @@ import { notify } from "./notifications";
 import { getImageUrl } from "./templates";
 
 export function uploadImage(loading: Signal<boolean>, type: MediaFileType, referenceId: number) {
+    uploadFile(loading, type, referenceId, "image/*");
+}
+
+export function uploadFile(loading: Signal<boolean>, type: MediaFileType, referenceId: number, fileName: string|null = null, accept: string = "*/*", onFinished = () => {}) {
     let fileInput = document.createElement("input");
     fileInput.type = "file";
-    fileInput.accept = "image/*";
+    fileInput.accept = accept;
     fileInput.onchange = async () => {
         loading.value = true;
         if (!fileInput.files) {
@@ -17,10 +21,11 @@ export function uploadImage(loading: Signal<boolean>, type: MediaFileType, refer
         let file = fileInput.files![0];
 
         try {
-            await MediaUploader.upload(type, referenceId, file);
-            notify("Image updated", NotificationType.success);
+            await MediaUploader.upload(type, referenceId, file, fileName ?? file.name);
+            notify("File updated", NotificationType.success);
+            onFinished();
         } catch (e: any) {
-            notify(`Failed to upload image: ${e}`, NotificationType.error);
+            notify(`Failed to upload file: ${e}`, NotificationType.error);
             return;
         } finally {
             loading.value = false;

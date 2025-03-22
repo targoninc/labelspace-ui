@@ -30,3 +30,7 @@ export function target<T = HTMLInputElement>(e: Event) {
 export function getImageUrl(type: MediaFileType, id: number, quality: RequestableImageSize) {
     return `${Api.baseUrl}/media/image?mediaFileType=${type}&id=${id}&quality=${quality}`;
 }
+
+export function getFileUrl(type: MediaFileType, id: number, fileName: string) {
+    return `${Api.baseUrl}/media/file?mediaFileType=${type}&id=${id}&fileName=${fileName}`;
+}
