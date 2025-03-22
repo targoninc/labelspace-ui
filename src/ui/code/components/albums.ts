@@ -188,7 +188,7 @@ export class Albums {
         const loading = signal(false);
         const hasFileManagementPermission = compute(u => u?.permissions?.some(p => p.name === Permissions.fileManagement) ?? false, currentUser);
         const canView = compute((a, user, hasPermission) =>
-            a?.artists.split(",").some(art => user?.artists?.some(art2 => art2.name === art.trim())) ?? hasPermission, album, currentUser, hasFileManagementPermission);
+            a?.artists.split(",").some(art => user?.artists?.some(art2 => art2.name === art.trim())) || hasPermission, album, currentUser, hasFileManagementPermission);
         const load = () => {
             loading.value = true;
             Api.getAlbum(params.id ?? 0)
