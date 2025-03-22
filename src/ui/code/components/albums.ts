@@ -186,6 +186,8 @@ export class Albums {
         const files = compute(a => a?.files ?? [], album);
         const id = compute(a => a?.id ?? 0, album);
         const loading = signal(false);
+        const canView = compute((a, user) =>
+            a?.artists.split(",").some(art => user?.artists?.some(art2 => art2.name === art.trim())) ?? false, album, currentUser);
         const load = () => {
             loading.value = true;
             Api.getAlbum(params.id ?? 0)
@@ -201,7 +203,7 @@ export class Albums {
                     Generics.heading(2, "Album"),
                     ifjs(loading, Generics.loading()),
                     ifjs(album, Albums.album(album, load)),
-                    ifjs(album, Files.files(files, MediaFileType.albumFile, id, load)),
+                    ifjs(canView, Files.files(files, MediaFileType.albumFile, id, load)),
                     ifjs(album, Albums.albumStatistics(album))
                 ).build()
         );
