@@ -93,6 +93,13 @@ export class Api {
         return await Fetcher.post(base + "/data/import");
     }
 
+    static async quarterlyReport(year: number, quarter: number) {
+        return await Fetcher.postWithResponse<any[]>(base + "/statistics/quarterlyReport", {
+            year,
+            quarter
+        });
+    }
+
     static async addRoyalties(csv: string) {
         return await Fetcher.post(base + "/data/add", {
             type: "royalties",

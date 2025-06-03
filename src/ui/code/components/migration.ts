@@ -5,6 +5,7 @@ import {NotificationType} from "../enums/NotificationType.ts";
 import {create, ifjs} from "../../fjsc/src/f2.ts";
 import {signal} from "../../fjsc/src/signals.ts";
 import {Generics} from "./generic/generics.ts";
+import {InputType} from "../../fjsc/src/Types.ts";
 
 export class Migration {
     static dataImport() {
@@ -72,6 +73,68 @@ export class Migration {
                     }
                 }),
                 ifjs(loading, Generics.loading())
+            ).build();
+    }
+
+    static quarterlyReport() {
+        const loading = signal(false);
+        const year = signal(new Date().getFullYear());
+        const quarter = signal(Math.ceil((new Date().getMonth() + 1) / 4));
+
+        return create("div")
+            .classes("flex")
+            .children(
+                FJSC.input({
+                    value: year,
+                    type: InputType.number,
+                    onchange: newYear => year.value = newYear,
+                    disabled: loading,
+                    name: "year",
+                    placeholder: "Year"
+                }),
+                FJSC.input({
+                    value: quarter,
+                    attributes: ["min", "1", "max", "4"],
+                    type: InputType.number,
+                    onchange: newQuarter => quarter.value = newQuarter,
+                    disabled: loading,
+                    name: "quarter",
+                    placeholder: "Quarter"
+                }),
+                FJSC.button({
+                    text: "Quarterly report",
+                    icon: { icon: "analytics" },
+                    disabled: loading,
+                    onclick: () => {
+                        loading.value = true;
+                        Api.quarterlyReport(year.value, quarter.value).then((data) => {
+                            if (!data) {
+                                notify("Failed to generate report", NotificationType.error);
+                                return;
+                            }
+
+                            // Create a Blob from the CSV string
+                            const blob = new Blob([data.data], { type: "text/csv;charset=utf-8;" });
+
+                            // Create a temporary link to trigger a download
+                            const link = document.createElement("a");
+                            const url = URL.createObjectURL(blob);
+
+                            link.href = url;
+                            link.download = "quarterly_report.csv"; // Specify the file name for the download
+                            link.style.display = "none";
+
+                            document.body.appendChild(link);
+                            link.click();
+
+                            // Cleanup
+                            document.body.removeChild(link);
+                            URL.revokeObjectURL(url);
+
+                            notify("Report downloaded successfully", NotificationType.success);
+                        }).finally(() => loading.value = false);
+                    }
+                }),
             ).build();
     }
 }

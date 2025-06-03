@@ -199,6 +199,7 @@ export class Statistics {
                 .classes("flex-v")
                 .children(
                     ifjs(hasImportPermission, Migration.dataImport()),
+                    ifjs(hasImportPermission, Migration.quarterlyReport()),
                     Payments.available(),
                     Statistics.stats()
                 ).build()
