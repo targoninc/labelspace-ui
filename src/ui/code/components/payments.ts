@@ -91,13 +91,13 @@ export class Payments {
         load();
         const requestLoading = signal(false);
 
-        return Generics.container(1, [
-            when(total, Generics.heading(3, total)),
-            when(paidOut, Generics.heading(3, paidOut)),
+        return Generics.container(0, [
+            when(total, Generics.heading(3, total, true)),
+            when(paidOut, Generics.heading(3, paidOut, true)),
             when(available, create("div")
                 .classes("flex", "center-items")
                 .children(
-                    Generics.heading(2, available),
+                    Generics.heading(2, available, true),
                     when(payable, button({
                         text: "Request payment",
                         icon: { icon: "wallet" },

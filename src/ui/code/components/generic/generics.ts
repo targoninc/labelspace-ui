@@ -40,7 +40,7 @@ export class Generics {
         const loginShown = compute((u, l) => !u && !l, currentUser, userLoading);
 
         return create("nav")
-            .classes("container", "border", "layer-1", "flex", "split-flex", "center-items")
+            .classes("container", "layer-1", "flex", "split-flex", "center-items")
             .children(
                 create("div")
                     .classes("flex", "center-items")
@@ -140,8 +140,9 @@ export class Generics {
             .build();
     }
 
-    static heading(level: number, text: StringOrSignal) {
+    static heading(level: number, text: StringOrSignal, mono: boolean = false) {
         return create(`h${level}`)
+            .classes(mono ? "monospace" : "_")
             .text(text)
             .build();
     }
