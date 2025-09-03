@@ -315,7 +315,7 @@ export class Albums {
                         Generics.earnings(earnings)
                     ).build(),
                 create("div")
-                    .classes("flex-v", "flex-grow")
+                    .classes("flex-v", "flex-grow", "container", "layer-1")
                     .children(
                         Generics.table(
                             ["Track", "Length", "Earnings", "Actions"],
@@ -349,6 +349,7 @@ export class Albums {
                                         ).build()
                                 ).build()
                         ),
+                        Generics.divider(),
                         when(hasReleaseManagementPermission, Albums.addTracksSection(search, searchResults, loading, album, load)),
                     ).build(),
             ).build();
@@ -358,7 +359,6 @@ export class Albums {
         return create("div")
             .classes("flex-v")
             .children(
-                Generics.divider(),
                 input({
                     type: InputType.text,
                     name: "search",
