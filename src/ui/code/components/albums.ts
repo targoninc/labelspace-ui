@@ -315,7 +315,7 @@ export class Albums {
                         Generics.earnings(earnings)
                     ).build(),
                 create("div")
-                    .classes("flex-v", "flex-grow", "container", "layer-1")
+                    .classes("flex-v", "flex-grow", "container", "border", "layer-1")
                     .children(
                         Generics.table(
                             ["Track", "Length", "Earnings", "Actions"],

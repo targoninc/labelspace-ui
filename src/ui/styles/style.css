@@ -372,7 +372,7 @@ th, td {
     border-top: 1px solid transparent;
     border-left: 1px solid transparent;
     border-right: 1px solid transparent;
-    padding: var(--small-gap);
+    padding: var(--small-gap) calc(var(--small-gap) * 2);
 }
 
 tr:hover td {
