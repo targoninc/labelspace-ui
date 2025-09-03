@@ -1,15 +1,14 @@
-import {create, getValue, ifjs} from "../../../fjsc/src/f2.ts";
-import {Signal, signal} from "../../../fjsc/src/signals.ts";
 import {getImageUrl} from "../../functions/templates.ts";
 import {MediaFileType} from "../../enums/MediaFileType.ts";
 import {RequestableImageSize} from "../../enums/requestableImageSize.ts";
 import {ImageSize} from "../../enums/imageSize.ts";
-import {FJSC} from "../../../fjsc";
 import { uploadImage } from "../../functions/media.ts";
 import { Generics } from "./generics.ts";
 import { Api } from "../../api/api.ts";
 import { NotificationType } from "../../enums/NotificationType.ts";
 import { notify } from "../../functions/notifications.ts";
+import {create, getValue, signal, Signal, when} from "@targoninc/jess";
+import {button} from "@targoninc/jess-components";
 
 interface ChangeableImageOptions {
     changeable?: boolean|Signal<boolean>;
@@ -40,7 +39,7 @@ export class Images {
                 create("div")
                     .classes("flex")
                     .children(
-                        ifjs(options.changeable, FJSC.button({
+                        when(options.changeable, button({
                             icon: { icon: "upload" },
                             text: "Change",
                             disabled: loading,
@@ -48,7 +47,7 @@ export class Images {
                                 uploadImage(loading, type, getValue(id));
                             }
                         })),
-                        ifjs(options.deletable, FJSC.button({
+                        when(options.deletable, button({
                             icon: { icon: "delete" },
                             text: "Delete",
                             disabled: loading,
@@ -59,7 +58,7 @@ export class Images {
                                 }).finally(() => loading.value = false);
                             }
                         })),
-                        ifjs(loading, Generics.loading())
+                        when(loading, Generics.loading())
                     ).build()
             ).build();
     }

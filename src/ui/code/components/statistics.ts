@@ -1,15 +1,12 @@
 import {Chart, registerables} from "chart.js";
 import {BoxPlotChart} from "@sgratzl/chartjs-chart-boxplot";
-import {create, HtmlPropertyValue, ifjs} from "../../fjsc/src/f2.ts";
 import {CustomChartOptions} from "../enums/CustomChartOptions.ts";
 import {Colors} from "../enums/Colors.ts";
 import {Statistic} from "../models/Statistic.ts";
-import {compute, Signal, signal} from "../../fjsc/src/signals.ts";
 import {Api} from "../api/api.ts";
 import {statisticsFromSignal} from "../functions/templates.ts";
 import {currentUser} from "../state.ts";
 import {Generics} from "./generic/generics.ts";
-import {FJSC} from "../../fjsc";
 import {Payments} from "./payments.ts";
 import {ExtendedChartOptions} from "../models/ExtendedChartOptions.ts";
 import {Permissions} from "../enums/Permissions.ts";
@@ -17,6 +14,8 @@ import {Migration} from "./migration.ts";
 import Globe from 'globe.gl';
 import * as d3 from "d3";
 import {currency} from "../functions/formatters.ts";
+import {compute, create, HtmlPropertyValue, signal, Signal, when} from "@targoninc/jess";
+import {button, icon} from "@targoninc/jess-components";
 
 Chart.register(...registerables);
 
@@ -198,8 +197,8 @@ export class Statistics {
             create("div")
                 .classes("flex-v")
                 .children(
-                    ifjs(hasImportPermission, Migration.dataImport()),
-                    ifjs(hasImportPermission, Migration.quarterlyReport()),
+                    when(hasImportPermission, Migration.dataImport()),
+                    when(hasImportPermission, Migration.quarterlyReport()),
                     Payments.available(),
                     Statistics.stats()
                 ).build()
@@ -243,16 +242,16 @@ export class Statistics {
                         create("h1")
                             .text(title)
                             .build(),
-                        ifjs(loading, FJSC.button({
+                        when(loading, button({
                             icon: { icon: "refresh" },
                             onclick: loadStatistic
                         }), true),
-                        ifjs(info, FJSC.icon({
+                        when(info, icon({
                             icon: "info",
                             classes: ["question-cursor"],
                             title: info,
                         })),
-                        ifjs(loading, Generics.loading()),
+                        when(loading, Generics.loading()),
                     ).build(),
                 statisticsFromSignal(stats, template)
             ).build();

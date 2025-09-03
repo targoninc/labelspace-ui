@@ -1,13 +1,10 @@
-import {AnyNode, create, ifjs, StringOrSignal} from "../../fjsc/src/f2.ts";
 import {Generics} from "./generic/generics.ts";
-import {FJSC} from "../../fjsc";
 import {addModal, removeLastModal} from "../functions/modals.ts";
-import {signal, Signal} from "../../fjsc/src/signals.ts";
-import {InputConfig, InputType, SelectOption} from "../../fjsc/src/Types.ts";
 import {Api} from "../api/api.ts";
 import {currentUser} from "../state.ts";
-import {target} from "../functions/templates.ts";
 import {Totp} from "./totp.ts";
+import {AnyNode, create, InputType, signal, StringOrSignal, when} from "@targoninc/jess";
+import {button, InputConfig} from "@targoninc/jess-components";
 
 export class Modals {
     static modalBase(...content: AnyNode[]) {
@@ -30,7 +27,7 @@ export class Modals {
             create("div")
                 .classes("flex", "center-items")
                 .children(
-                    FJSC.button({
+                    button({
                         text: "Yes",
                         classes: ["positive"],
                         disabled: loading,
@@ -42,7 +39,7 @@ export class Modals {
                         },
                         icon: {icon: "check"},
                     }),
-                    FJSC.button({
+                    button({
                         text: "No",
                         classes: ["negative"],
                         disabled: loading,
@@ -54,7 +51,7 @@ export class Modals {
                         },
                         icon: {icon: "cancel"},
                     }),
-                    ifjs(loading, Generics.loading())
+                    when(loading, Generics.loading())
                 ).build()
         ));
     }
@@ -75,7 +72,7 @@ export class Modals {
                     create("div")
                         .classes("flex", "center-items")
                         .children(
-                            FJSC.input({
+                            input({
                                 ...inputConfig as InputConfig<T>,
                                 type: inputType,
                                 id,
@@ -93,7 +90,7 @@ export class Modals {
         return create("div")
             .classes("flex", "center-items")
             .children(
-                FJSC.button({
+                button({
                     text: "OK",
                     icon: {icon: "save"},
                     classes: ["positive"],
@@ -105,7 +102,7 @@ export class Modals {
                         removeModalAfterCallback && removeLastModal();
                     },
                 }),
-                FJSC.button({
+                button({
                     text: "Cancel",
                     icon: {icon: "cancel"},
                     classes: ["negative"],
@@ -117,7 +114,7 @@ export class Modals {
                         removeLastModal();
                     },
                 }),
-                ifjs(loading, Generics.loading())
+                when(loading, Generics.loading())
             ).build();
     }
 
@@ -144,7 +141,7 @@ export class Modals {
                             create("div")
                                 .classes("flex", "center-items")
                                 .children(
-                                    FJSC.input({
+                                    input({
                                         type: InputType.text,
                                         name: "token",
                                         placeholder: "Token",
@@ -156,7 +153,7 @@ export class Modals {
                             create("div")
                                 .classes("flex", "center-items")
                                 .children(
-                                    FJSC.button({
+                                    button({
                                         text: "Verify",
                                         icon: {icon: "verified"},
                                         classes: ["positive"],
@@ -172,7 +169,7 @@ export class Modals {
                                             removeLastModal();
                                         }
                                     }),
-                                    FJSC.button({
+                                    button({
                                         text: "Cancel",
                                         icon: {icon: "cancel"},
                                         classes: ["negative"],
@@ -198,7 +195,7 @@ export class Modals {
                     create("p")
                         .text(message)
                         .build(),
-                    FJSC.searchableSelect({
+                    searchableSelect({
                         options: signal(options),
                         value: selection,
                         label
@@ -220,7 +217,7 @@ export class Modals {
                     create("div")
                         .classes("flex", "center-items")
                         .children(
-                            ...options.map(option => FJSC.button({
+                            ...options.map(option => button({
                                 text: option.name,
                                 icon: {
                                     icon: option.image as StringOrSignal
@@ -234,7 +231,7 @@ export class Modals {
                     create("div")
                         .classes("flex", "center-items")
                         .children(
-                            FJSC.button({
+                            button({
                                 text: "Cancel",
                                 icon: {icon: "cancel"},
                                 classes: ["negative"],

@@ -1,17 +1,15 @@
-import {compute, signal, Signal} from "../../../fjsc/src/signals.ts";
-import {FJSC} from "../../../fjsc";
-import {InputType, SelectOption} from "../../../fjsc/src/Types.ts";
 import {ServiceLink} from "../../models/ServiceLink.ts";
-import {create, signalMap} from "../../../fjsc/src/f2.ts";
 import {LinkServices} from "../../enums/LinkServices.ts";
 import {Generics} from "./generics.ts";
 import {linkPath} from "../../functions/formatters.ts";
 import {notify} from "../../functions/notifications.ts";
 import {NotificationType} from "../../enums/NotificationType.ts";
+import {button, icon, input, searchableSelect, SelectOption, textarea} from "@targoninc/jess-components";
+import {compute, create, InputType, signal, Signal, signalMap} from "@targoninc/jess";
 
 export class Inputs {
     static password(password: Signal<string>, placeholder: string = "Password", name: string = "password", onEnter: Function = () => {}) {
-        return FJSC.input<string>({
+        return input<string>({
             type: InputType.password,
             name,
             label: placeholder,
@@ -30,7 +28,7 @@ export class Inputs {
     }
 
     static longtext(value: Signal<string>, label: string, name: string) {
-        return FJSC.textarea({
+        return textarea({
             name,
             label,
             value,
@@ -42,7 +40,7 @@ export class Inputs {
     }
 
     static text(value: Signal<string>, label: string, name: string) {
-        return FJSC.input<string>({
+        return input<string>({
             type: InputType.text,
             name,
             label,
@@ -55,7 +53,7 @@ export class Inputs {
     }
 
     static date(value: Signal<string>, label: string, name: string) {
-        return FJSC.input<string>({
+        return input<string>({
             type: InputType.date,
             name,
             label,
@@ -68,7 +66,7 @@ export class Inputs {
     }
 
     static number(value: Signal<number>, label: string, name: string) {
-        return FJSC.input<number>({
+        return input<number>({
             type: InputType.number,
             name,
             label,
@@ -96,13 +94,13 @@ export class Inputs {
                     create("div")
                         .classes("flex", "center-items")
                         .children(
-                            FJSC.searchableSelect({
+                            searchableSelect({
                                 options: signal(options),
                                 label: "Service",
                                 value: type,
                                 onchange: (v) => type.value = v
                             }),
-                            FJSC.input({
+                            input({
                                 type: InputType.url,
                                 name: "link",
                                 label: "Link",
@@ -111,7 +109,7 @@ export class Inputs {
                                 value: link,
                                 onchange: (v) => link.value = v
                             }),
-                            FJSC.button({
+                            button({
                                 text: "Add link",
                                 icon: { icon: "add" },
                                 classes: ["positive"],
@@ -139,7 +137,7 @@ export class Inputs {
                         notify("Copied to clipboard", NotificationType.success);
                     })
                     .build(),
-                FJSC.icon({
+                icon({
                     icon: "delete",
                     classes: ["clickable-icon"],
                     title: "Remove link",

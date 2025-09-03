@@ -1,6 +1,3 @@
-import {create, getValue, ifjs, signalMap, TypeOrSignal} from "../../../fjsc/src/f2";
-import {FJSC} from "../../../fjsc";
-import {compute, signal, Signal} from "../../../fjsc/src/signals.ts";
 import {getFileUrl} from "../../functions/templates.ts";
 import {MediaFileType} from "../../enums/MediaFileType.ts";
 import {Permissions} from "../../enums/Permissions.ts";
@@ -11,6 +8,8 @@ import {notify} from "../../functions/notifications.ts";
 import {NotificationType} from "../../enums/NotificationType.ts";
 import {Generics} from "./generics.ts";
 import {Modals} from "../modals.ts";
+import {compute, create, getValue, signal, Signal, signalMap, TypeOrSignal, when} from "@targoninc/jess";
+import {button} from "@targoninc/jess-components";
 
 export class Files {
     static file(type: MediaFileType, id: Signal<number>, fileName: string, changeable: TypeOrSignal<boolean>, refresh = () => {}) {
@@ -25,7 +24,7 @@ export class Files {
                 create("div")
                     .classes("flex", "center-items")
                     .children(
-                        FJSC.button({
+                        button({
                             icon: {icon: "open_in_new"},
                             text: "Open",
                             classes: ["positive"],
@@ -34,7 +33,7 @@ export class Files {
                                 window.open(getFileUrl(type, id.value, fileName), "_blank");
                             }
                         }),
-                        ifjs(changeable, FJSC.button({
+                        when(changeable, button({
                             icon: {icon: "upload"},
                             text: "Replace",
                             disabled: loading,
@@ -44,7 +43,7 @@ export class Files {
                                 }, `Replace file`, `Are you sure you want to replace the file '${fileName}'?`);
                             }
                         })),
-                        ifjs(changeable, FJSC.button({
+                        when(changeable, button({
                             icon: {icon: "delete"},
                             text: "Delete",
                             classes: ["negative"],
@@ -77,7 +76,7 @@ export class Files {
                 create("div")
                     .classes("flex", "center-items")
                     .children(
-                        ifjs(hasFileManagementPermission, FJSC.button({
+                        when(hasFileManagementPermission, button({
                             text: "Upload file",
                             icon: {icon: "upload"},
                             disabled: loading,

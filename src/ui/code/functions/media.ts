@@ -1,9 +1,8 @@
-import { Signal } from "../../fjsc/src/signals";
 import { MediaUploader } from "../api/mediaUploader";
 import { MediaFileType } from "../enums/MediaFileType";
 import { NotificationType } from "../enums/NotificationType";
 import { notify } from "./notifications";
-import { getImageUrl } from "./templates";
+import {Signal} from "@targoninc/jess";
 
 export function uploadImage(loading: Signal<boolean>, type: MediaFileType, referenceId: number) {
     uploadFile(loading, type, referenceId, "image/*");

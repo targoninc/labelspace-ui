@@ -1,15 +1,14 @@
 import {Generics} from "./generic/generics.ts";
 import {currentUser} from "../state.ts";
 import {Api} from "../api/api.ts";
-import {compute, signal} from "../../fjsc/src/signals.ts";
-import {create, ifjs} from "../../fjsc/src/f2.ts";
 import {currency} from "../functions/formatters.ts";
 import {RoyaltyInfo} from "../models/RoyaltyInfo.ts";
-import {FJSC} from "../../fjsc";
 import {Modals} from "./modals.ts";
 import {Payment} from "../models/db/finance/Payment.ts";
 import {notify} from "../functions/notifications.ts";
 import {NotificationType} from "../enums/NotificationType.ts";
+import {compute, create, signal, when} from "@targoninc/jess";
+import {button, icon} from "@targoninc/jess-components";
 
 export class Payments {
     static page() {
@@ -36,18 +35,18 @@ export class Payments {
                     create("div")
                         .classes("flex", "center-items")
                         .children(
-                            FJSC.button({
+                            button({
                                 text: "Refresh",
                                 icon: { icon: "refresh" },
                                 disabled: loading,
                                 onclick: load,
                             }),
-                            FJSC.icon({
+                            icon({
                                 icon: "info",
                                 classes: ["question-cursor"],
                                 title: "It can take a while for status changes to appear.",
                             }),
-                            ifjs(loading, Generics.loading()),
+                            when(loading, Generics.loading()),
                         ).build(),
                     Generics.table(
                         ["Amount", "Status", "Date"],
@@ -93,13 +92,13 @@ export class Payments {
         const requestLoading = signal(false);
 
         return Generics.container(1, [
-            ifjs(total, Generics.heading(3, total)),
-            ifjs(paidOut, Generics.heading(3, paidOut)),
-            ifjs(available, create("div")
+            when(total, Generics.heading(3, total)),
+            when(paidOut, Generics.heading(3, paidOut)),
+            when(available, create("div")
                 .classes("flex", "center-items")
                 .children(
                     Generics.heading(2, available),
-                    ifjs(payable, FJSC.button({
+                    when(payable, button({
                         text: "Request payment",
                         icon: { icon: "wallet" },
                         classes: ["positive"],
@@ -116,7 +115,7 @@ export class Payments {
                             }, "Confirm request", compute(a => `Are you sure you want to request a payment for ${a} USD?`, availableUsd))
                         }
                     })),
-                    ifjs(requestLoading, Generics.loading()),
+                    when(requestLoading, Generics.loading()),
                 ).build()),
         ]);
     }

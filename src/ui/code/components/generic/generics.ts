@@ -1,11 +1,8 @@
-import {AnyElement, create, ifjs, nullElement, signalMap, StringOrSignal} from "../../../fjsc/src/f2.ts";
 import {NotificationType} from "../../enums/NotificationType.ts";
-import {compute, signal, Signal} from "../../../fjsc/src/signals.ts";
 import {Nav} from "../nav.ts";
 import {Route} from "../../routing/Route.ts";
 import {Account} from "../account.ts";
 import {Users} from "../users.ts";
-import {User} from "../../models/db/tri/User.ts";
 import {Permissions} from "../../enums/Permissions.ts";
 import {currentUser, userLoading} from "../../state.ts";
 import type {NavItem} from "../../models/NavItem.ts";
@@ -15,9 +12,20 @@ import {Logs} from "../logs.ts";
 import {Albums} from "../albums.ts";
 import {Tracks} from "../tracks.ts";
 import {Tab} from "../../models/Tab.ts";
-import {FJSC} from "../../../fjsc";
 import {navigate} from "../../routing/Router.ts";
 import {currency} from "../../functions/formatters.ts";
+import {
+    AnyElement,
+    compute,
+    create,
+    nullElement,
+    signal,
+    Signal,
+    signalMap,
+    StringOrSignal,
+    when
+} from "@targoninc/jess";
+import {button} from "@targoninc/jess-components";
 
 export class Generics {
     static notFound() {
@@ -27,6 +35,7 @@ export class Generics {
                 .build()
         );
     }
+
     static nav() {
         const loginShown = compute((u, l) => !u && !l, currentUser, userLoading);
 
@@ -45,14 +54,14 @@ export class Generics {
                         ...routes.filter(r => r.showInNav !== undefined)
                             .map(r => {
                                 const show = compute(u => r.showInNav && r.showInNav(u), currentUser);
-                                return ifjs(show, Nav.navItem(<NavItem>{
+                                return when(show, Nav.navItem(<NavItem>{
                                     text: r.title,
                                     path: r.path,
                                     icon: r.icon,
                                 }));
                             })
                     ).build(),
-                ifjs(loginShown, FJSC.button({
+                when(loginShown, button({
                     text: "Login",
                     icon: { icon: "login" },
                     classes: ["positive"],
@@ -60,8 +69,8 @@ export class Generics {
                         navigate("/login");
                     }
                 })),
-                ifjs(userLoading, Generics.loading()),
-                ifjs(currentUser, Nav.navUser(currentUser))
+                when(userLoading, Generics.loading()),
+                when(currentUser, Nav.navUser(currentUser))
             ).build();
     }
 
@@ -82,7 +91,7 @@ export class Generics {
     }
 
     static message(message: StringOrSignal) {
-        return ifjs(message, create("span")
+        return when(message, create("span")
             .text(message)
             .build());
     }
@@ -185,10 +194,10 @@ export class Generics {
             .classes("privateText")
             .onclick(() => hidden.value = !hidden.value)
             .children(
-                ifjs(hidden, create("span")
+                when(hidden, create("span")
                     .text(text)
                     .build(), true),
-                ifjs(hidden, create("span")
+                when(hidden, create("span")
                     .text("*".repeat(text.length))
                     .build())
             ).build();
@@ -208,7 +217,7 @@ export class Generics {
                 ...tabs.map(tab => {
                     const activeClass = compute((t): string => t === tab.key ? "active" : "_", tab$);
 
-                    return FJSC.button({
+                    return button({
                         text: tab.text,
                         icon: { icon: tab.icon },
                         classes: [activeClass],

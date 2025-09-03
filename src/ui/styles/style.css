@@ -31,26 +31,26 @@
     --layout-gap: 10px;
 
     --base-font-size: 16px;
-    --fjsc-base-font-size: var(--base-font-size);
+    --jessc-base-font-size: var(--base-font-size);
 
     --default-font-family: "IBM Plex Mono", monospace;
-    --fjsc-font: var(--default-font-family);
+    --jessc-font: var(--default-font-family);
 
     --radius: 4px;
 
-    --fjsc-text-color: var(--black);
-    --fjsc-error-color: var(--red);
-    --fjsc-interactive-background: var(--gray-1);
-    --fjsc-interactive-background-hover: var(--gray-2);
-    --fjsc-interactive-background-active: var(--gray-3);
-    --fjsc-interactive-color: var(--black);
-    --fjsc-interactive-color-active: var(--black);
-    --fjsc-interactive-border: var(--gray-2);
-    --fjsc-interactive-border-focused: var(--blue);
-    --fjsc-interactive-border-active: var(--blue);
-    --fjsc-border-radius-small: var(--radius);
-    --fjsc-border-radius-medium: var(--radius);
-    --fjsc-border-radius-large: var(--radius);
+    --jessc-text-color: var(--black);
+    --jessc-error-color: var(--red);
+    --jessc-interactive-background: var(--gray-1);
+    --jessc-interactive-background-hover: var(--gray-2);
+    --jessc-interactive-background-active: var(--gray-3);
+    --jessc-interactive-color: var(--black);
+    --jessc-interactive-color-active: var(--black);
+    --jessc-interactive-border: var(--gray-2);
+    --jessc-interactive-border-focused: var(--blue);
+    --jessc-interactive-border-active: var(--blue);
+    --jessc-border-radius-small: var(--radius);
+    --jessc-border-radius-medium: var(--radius);
+    --jessc-border-radius-large: var(--radius);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -125,7 +125,7 @@ a.button:hover {
     color: var(--black);
 }
 
-.flex, .flex-v {
+.flex, .flex-v, button {
     display: flex;
     gap: var(--layout-gap);
     flex-wrap: wrap;
@@ -286,22 +286,22 @@ b {
 
 button.positive, .button.positive {
     background: var(--green);
-    --fjsc-text-color: var(--white);
+    --jessc-text-color: var(--white);
     border-color: var(--light-green);
 }
 
 button.positive:hover, .button.positive:hover {
-    --fjsc-text-color: var(--black);
+    --jessc-text-color: var(--black);
 }
 
 button.negative, .button.negative {
     background: var(--red);
-    --fjsc-text-color: var(--white);
+    --jessc-text-color: var(--white);
     border-color: var(--light-red);
 }
 
 button.negative:hover, .button.negative:hover {
-    --fjsc-text-color: var(--black);
+    --jessc-text-color: var(--black);
 }
 
 button.active, .button.active {
@@ -407,7 +407,7 @@ td {
     cursor: pointer;
 }
 
-button.fjsc {
+button.jessc {
     align-items: center;
     display: flex;
     gap: var(--layout-gap);

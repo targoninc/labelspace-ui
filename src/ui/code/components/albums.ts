@@ -1,10 +1,7 @@
-import {compute, Signal, signal} from "../../fjsc/src/signals.ts";
 import {Album} from "../models/db/tri/Album.ts";
 import {Api} from "../api/api.ts";
 import {Generics} from "./generic/generics.ts";
-import {create, ifjs} from "../../fjsc/src/f2.ts";
 import {navigate, reload} from "../routing/Router.ts";
-import {FJSC} from "../../fjsc";
 import {Inputs} from "./generic/inputs.ts";
 import {notify} from "../functions/notifications.ts";
 import {NotificationType} from "../enums/NotificationType.ts";
@@ -18,7 +15,6 @@ import {Tracks} from "./tracks.ts";
 import {Modals} from "./modals.ts";
 import {SearchResult} from "../models/SearchResult.ts";
 import {getImageUrl, target} from "../functions/templates.ts";
-import {InputType} from "../../fjsc/src/Types.ts";
 import {Statistics} from "./statistics.ts";
 import {dayFrom, today} from "../functions/dates.ts";
 import {MediaFileType} from "../enums/MediaFileType.ts";
@@ -27,6 +23,8 @@ import {Images} from "./generic/images.ts";
 import {ImageSize} from "../enums/imageSize.ts";
 import {Time} from "../functions/time.ts";
 import {Files} from "./generic/files.ts";
+import {compute, create, InputType, Signal, signal, when} from "@targoninc/jess";
+import {button, input} from "@targoninc/jess-components";
 
 export class Albums {
     static page() {
@@ -76,7 +74,7 @@ export class Albums {
             .children(
                 Generics.heading(2, count),
                 Albums.listActions(canManageReleases, filter),
-                ifjs(loading, Generics.loading()),
+                when(loading, Generics.loading()),
                 Generics.table(
                     ["Cover", "Title", "Release date", "Tracks"],
                     filteredAlbums,
@@ -106,7 +104,7 @@ export class Albums {
         return create("div")
             .classes("flex")
             .children(
-                ifjs(canManageReleases, FJSC.button({
+                when(canManageReleases, button({
                     text: "Create album",
                     icon: {icon: "add"},
                     classes: ["positive"],
@@ -114,7 +112,7 @@ export class Albums {
                         navigate("/new-album");
                     }
                 })),
-                FJSC.input({
+                input({
                     type: InputType.text,
                     name: "filter",
                     placeholder: "Filter",
@@ -158,7 +156,7 @@ export class Albums {
                     Inputs.text(artists, "Artists", "artists"),
                     Inputs.date(release_date, "Release date", "release_date"),
                     Inputs.number(price, "Price", "price"),
-                    FJSC.button({
+                    button({
                         text: "Create",
                         classes: ["positive"],
                         disabled: anyEmpty,
@@ -202,10 +200,10 @@ export class Albums {
                 .classes("flex-v")
                 .children(
                     Generics.heading(2, "Album"),
-                    ifjs(loading, Generics.loading()),
-                    ifjs(album, Albums.album(album, load)),
-                    ifjs(canView, Files.files(files, MediaFileType.albumFile, id, load)),
-                    ifjs(album, Albums.albumStatistics(album))
+                    when(loading, Generics.loading()),
+                    when(album, Albums.album(album, load)),
+                    when(canView, Files.files(files, MediaFileType.albumFile, id, load)),
+                    when(album, Albums.albumStatistics(album))
                 ).build()
         );
     }
@@ -274,7 +272,7 @@ export class Albums {
                     .classes("flex-v", "flex-grow")
                     .children(
                         Generics.link(triRecordsLink, "Open on Tri Records"),
-                        ifjs(hasReleaseManagementPermission, create("div")
+                        when(hasReleaseManagementPermission, create("div")
                             .classes("flex-v")
                             .children(
                                 Generics.heading(2, title),
@@ -283,7 +281,7 @@ export class Albums {
                                 Generics.property("Release date", releaseDate),
                                 Generics.property("Price", currency(price)),
                             ).build(), true),
-                        ifjs(hasReleaseManagementPermission, Generics.container(1, [
+                        when(hasReleaseManagementPermission, Generics.container(1, [
                             create("div")
                                 .classes("flex-v")
                                 .children(
@@ -292,7 +290,7 @@ export class Albums {
                                     Inputs.text(upc, "UPC", "upc"),
                                     Inputs.date(releaseDate, "Release date", "release_date"),
                                     Inputs.number(price, "Price", "price"),
-                                    FJSC.button({
+                                    button({
                                         text: "Update",
                                         icon: {icon: "save"},
                                         classes: ["positive", "fit-content"],
@@ -336,7 +334,7 @@ export class Albums {
                                         .build(),
                                     create("td")
                                         .children(
-                                            ifjs(hasReleaseManagementPermission, FJSC.button({
+                                            when(hasReleaseManagementPermission, button({
                                                 icon: { icon: "link_off" },
                                                 disabled: loading,
                                                 onclick: () => {
@@ -351,7 +349,7 @@ export class Albums {
                                         ).build()
                                 ).build()
                         ),
-                        ifjs(hasReleaseManagementPermission, Albums.addTracksSection(search, searchResults, loading, album, load)),
+                        when(hasReleaseManagementPermission, Albums.addTracksSection(search, searchResults, loading, album, load)),
                     ).build(),
             ).build();
     }
@@ -361,7 +359,7 @@ export class Albums {
             .classes("flex-v")
             .children(
                 Generics.divider(),
-                FJSC.input({
+                input({
                     type: InputType.text,
                     name: "search",
                     label: "Add tracks",
@@ -387,7 +385,7 @@ export class Albums {
                                 .build(),
                             create("td")
                                 .children(
-                                    FJSC.button({
+                                    button({
                                         icon: {icon: "add_link"},
                                         disabled: loading,
                                         onclick: () => {

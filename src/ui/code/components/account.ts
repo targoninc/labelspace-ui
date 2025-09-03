@@ -1,10 +1,9 @@
 import {Generics} from "./generic/generics.ts";
-import {create, ifjs} from "../../fjsc/src/f2.ts";
-import {compute, signal} from "../../fjsc/src/signals.ts";
-import {FJSC} from "../../fjsc";
 import {Api} from "../api/api.ts";
 import {Inputs} from "./generic/inputs.ts";
 import {startLogin} from "../functions/startLogin.ts";
+import {compute, create, signal, when} from "@targoninc/jess";
+import {button} from "@targoninc/jess-components";
 
 export class Account {
     static loginPage() {
@@ -50,21 +49,21 @@ export class Account {
                         create("div")
                             .classes("flex", "center-items")
                             .children(
-                                ifjs(filledBoth, FJSC.button({
+                                when(filledBoth, button({
                                     text: "Login",
                                     icon: {icon: "login"},
                                     disabled: loading,
                                     onclick: () => startLogin(loading, username, password, message),
                                     classes: ["positive"]
                                 })),
-                                ifjs(username, FJSC.button({
+                                when(username, button({
                                     icon: {icon: "question_mark"},
                                     title: "Send password reset mail",
                                     text: "Reset password",
                                     disabled: loading,
                                     onclick: forgotPassword,
                                 })),
-                                ifjs(loading, Generics.loading()),
+                                when(loading, Generics.loading()),
                             ).build(),
                     ).build(),
                 Generics.message(message)
@@ -105,9 +104,9 @@ export class Account {
                 .classes("flex-v")
                 .children(
                     Generics.heading(1, "Password reset"),
-                    ifjs(success, Inputs.password(password, "New password"), true),
-                    ifjs(success, Inputs.password(password2, "Confirm password"), true),
-                    ifjs(sendable, FJSC.button({
+                    when(success, Inputs.password(password, "New password"), true),
+                    when(success, Inputs.password(password2, "Confirm password"), true),
+                    when(sendable, button({
                         text: "Reset password",
                         onclick: resetPassword,
                         classes: ["positive"]

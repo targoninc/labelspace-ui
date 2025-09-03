@@ -1,9 +1,7 @@
-import {Signal} from "../../fjsc/src/signals.ts";
 import {Api} from "../api/api.ts";
 import {currentUser} from "../state.ts";
 import {navigate} from "../routing/Router.ts";
 import {Modals} from "../components/modals.ts";
-import {InputType, SelectOption} from "../../fjsc/src/Types.ts";
 import {webauthnLogin} from "./webauthn.ts";
 import {CredentialDescriptor} from "@passwordless-id/webauthn/dist/esm/types";
 import {User} from "../models/db/tri/User.ts";
@@ -11,6 +9,8 @@ import {notify} from "./notifications.ts";
 import {NotificationType} from "../enums/NotificationType.ts";
 import {MfaOption} from "../enums/MfaOption.ts";
 import {mfaOptionMap} from "../enums/MfaOptionMapping.ts";
+import {InputType, Signal} from "@targoninc/jess";
+import {SelectOption} from "@targoninc/jess-components";
 
 export function login(loading: Signal<boolean>, username: Signal<string>, password: Signal<string>, message: Signal<string>, challenge?: string) {
     loading.value = true;

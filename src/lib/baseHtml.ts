@@ -22,7 +22,8 @@ export async function baseHtml(req: Request) {
     <!-- Material Symbols Filled -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
     
-    <link rel="stylesheet" type="text/css" href="/fjsc/src/fjs-components.css"/>
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/targoninc/jess-components@0.0.15/src/src/jess-components.css"/>
+    
     <link rel="stylesheet" type="text/css" href="/styles/style.css"/>
     <link rel="apple-touch-icon" href="/images/LOGO128.png">
     <link rel="icon" href="/images/LOGO.svg" sizes="128x128">

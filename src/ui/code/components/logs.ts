@@ -1,8 +1,7 @@
 import {Log} from "../models/db/tri/Log.ts";
-import {signal} from "../../fjsc/src/signals.ts";
 import {Api} from "../api/api.ts";
 import {Generics} from "./generic/generics.ts";
-import {ifjs} from "../../fjsc/src/f2.ts";
+import {signal, when} from "@targoninc/jess";
 
 export class Logs {
     static page() {
@@ -14,7 +13,7 @@ export class Logs {
 
         return Generics.pageFrame(
             Generics.heading(2, "Logs"),
-            ifjs(loading, Generics.loading()),
+            when(loading, Generics.loading()),
             Generics.table(
                 ["Time", "Level", "Message"],
                 logs,

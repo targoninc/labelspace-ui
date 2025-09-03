@@ -1,13 +1,11 @@
-import {create, ifjs} from "../../fjsc/src/f2.ts";
 import {UserTotp} from "../models/db/tri/UserTotp.ts";
-import {compute, Signal} from "../../fjsc/src/signals.ts";
-import {FJSC} from "../../fjsc";
 import {Modals} from "./modals.ts";
 import {Api} from "../api/api.ts";
 import {currentUser} from "../state.ts";
-import {InputType} from "../../fjsc/src/Types.ts";
 import {Time} from "../functions/time.ts";
 import {Generics} from "./generic/generics.ts";
+import {compute, create, InputType, Signal, when} from "@targoninc/jess";
+import {button} from "@targoninc/jess-components";
 
 export class Totp {
     static qrCode(dataUrl: string) {
@@ -30,7 +28,7 @@ export class Totp {
                     .classes("flex", "center-items")
                     .children(
                         Generics.heading(2, method.name),
-                        ifjs(method.verified, Generics.pill("Verified", ["green"])),
+                        when(method.verified, Generics.pill("Verified", ["green"])),
                     ).build(),
                 create("span")
                     .text(times)
@@ -43,7 +41,7 @@ export class Totp {
         return create("div")
             .classes("flex", "center-items")
             .children(
-                ifjs(method.verified, FJSC.button({
+                when(method.verified, button({
                     text: "Verify",
                     icon: {icon: "verified"},
                     classes: ["positive"],
@@ -61,7 +59,7 @@ export class Totp {
                         });
                     }
                 }), true),
-                FJSC.button({
+                button({
                     text: "Delete",
                     icon: {icon: "delete"},
                     classes: ["negative"],

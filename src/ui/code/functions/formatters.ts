@@ -1,4 +1,4 @@
-import {compute, Signal} from "../../fjsc/src/signals.ts";
+import {compute, Signal} from "@targoninc/jess";
 
 export function currency(value: number|undefined|null|Signal<number>, currency = "USD") {
     if (value instanceof Signal) {

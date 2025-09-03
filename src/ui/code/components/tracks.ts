@@ -1,11 +1,8 @@
-import {compute, Signal, signal} from "../../fjsc/src/signals.ts";
 import {Api} from "../api/api.ts";
 import {Generics} from "./generic/generics.ts";
-import {create, ifjs, nullElement} from "../../fjsc/src/f2.ts";
 import {Track} from "../models/db/tri/Track.ts";
 import {Route} from "../routing/Route.ts";
 import {Inputs} from "./generic/inputs.ts";
-import {FJSC} from "../../fjsc";
 import {notify} from "../functions/notifications.ts";
 import {navigate} from "../routing/Router.ts";
 import {NotificationType} from "../enums/NotificationType.ts";
@@ -14,7 +11,6 @@ import {Permissions} from "../enums/Permissions.ts";
 import {ServiceLink} from "../models/ServiceLink.ts";
 import {LinkServices} from "../enums/LinkServices.ts";
 import {Genre} from "../enums/Genre.ts";
-import {InputType} from "../../fjsc/src/Types.ts";
 import {getImageUrl, target} from "../functions/templates.ts";
 import {Statistic} from "../models/Statistic.ts";
 import {Statistics} from "./statistics.ts";
@@ -25,6 +21,8 @@ import {Images} from "./generic/images.ts";
 import {ImageSize} from "../enums/imageSize.ts";
 import {Time} from "../functions/time.ts";
 import {currency} from "../functions/formatters.ts";
+import {compute, create, InputType, nullElement, signal, Signal, when} from "@targoninc/jess";
+import {button, input, searchableSelect} from "@targoninc/jess-components";
 
 function getServiceLinks(track$: Signal<Track | null>): Signal<ServiceLink[]> {
     return compute((t: Track|null) => {
@@ -56,8 +54,8 @@ export class Tracks {
                 .classes("flex-v")
                 .children(
                     Generics.heading(2, "Track"),
-                    ifjs(loading, Generics.loading()),
-                    ifjs(track, Tracks.track(track))
+                    when(loading, Generics.loading()),
+                    when(track, Tracks.track(track))
                 ).build()
         );
     }
@@ -116,7 +114,7 @@ export class Tracks {
                                             .build(),
                                         Generics.link(albumLink, albumTitle)
                                     ).build(),
-                                ifjs(hasReleaseManagementPermission, create("div")
+                                when(hasReleaseManagementPermission, create("div")
                                     .classes("flex-v")
                                     .children(
                                         Generics.heading(2, title),
@@ -126,12 +124,12 @@ export class Tracks {
                                         Generics.property("Price", currency(price)),
                                         Generics.property("Length", compute(l => Time.toTimeFromSeconds(l), length)),
                                     ).build(), true),
-                                ifjs(hasReleaseManagementPermission, Generics.container(1, [
+                                when(hasReleaseManagementPermission, Generics.container(1, [
                                     create("div")
                                         .classes("flex-v")
                                         .children(
                                             Tracks.trackProperties(title, artists, credits, releaseDate, isrc, genres, genre, length, price),
-                                            FJSC.button({
+                                            button({
                                                 text: "Update track",
                                                 classes: ["positive", "fit-content"],
                                                 icon: { icon: "save" },
@@ -164,11 +162,11 @@ export class Tracks {
                                 ])),
                             ).build(),
                     ).build(),
-                ifjs(hasReleaseManagementPermission, Generics.container(1, [
+                when(hasReleaseManagementPermission, Generics.container(1, [
                     Inputs.serviceLinks(serviceLinks)
                 ])),
                 Generics.earnings(earnings),
-                ifjs(track$, Tracks.trackStatistics(track$))
+                when(track$, Tracks.trackStatistics(track$))
             ).build();
     }
 
@@ -194,7 +192,7 @@ export class Tracks {
         return create("div")
             .classes("flex-v", "statistic")
             .children(
-                ifjs(loading, Generics.loading()),
+                when(loading, Generics.loading()),
                 template
             ).build();
     }
@@ -217,7 +215,7 @@ export class Tracks {
             .children(
                 Generics.heading(2, count),
                 Tracks.tracksTabActions(canManageReleases, filter),
-                ifjs(loading, Generics.loading()),
+                when(loading, Generics.loading()),
                 Generics.table(
                     ["Cover", "Title", "Release date"],
                     filteredTracks,
@@ -245,7 +243,7 @@ export class Tracks {
         return create("div")
             .classes("flex")
             .children(
-                ifjs(canManageReleases, FJSC.button({
+                when(canManageReleases, button({
                     text: "Create track",
                     icon: {icon: "add"},
                     classes: ["positive"],
@@ -253,7 +251,7 @@ export class Tracks {
                         navigate("/new-track");
                     }
                 })),
-                FJSC.input({
+                input({
                     type: InputType.text,
                     name: "filter",
                     placeholder: "Filter",
@@ -305,7 +303,7 @@ export class Tracks {
                     Generics.heading(2, "Create track"),
                     Tracks.trackProperties(title, artists, credits, release_date, isrc, genres, genre, length, price),
                     Inputs.serviceLinks(serviceLinks),
-                    FJSC.button({
+                    button({
                         text: "Create",
                         classes: ["positive", "fit-content"],
                         disabled: anyEmpty,
@@ -351,7 +349,7 @@ export class Tracks {
                 Inputs.text(credits, "Credits", "credits"),
                 Inputs.date(release_date, "Release date", "release_date"),
                 Inputs.text(isrc, "ISRC", "isrc"),
-                FJSC.searchableSelect({
+                searchableSelect({
                     label: "Genre",
                     options: signal(genres),
                     value: genre,

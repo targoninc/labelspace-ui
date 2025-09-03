@@ -1,6 +1,5 @@
 import { MediaFileType } from "../enums/MediaFileType";
 import { Api } from "./api";
-import { Fetcher } from "./fetcher";
 
 export class MediaUploader {
     static upload(

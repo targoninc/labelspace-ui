@@ -1,7 +1,7 @@
-import {signal} from "../fjsc/src/signals.ts";
 import {Router} from "./routing/Router.ts";
 import {Route} from "./routing/Route.ts";
 import {User} from "./models/db/tri/User.ts";
+import {signal} from "@targoninc/jess";
 
 export const currentUser = signal<User|null>(null);
 

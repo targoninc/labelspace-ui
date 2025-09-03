@@ -1,7 +1,6 @@
-import {signal} from "../../fjsc/src/signals.ts";
 import {currentRoute, currentUser, router, userLoading} from "../state.ts";
 import {Route} from "./Route.ts";
-import {Generics} from "../components/generic/generics.ts";
+import {signal} from "@targoninc/jess";
 
 export class Router {
     public currentRoute = signal<Route|null>(null);
@@ -87,7 +86,7 @@ export class Router {
     }
 }
 
-const content = document.querySelector("#content");
+const content = document.querySelector("#content") as HTMLElement;
 router.value = new Router([], async (route: Route, params: any) => {
     content.innerHTML = "";
 

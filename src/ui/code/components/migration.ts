@@ -1,11 +1,9 @@
-import {FJSC} from "../../fjsc";
 import {Api} from "../api/api.ts";
 import {notify} from "../functions/notifications.ts";
 import {NotificationType} from "../enums/NotificationType.ts";
-import {create, ifjs} from "../../fjsc/src/f2.ts";
-import {signal} from "../../fjsc/src/signals.ts";
 import {Generics} from "./generic/generics.ts";
-import {InputType} from "../../fjsc/src/Types.ts";
+import {button, input} from "@targoninc/jess-components";
+import {create, InputType, signal, when} from "@targoninc/jess";
 
 export class Migration {
     static dataImport() {
@@ -14,7 +12,7 @@ export class Migration {
         return create("div")
             .classes("flex", "center-items")
             .children(
-                FJSC.button({
+                button({
                     text: "Import data",
                     icon: { icon: "database" },
                     disabled: loading,
@@ -25,7 +23,7 @@ export class Migration {
                         }).finally(() => loading.value = false);
                     }
                 }),
-                FJSC.button({
+                button({
                     text: "Upload royalties",
                     icon: { icon: "upload" },
                     disabled: loading,
@@ -72,7 +70,7 @@ export class Migration {
                         }).finally(() => loading.value = false);
                     }
                 }),
-                ifjs(loading, Generics.loading())
+                when(loading, Generics.loading())
             ).build();
     }
 
@@ -84,7 +82,7 @@ export class Migration {
         return create("div")
             .classes("flex")
             .children(
-                FJSC.input({
+                input({
                     value: year,
                     type: InputType.number,
                     onchange: newYear => year.value = newYear,
@@ -92,7 +90,7 @@ export class Migration {
                     name: "year",
                     placeholder: "Year"
                 }),
-                FJSC.input({
+                input({
                     value: quarter,
                     attributes: ["min", "1", "max", "4"],
                     type: InputType.number,
@@ -101,7 +99,7 @@ export class Migration {
                     name: "quarter",
                     placeholder: "Quarter"
                 }),
-                FJSC.button({
+                button({
                     text: "Quarterly report",
                     icon: { icon: "analytics" },
                     disabled: loading,

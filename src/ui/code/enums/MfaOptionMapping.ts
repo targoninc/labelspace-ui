@@ -1,5 +1,5 @@
 import {MfaOption} from "./MfaOption.ts";
-import {SelectOption} from "../../fjsc/src/Types.ts";
+import {SelectOption} from "@targoninc/jess-components";
 
 export const mfaOptionMap: Record<MfaOption, SelectOption> = {
     [MfaOption.webauthn]: {

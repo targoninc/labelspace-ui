@@ -21,6 +21,8 @@
   "dependencies": {
     "@passwordless-id/webauthn": "^2.1.2",
     "@sgratzl/chartjs-chart-boxplot": "^4.4.4",
+    "@targoninc/jess": "^0.0.19",
+    "@targoninc/jess-components": "^0.0.29",
     "chart.js": "^4.4.7",
     "d3": "^7.9.0",
     "dotenv": "^16.4.7",

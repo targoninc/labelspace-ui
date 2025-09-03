@@ -1,6 +1,4 @@
-import {compute, Signal, signal} from "../../fjsc/src/signals.ts";
 import {Generics} from "./generic/generics.ts";
-import {create, ifjs, signalMap} from "../../fjsc/src/f2.ts";
 import {User} from "../models/db/tri/User.ts";
 import {Api} from "../api/api.ts";
 import {Artist} from "../models/db/tri/Artist.ts";
@@ -8,7 +6,6 @@ import {currentUser} from "../state.ts";
 import {Inputs} from "./generic/inputs.ts";
 import {NotificationType} from "../enums/NotificationType.ts";
 import {notify} from "../functions/notifications.ts";
-import {FJSC} from "../../fjsc";
 import {Permissions} from "../enums/Permissions.ts";
 import {MediaFileType} from "../enums/MediaFileType.ts";
 import {reload} from "../routing/Router.ts";
@@ -16,7 +13,6 @@ import {Images} from "./generic/images.ts";
 import {ImageSize} from "../enums/imageSize.ts";
 import {Time} from "../functions/time.ts";
 import {Modals} from "./modals.ts";
-import {InputType} from "../../fjsc/src/Types.ts";
 import {UserTotp} from "../models/db/tri/UserTotp.ts";
 import {Totp} from "./totp.ts";
 import {removeLastModal} from "../functions/modals.ts";
@@ -26,9 +22,10 @@ import {
     ExtendedAuthenticatorTransport,
     RegistrationJSON
 } from "@passwordless-id/webauthn/dist/esm/types";
-import {login} from "../functions/startLogin.ts";
 import { PublicKey } from "../models/db/tri/PublicKey.ts";
 import { PermissionIcons } from "../enums/PermissionIcons.ts";
+import {compute, create, InputType, Signal, signal, signalMap, when} from "@targoninc/jess";
+import {button} from "@targoninc/jess-components";
 
 export class Users {
     static listPage() {
@@ -45,7 +42,7 @@ export class Users {
             .finally(() => loading.value = false);
 
         return Generics.pageFrame(
-            ifjs(loading, Generics.loading()),
+            when(loading, Generics.loading()),
             Generics.heading(2, "Users"),
             Generics.table(
                 ["Username", "Artists", "Last login", "Email addresses", "TOTP methods", "Passkeys", "Permissions"],
@@ -89,8 +86,8 @@ export class Users {
                 .classes("flex-v")
                 .children(
                     Generics.heading(2, "Profile"),
-                    ifjs(currentUser, Generics.loading(), true),
-                    ifjs(currentUser, create("div")
+                    when(currentUser, Generics.loading(), true),
+                    when(currentUser, create("div")
                         .classes("flex-v")
                         .children(
                             Users.personalData(),
@@ -112,11 +109,11 @@ export class Users {
             .classes("flex-v")
             .children(
                 Generics.heading(2, "TOTP methods"),
-                ifjs(hasMethods, create("span")
+                when(hasMethods, create("span")
                     .text("You have no TOTP methods configured")
                     .build(), true),
-                ifjs(hasMethods, Users.totpDevices(totpMethods, loading, userId)),
-                FJSC.button({
+                when(hasMethods, Users.totpDevices(totpMethods, loading, userId)),
+                button({
                     text: "Add TOTP method",
                     icon: {icon: "add"},
                     classes: ["positive", "fit-content"],
@@ -152,10 +149,10 @@ export class Users {
             .classes("flex-v")
             .children(
                 Generics.heading(2, "Passkeys"),
-                ifjs(hasCredentials, create("span")
+                when(hasCredentials, create("span")
                     .text("You have no passkeys configured")
                     .build(), true),
-                ifjs(hasCredentials, create("div")
+                when(hasCredentials, create("div")
                     .classes("flex-v")
                     .children(
                         signalMap(public_keys, create("div").classes("flex"), key => create("div")
@@ -172,7 +169,7 @@ export class Users {
                                 Users.webAuthNActions(loading, key, message)
                             ).build()),
                     ).build()),
-                FJSC.button({
+                button({
                     text: "Add passkey",
                     icon: {icon: "add"},
                     classes: ["positive", "fit-content"],
@@ -214,7 +211,7 @@ export class Users {
         return create("div")
             .classes("flex", "center-items")
             .children(
-                FJSC.button({
+                button({
                     text: "Delete",
                     icon: {icon: "delete"},
                     classes: ["negative"],
@@ -277,7 +274,7 @@ export class Users {
                                     .children(
                                         Generics.link("https://trirecords.eu/artist/" + a.name, a.name),
                                         Inputs.longtext(description, "Description", "description"),
-                                        FJSC.button({
+                                        button({
                                             text: "Update",
                                             icon: {icon: "save"},
                                             classes: ["positive"],
@@ -324,7 +321,7 @@ export class Users {
                 create("div")
                     .classes("flex", "center-items")
                     .children(
-                        FJSC.button({
+                        button({
                             text: "Save",
                             icon: {icon: "save"},
                             classes: ["positive"],
@@ -347,7 +344,7 @@ export class Users {
                                 });
                             }
                         }),
-                        ifjs(loading, Generics.loading())
+                        when(loading, Generics.loading())
                     ).build(),
                 Generics.message(message),
                 Generics.table(
