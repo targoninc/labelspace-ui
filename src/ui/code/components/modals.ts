@@ -3,8 +3,8 @@ import {addModal, removeLastModal} from "../functions/modals.ts";
 import {Api} from "../api/api.ts";
 import {currentUser} from "../state.ts";
 import {Totp} from "./totp.ts";
-import {AnyNode, create, InputType, signal, StringOrSignal, when} from "@targoninc/jess";
-import {button, InputConfig} from "@targoninc/jess-components";
+import {AnyNode, create, InputType, Signal, signal, StringOrSignal, when} from "@targoninc/jess";
+import {button, InputConfig, input, SelectOption, searchableSelect} from "@targoninc/jess-components";
 
 export class Modals {
     static modalBase(...content: AnyNode[]) {
