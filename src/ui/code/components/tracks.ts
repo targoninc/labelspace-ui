@@ -144,6 +144,7 @@ export class Tracks {
                                                         length: length.value,
                                                         credits: credits.value,
                                                         genre: genre.value,
+                                                        artists: artists.value,
                                                         link_spotify: links.find(l => l.service === LinkServices.spotify)?.link ?? "",
                                                         link_youtube: links.find(l => l.service === LinkServices.youtube)?.link ?? "",
                                                         link_soundcloud: links.find(l => l.service === LinkServices.soundcloud)?.link ?? "",

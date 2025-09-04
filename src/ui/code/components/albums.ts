@@ -233,9 +233,13 @@ export class Albums {
         const tracks = compute(a => a?.tracks ?? [], album);
         const id = compute(a => a?.id ?? 0, album);
         const earnings = compute(a => a?.earnings ?? 0, album);
-        const noneChanged = compute((t, u, r, p) => {
-            return t === album.value?.title && u === album.value?.upc && new Date(r).getTime() === new Date(album.value?.release_date).getTime() && p === album.value?.price;
-        }, title, upc, releaseDate, price);
+        const noneChanged = compute((t, u, r, p, a) => {
+            return t === album.value?.title
+                && u === album.value?.upc
+                && new Date(r).getTime() === new Date(album.value?.release_date).getTime()
+                && p === album.value?.price
+                && a === artists.value;
+        }, title, upc, releaseDate, price, artists);
         const loading = signal(false);
         const search = signal("");
         const searchResults = signal<SearchResult[]>([]);
