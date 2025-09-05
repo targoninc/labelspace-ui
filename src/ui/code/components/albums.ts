@@ -238,7 +238,7 @@ export class Albums {
                 && u === album.value?.upc
                 && new Date(r).getTime() === new Date(album.value?.release_date).getTime()
                 && p === album.value?.price
-                && a === artists.value;
+                && a === album.value?.artists;
         }, title, upc, releaseDate, price, artists);
         const loading = signal(false);
         const search = signal("");
