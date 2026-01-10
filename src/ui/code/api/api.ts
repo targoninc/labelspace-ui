@@ -243,4 +243,15 @@ export class Api {
             method
         });
     }
+
+    static createUser(username: string, legal_name: string, country: string, state: string, email: string, temp_password: string) {
+        return Fetcher.postWithResponse<User>(base + "/user/actions/create", {
+            username,
+            legal_name,
+            country,
+            state,
+            email,
+            temp_password
+        });
+    }
 }

@@ -28,7 +28,7 @@ import {compute, create, InputType, Signal, signal, signalMap, when} from "@targ
 import {button} from "@targoninc/jess-components";
 
 export class Users {
-    static listPage() {
+    static usersPage() {
         if (!currentUser.value?.permissions?.some(p => p.name === Permissions.userManagement)) {
             return Generics.pageFrame(
                 Generics.heading(2, "Access denied"),
@@ -44,6 +44,7 @@ export class Users {
         return Generics.pageFrame(
             when(loading, Generics.loading()),
             Generics.heading(2, "Users"),
+            Users.createSection(users),
             Generics.table(
                 ["Username", "Artists", "Last login", "Email addresses", "TOTP methods", "Passkeys", "Permissions"],
                 users,
@@ -367,5 +368,62 @@ export class Users {
                         ).build(),
                 ),
             ).build();
+    }
+
+    private static createSection(users: Signal<User[]>) {
+        const username = signal("");
+        const legal_name = signal("");
+        const country = signal("");
+        const state = signal("");
+        const email = signal("");
+        const temp_password = signal("");
+        const loading = signal(false);
+        const disabled = compute((u, legal, c, e, t, l, usrs) => {
+            const usernameFound = usrs.some(user => user.username === u);
+            return !u || !legal || !c || !e || t.length < 16 || l || usernameFound;
+        }, username, legal_name, country, email, temp_password, loading, users);
+
+        return Generics.collapsibleContainer(1, "Create new user", "Hide form", [
+            Generics.heading(2, "Create new user"),
+            Inputs.text(username, "Username", "username"),
+            Inputs.text(legal_name, "Legal name", "legal_name"),
+            Inputs.text(country, "Country", "country"),
+            Inputs.text(state, "State", "state"),
+            Inputs.text(email, "Email", "email"),
+            Inputs.password(temp_password, "Temporary password", "temp_password"),
+            create("div")
+                .classes("flex", "center-items")
+                .children(
+                    button({
+                        text: "Create user",
+                        icon: {icon: "add"},
+                        classes: ["positive"],
+                        disabled: disabled,
+                        onclick: () => {
+                            loading.value = true;
+                            Api.createUser(
+                                username.value,
+                                legal_name.value,
+                                country.value,
+                                state.value,
+                                email.value,
+                                temp_password.value
+                            ).then(() => {
+                                notify("User created", NotificationType.success);
+                                Api.getUsers().then(u => users.value = u);
+                                username.value = "";
+                                legal_name.value = "";
+                                country.value = "";
+                                state.value = "";
+                                email.value = "";
+                                temp_password.value = "";
+                            }).catch(e => {
+                                notify(`Error: ${e.message}`, NotificationType.error);
+                            }).finally(() => loading.value = false);
+                        }
+                    }),
+                    when(loading, Generics.loading())
+                ).build()
+        ]);
     }
 }

@@ -295,6 +295,27 @@ export class Generics {
             .text(text)
             .build();
     }
+
+    static collapsibleContainer(level: number, closedText: string, openText: string, children: (HTMLElement | SVGElement)[]) {
+        const open = signal(false);
+
+        return create("div")
+            .classes("collapsible-container", "container", "border", "layer-" + level)
+            .children(
+                button({
+                    text: compute((o): string => o ? openText : closedText, open),
+                    icon: {
+                        icon: compute((o): string => o ? "expand_less" : "expand_more", open)
+                    },
+                    classes: ["flat"],
+                    onclick: () => open.value = !open.value
+                }),
+                when(open, create("div")
+                    .classes("collapsible-content", "flex-v", "gap-8px")
+                    .children(...children)
+                    .build())
+            ).build();
+    }
 }
 
 export const routes: Route[] = [
@@ -321,7 +342,7 @@ export const routes: Route[] = [
     {
         path: "users",
         title: "Users",
-        template: Users.listPage,
+        template: Users.usersPage,
         icon: "group",
         showInNav: (u) => !!u && (u.permissions?.some(p => p.name === Permissions.userManagement) ?? false)
     },
