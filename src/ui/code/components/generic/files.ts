@@ -10,16 +10,17 @@ import {Generics} from "./generics.ts";
 import {Modals} from "../modals.ts";
 import {compute, create, getValue, signal, Signal, signalMap, TypeOrSignal, when} from "@targoninc/jess";
 import {button} from "@targoninc/jess-components";
+import {AlbumAttachment} from "../../models/db/tri/AlbumAttachment.ts";
 
 export class Files {
-    static file(type: MediaFileType, id: Signal<number>, fileName: string, changeable: TypeOrSignal<boolean>, refresh = () => {}) {
+    static file(type: MediaFileType, attachment: AlbumAttachment, changeable: TypeOrSignal<boolean>, refresh = () => {}) {
         const loading = signal(false);
 
         return create("div")
             .classes("flex-v", "container", "border", "layer-2")
             .children(
                 create("span")
-                    .text(fileName)
+                    .text(attachment.name)
                     .build(),
                 create("div")
                     .classes("flex", "center-items")
@@ -30,7 +31,7 @@ export class Files {
                             classes: ["positive"],
                             disabled: loading,
                             onclick: () => {
-                                window.open(getFileUrl(type, id.value, fileName), "_blank");
+                                window.open(getFileUrl(type, attachment.id, attachment.name), "_blank");
                             }
                         }),
                         when(changeable, button({
@@ -39,8 +40,8 @@ export class Files {
                             disabled: loading,
                             onclick: () => {
                                 Modals.confirm(() => {
-                                    uploadFile(loading, type, id.value, fileName, "*/*", refresh);
-                                }, `Replace file`, `Are you sure you want to replace the file '${fileName}'?`);
+                                    uploadFile(loading, type, attachment.id, attachment.name, "*/*", refresh);
+                                }, `Replace file`, `Are you sure you want to replace the file '${attachment.name}'?`);
                             }
                         })),
                         when(changeable, button({
@@ -51,20 +52,20 @@ export class Files {
                             onclick: () => {
                                 Modals.confirm(() => {
                                     loading.value = true;
-                                    Api.deleteMedia(type, getValue(id))
+                                    Api.deleteMedia(type, getValue(attachment.id))
                                         .then(() => {
                                             notify("Deleted file", NotificationType.success);
                                             refresh();
                                         })
                                         .finally(() => loading.value = false);
-                                }, `Delete file`, `Are you sure you want to delete the file '${fileName}'?`);
+                                }, `Delete file`, `Are you sure you want to delete the file '${attachment.name}'?`);
                             }
                         })),
                     ).build()
             ).build();
     }
 
-    static files(files: Signal<string[]>, type: MediaFileType, id: Signal<number>, refresh = () => {}) {
+    static albumFiles(attachments: Signal<AlbumAttachment[]>, type: MediaFileType, albumId: Signal<number>, refresh = () => {}) {
         const hasFileManagementPermission = compute(u => u?.permissions?.some(p => p.name === Permissions.fileManagement) ?? false, currentUser);
         const loading = signal(false);
 
@@ -72,7 +73,8 @@ export class Files {
             .classes("container", "border", "layer-1", "flex-v")
             .children(
                 Generics.heading(2, "Files"),
-                signalMap(files, create("div").classes("flex"), fileName => Files.file(type, id, fileName, hasFileManagementPermission, refresh)),
+                signalMap(attachments, create("div").classes("flex"),
+                        attachment => Files.file(type, attachment, hasFileManagementPermission, refresh)),
                 create("div")
                     .classes("flex", "center-items")
                     .children(
@@ -80,9 +82,7 @@ export class Files {
                             text: "Upload file",
                             icon: {icon: "upload"},
                             disabled: loading,
-                            onclick: () => {
-                                uploadFile(loading, type, id.value, null, "*/*", refresh);
-                            }
+                            onclick: () => uploadFile(loading, type, albumId.value, null, "*/*", refresh)
                         }))
                     ).build()
             ).build();

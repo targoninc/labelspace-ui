@@ -254,4 +254,24 @@ export class Api {
             temp_password
         });
     }
+
+    static createAttachment(albumId: number, visible_to_artists: string) {
+        return Fetcher.postWithResponse<{ attachmentId: number }>(base + "/albums/actions/createAttachment", {
+            albumId,
+            artists: visible_to_artists
+        });
+    }
+
+    static deleteAttachment(attachmentId: number) {
+        return Fetcher.post(base + "/albums/actions/deleteAttachment", {
+            attachmentId
+        });
+    }
+
+    static updateAttachment(attachmentId: number, visible_to_artists: string) {
+        return Fetcher.post(base + "/albums/actions/updateAttachment", {
+            attachmentId,
+            visible_to_artists
+        });
+    }
 }
