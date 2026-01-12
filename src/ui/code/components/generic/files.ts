@@ -73,13 +73,13 @@ export class Files {
                             onclick: () => {
                                 Modals.confirm(() => {
                                     loading.value = true;
-                                    Api.deleteMedia(type, getValue(attachment.id))
+                                    Api.deleteAttachment(attachment.id)
                                         .then(() => {
-                                            notify("Deleted file", NotificationType.success);
+                                            notify("Deleted attachment", NotificationType.success);
                                             refresh();
                                         })
                                         .finally(() => loading.value = false);
-                                }, `Delete file`, `Are you sure you want to delete the file '${attachment.name}'?`);
+                                }, `Delete attachment`, `Are you sure you want to delete the attachment '${attachment.name}'?`);
                             }
                         })),
                     ).build()
