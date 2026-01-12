@@ -202,7 +202,7 @@ export class Albums {
                     Generics.heading(2, "Album"),
                     when(loading, Generics.loading()),
                     when(album, Albums.album(album, load)),
-                    when(canView, Files.albumFiles(files, MediaFileType.albumFile, id, load)),
+                    when(canView, Files.albumFiles(MediaFileType.albumFile, album, load)),
                     when(album, Albums.albumStatistics(album))
                 ).build()
         );
