@@ -181,8 +181,6 @@ export class Albums {
 
     static albumPage(route: Route, params: any) {
         const album = signal<Album | null>(null);
-        const files = compute(a => a?.attachments ?? [], album);
-        const id = compute(a => a?.id ?? 0, album);
         const loading = signal(false);
         const hasFileManagementPermission = compute(u => u?.permissions?.some(p => p.name === Permissions.fileManagement) ?? false, currentUser);
         const canView = compute((a, user, hasPermission) =>
@@ -202,7 +200,7 @@ export class Albums {
                     Generics.heading(2, "Album"),
                     when(loading, Generics.loading()),
                     when(album, Albums.album(album, load)),
-                    when(canView, Files.albumFiles(MediaFileType.albumFile, album, load)),
+                    when(canView, Files.albumFiles(album, load)),
                     when(album, Albums.albumStatistics(album))
                 ).build()
         );

@@ -8,7 +8,7 @@ import {notify} from "../../functions/notifications.ts";
 import {NotificationType} from "../../enums/NotificationType.ts";
 import {Generics} from "./generics.ts";
 import {Modals} from "../modals.ts";
-import {compute, create, getValue, signal, Signal, signalMap, TypeOrSignal, when} from "@targoninc/jess";
+import {compute, create, signal, Signal, signalMap, TypeOrSignal, when} from "@targoninc/jess";
 import {button} from "@targoninc/jess-components";
 import {AlbumAttachment} from "../../models/db/tri/AlbumAttachment.ts";
 import {Album} from "../../models/db/tri/Album.ts";
@@ -46,7 +46,7 @@ export class Files {
                 create("div")
                     .classes("flex", "center-items")
                     .children(
-                        button({
+                        when(attachment.name, button({
                             icon: {icon: "open_in_new"},
                             text: "Open",
                             classes: ["positive"],
@@ -54,7 +54,7 @@ export class Files {
                             onclick: () => {
                                 window.open(getFileUrl(type, attachment.id, attachment.name), "_blank");
                             }
-                        }),
+                        })),
                         when(changeable, button({
                             icon: {icon: "upload"},
                             text: "Replace",
@@ -86,7 +86,7 @@ export class Files {
             ).build();
     }
 
-    static albumFiles(type: MediaFileType, album: Signal<Album | null>, refresh = () => {}) {
+    static albumFiles(album: Signal<Album | null>, refresh = () => {}) {
         const hasFileManagementPermission = compute(u => u?.permissions?.some(p => p.name === Permissions.fileManagement) ?? false, currentUser);
         const loading = signal(false);
         const attachments = compute(a => a?.attachments ?? [], album);
@@ -96,15 +96,22 @@ export class Files {
             .children(
                 Generics.heading(2, "Files"),
                 signalMap(attachments, create("div").classes("flex"),
-                        attachment => Files.file(type, attachment, album.value, hasFileManagementPermission, refresh)),
+                        attachment => Files.file(MediaFileType.albumFile, attachment, album.value, hasFileManagementPermission, refresh)),
                 create("div")
                     .classes("flex", "center-items")
                     .children(
                         when(hasFileManagementPermission, button({
-                            text: "Upload file",
+                            text: "Create attachment",
                             icon: {icon: "upload"},
                             disabled: loading,
-                            onclick: () => uploadFile(loading, type, album.value?.id ?? 0, null, "*/*", refresh)
+                            onclick: () => {
+                                loading.value = true;
+                                Api.createAttachment(album.value!.id, "")
+                                    .then(() => {
+                                        notify("Attachment created", NotificationType.success);
+                                        refresh();
+                                    }).finally(() => loading.value = false)
+                            }
                         }))
                     ).build()
             ).build();
