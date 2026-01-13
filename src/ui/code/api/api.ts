@@ -255,10 +255,10 @@ export class Api {
         });
     }
 
-    static createAttachment(albumId: number, visible_to_artists: string) {
+    static createAttachment(albumId: number, name: string) {
         return Fetcher.postWithResponse<{ attachmentId: number }>(base + "/albums/actions/createAttachment", {
             albumId,
-            artists: visible_to_artists
+            name
         });
     }
 

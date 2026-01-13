@@ -8,8 +8,8 @@ import {notify} from "../../functions/notifications.ts";
 import {NotificationType} from "../../enums/NotificationType.ts";
 import {Generics} from "./generics.ts";
 import {Modals} from "../modals.ts";
-import {compute, create, signal, Signal, signalMap, TypeOrSignal, when} from "@targoninc/jess";
-import {button} from "@targoninc/jess-components";
+import {compute, create, InputType, signal, Signal, signalMap, TypeOrSignal, when} from "@targoninc/jess";
+import {button, input} from "@targoninc/jess-components";
 import {AlbumAttachment} from "../../models/db/tri/AlbumAttachment.ts";
 import {Album} from "../../models/db/tri/Album.ts";
 
@@ -90,6 +90,7 @@ export class Files {
         const hasFileManagementPermission = compute(u => u?.permissions?.some(p => p.name === Permissions.fileManagement) ?? false, currentUser);
         const loading = signal(false);
         const attachments = compute(a => a?.attachments ?? [], album);
+        const newName = signal("");
 
         return create("div")
             .classes("container", "border", "layer-1", "flex-v")
@@ -100,13 +101,21 @@ export class Files {
                 create("div")
                     .classes("flex", "center-items")
                     .children(
+                        input({
+                            name: "newFile-name",
+                            onchange: n => newName.value = n,
+                            validators: [],
+                            value: newName,
+                            type: InputType.text,
+                            placeholder: "Enter attachment name"
+                        }),
                         when(hasFileManagementPermission, button({
                             text: "Create attachment",
                             icon: {icon: "upload"},
                             disabled: loading,
                             onclick: () => {
                                 loading.value = true;
-                                Api.createAttachment(album.value!.id, "")
+                                Api.createAttachment(album.value!.id, newName.value)
                                     .then(() => {
                                         notify("Attachment created", NotificationType.success);
                                         refresh();
