@@ -372,7 +372,7 @@ export class Users {
                     .classes("flex")
                     .children(
                         button({
-                            icon: {icon: "question_mark"},
+                            icon: {icon: "password"},
                             title: "Send password reset mail",
                             text: "Change password",
                             disabled: loading,
