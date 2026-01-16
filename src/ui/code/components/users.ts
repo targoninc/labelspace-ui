@@ -371,7 +371,7 @@ export class Users {
                 button({
                     icon: {icon: "question_mark"},
                     title: "Send password reset mail",
-                    text: "Reset password",
+                    text: "Change password",
                     disabled: loading,
                     onclick: () => {
                         const name = currentUser.value?.username;
