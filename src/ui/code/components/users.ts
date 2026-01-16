@@ -367,6 +367,21 @@ export class Users {
                                 .build()
                         ).build(),
                 ),
+                Generics.heading(3, "Password"),
+                button({
+                    icon: {icon: "question_mark"},
+                    title: "Send password reset mail",
+                    text: "Reset password",
+                    disabled: loading,
+                    onclick: () => {
+                        const name = currentUser.value?.username;
+                        if (name) {
+                            Api.requestPasswordReset(name)
+                                .then(() => notify("Password reset email sent.", NotificationType.success))
+                                .finally(() => loading.value = false);
+                        }
+                    },
+                })
             ).build();
     }
 
