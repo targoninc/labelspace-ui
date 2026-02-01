@@ -76,8 +76,9 @@ export class Migration {
 
     static quarterlyReport() {
         const loading = signal(false);
-        const year = signal(new Date().getFullYear());
-        const quarter = signal(Math.ceil((new Date().getMonth() + 1) / 4));
+        const now = new Date();
+        const year = signal(now.getUTCFullYear());
+        const quarter = signal(Math.ceil((now.getUTCMonth() + 1) / 4));
 
         return create("div")
             .classes("flex")

@@ -14,7 +14,7 @@ import {Genre} from "../enums/Genre.ts";
 import {getImageUrl, target} from "../functions/templates.ts";
 import {Statistic} from "../models/Statistic.ts";
 import {Statistics} from "./statistics.ts";
-import {dayFrom, today} from "../functions/dates.ts";
+import {dayFrom, today, toUTCDate} from "../functions/dates.ts";
 import {MediaFileType} from "../enums/MediaFileType.ts";
 import {RequestableImageSize} from "../enums/requestableImageSize.ts";
 import {Images} from "./generic/images.ts";
@@ -139,7 +139,7 @@ export class Tracks {
                                                     Api.updateTrack(track$.value?.id ?? 0, {
                                                         title: title.value,
                                                         isrc: isrc.value,
-                                                        release_date: new Date(releaseDate.value),
+                                                        release_date: toUTCDate(new Date(releaseDate.value)),
                                                         price: price.value,
                                                         length: length.value,
                                                         credits: credits.value,
@@ -232,7 +232,7 @@ export class Tracks {
                                     Generics.link("/track/" + track.id, track.title)
                                 ).build(),
                             create("td")
-                                .text(new Date(track.release_date).toLocaleString())
+                                .text(new Date(track.release_date).toLocaleString(undefined, {timeZone: 'UTC'}))
                                 .build(),
                         ).build(),
                     ["scroll-table"]
@@ -314,7 +314,7 @@ export class Tracks {
                             Api.createTrack({
                                 title: title.value,
                                 artists: artists.value,
-                                release_date: release_date.value,
+                                release_date: toUTCDate(new Date(release_date.value)),
                                 price: price.value,
                                 isrc: isrc.value,
                                 credits: credits.value,

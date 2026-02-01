@@ -2,13 +2,11 @@ import {signal} from "@targoninc/jess";
 
 export class Time {
     static localDate(time: number|string|Date) {
-        return new Date(time).toDateString();
+        return new Date(time).toLocaleDateString(undefined, { timeZone: 'UTC' });
     }
 
     static adjust(time: number|string|Date): Date {
-        time = new Date(time);
-        time.setMinutes(time.getMinutes() - time.getTimezoneOffset());
-        return time;
+        return new Date(time);
     }
 
     static ago(time: number|string|Date, useShort = false): string {
@@ -110,7 +108,7 @@ export class Time {
     }
 
     static toTimeString(time: number|string|Date) {
-        return new Date(time).toTimeString().split(" ")[0];
+        return new Date(time).toISOString().split("T")[1].split(".")[0];
     }
 
     static toTimeFromSeconds(seconds: number) {

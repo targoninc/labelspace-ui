@@ -18,7 +18,7 @@ export class Logs {
                 ["Time", "Level", "Message"],
                 logs,
                 (log: Log) => Generics.tableRow(
-                    new Date(log.time).toLocaleString(),
+                    new Date(log.time).toLocaleString(undefined, {timeZone: 'UTC'}),
                     log.logLevel,
                     log.message
                 )

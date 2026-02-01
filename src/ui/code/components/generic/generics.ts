@@ -271,13 +271,7 @@ export class Generics {
     }
 
     static earnings(number: Signal<number>) {
-        return horizontal(
-            Generics.heading(2, "Total Earnings"),
-            create("span")
-                .classes("currency")
-                .text(currency(number))
-                .build()
-        ).classes("align-children");
+        return Generics.heading(2, compute(c => `Total Earnings: ${c}`, currency(number) as Signal<string>));
     }
 
     static property(name: string, value: any|Signal<any>) {

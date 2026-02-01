@@ -16,7 +16,7 @@ import {Modals} from "./modals.ts";
 import {SearchResult} from "../models/SearchResult.ts";
 import {getImageUrl, target} from "../functions/templates.ts";
 import {Statistics} from "./statistics.ts";
-import {dayFrom, today} from "../functions/dates.ts";
+import {dayFrom, today, toUTCDate} from "../functions/dates.ts";
 import {MediaFileType} from "../enums/MediaFileType.ts";
 import {RequestableImageSize} from "../enums/requestableImageSize.ts";
 import {Images} from "./generic/images.ts";
@@ -89,7 +89,7 @@ export class Albums {
             Generics.image(getImageUrl(MediaFileType.albumCover, album.id, RequestableImageSize.s100)),
             Generics.link("/album/" + album.id, album.title),
             create("span")
-                .text(`${new Date(album.release_date).toLocaleDateString()}`)
+                .text(`${new Date(album.release_date).toLocaleDateString(undefined, {timeZone: 'UTC'})}`)
                 .build(),
             create("span")
                 .text(`${album.tracks?.length ?? 0} track${(album.tracks?.length === 1) ? "" : "s"}`)
@@ -163,7 +163,7 @@ export class Albums {
                             Api.createAlbum({
                                 title: title.value,
                                 upc: upc.value,
-                                release_date: new Date(release_date.value),
+                                release_date: toUTCDate(new Date(release_date.value)),
                                 price: price.value,
                                 artists: artists.value,
                             }).then((album) => {
@@ -214,12 +214,10 @@ export class Albums {
             return {upc: a};
         }, upc);
 
-        return create("div")
-            .classes("flex")
-            .children(
-                Statistics.singleStatistic("Royalties by month", Api.getRoyaltiesByMonth, Statistics.royaltiesByMonthChart, null, options),
-                Statistics.singleStatistic("Royalties by service", Api.getRoyaltiesByService, Statistics.royaltiesByServiceChart, null, options),
-            ).build();
+        return vertical(
+            Statistics.singleStatistic("Royalties by month", Api.getRoyaltiesByMonth, Statistics.royaltiesByMonthChart, null, options),
+            Statistics.singleStatistic("Royalties by service", Api.getRoyaltiesByService, Statistics.royaltiesByServiceChart, null, options),
+        ).build();
     }
 
     static album(album: Signal<Album | null>, load: Function) {
@@ -233,11 +231,11 @@ export class Albums {
         const tracks = compute(a => a?.tracks ?? [], album);
         const id = compute(a => a?.id ?? 0, album);
         const noneChanged = compute((t, u, r, p, a) => {
-            console.log(new Date(r).getDate() === new Date(album.value?.release_date).getDate(), new Date(r), album.value?.release_date, new Date(album.value?.release_date));
+            const currentReleaseDate = album.value?.release_date ? dayFrom(album.value.release_date) : "";
 
             return t === album.value?.title
                 && u === album.value?.upc
-                && new Date(r).getDate() === new Date(album.value?.release_date).getDate()
+                && dayFrom(r) === currentReleaseDate
                 && p === album.value?.price
                 && a === album.value?.artists;
         }, title, upc, releaseDate, price, artists);
@@ -262,69 +260,67 @@ export class Albums {
         const triRecordsLink = compute(a => `https://trirecords.eu/album/${a?.id}`, album);
 
         return vertical(
-            create("div")
-                .classes("flex-v", "flex-grow")
-                .children(
-                    horizontal(
-                        Generics.heading(2, compute((a, t) => `${a} - ${t}`, artists, title)),
-                        button({
-                            text: "Open on Tri Records",
-                            icon: {icon: "open_in_new"},
-                            classes: ["positive"],
-                            onclick: () => {
-                                window.open(triRecordsLink.value, "_blank");
-                            }
-                        }),
-                    ).classes("align-children", "split-flex"),
-                    when(hasReleaseManagementPermission, vertical(
+            vertical(
+                horizontal(
+                    Generics.heading(2, compute((a, t) => `${a} - ${t}`, artists, title)),
+                    button({
+                        text: "Open on Tri Records",
+                        icon: {icon: "open_in_new"},
+                        classes: ["positive"],
+                        onclick: () => {
+                            window.open(triRecordsLink.value, "_blank");
+                        }
+                    }),
+                ).classes("align-children", "split-flex"),
+                when(hasReleaseManagementPermission, vertical(
+                    Images.changeableImage(id, hasImage, MediaFileType.albumCover, {
+                        changeable: false,
+                        deletable: false,
+                        size: ImageSize.p100
+                    }),
+                    Generics.heading(2, title),
+                    Generics.heading(3, artists),
+                    Generics.property("UPC", upc),
+                    Generics.property("Release date", releaseDate),
+                    Generics.property("Price", currency(price)),
+                ).build(), true),
+                when(hasReleaseManagementPermission, Generics.container(0, [
+                    vertical(
                         Images.changeableImage(id, hasImage, MediaFileType.albumCover, {
-                            changeable: false,
-                            deletable: false,
-                            size: ImageSize.p100
+                            changeable: true,
+                            deletable: true,
+                            size: ImageSize.p50
                         }),
-                        Generics.heading(2, title),
-                        Generics.heading(3, artists),
-                        Generics.property("UPC", upc),
-                        Generics.property("Release date", releaseDate),
-                        Generics.property("Price", currency(price)),
-                    ).build(), true),
-                    when(hasReleaseManagementPermission, Generics.container(0, [
-                        vertical(
-                            Images.changeableImage(id, hasImage, MediaFileType.albumCover, {
-                                changeable: true,
-                                deletable: true,
-                                size: ImageSize.p50
-                            }),
-                            Inputs.text(title, "Title", "title"),
-                            Inputs.text(artists, "Artists", "artists"),
-                            Inputs.text(upc, "UPC", "upc"),
-                            Inputs.date(releaseDate, "Release date", "release_date"),
-                            Inputs.number(price, "Price", "price"),
-                            button({
-                                text: "Update",
-                                icon: {icon: "save"},
-                                classes: ["positive", "fit-content"],
-                                disabled: compute((l, n) => l || n, loading, noneChanged),
-                                onclick: () => {
-                                    Api.updateAlbum(id.value, {
-                                        title: title.value,
-                                        upc: upc.value,
-                                        release_date: new Date(releaseDate.value),
-                                        price: price.value,
-                                        artists: artists.value,
-                                    }).then(() => {
-                                        notify("Album updated", NotificationType.success);
-                                        reload();
-                                    }).catch((e: any) => {
-                                        console.error(e);
-                                    });
-                                }
-                            })
-                        ).build()
-                    ])),
-                ).build(),
+                        Inputs.text(title, "Title", "title"),
+                        Inputs.text(artists, "Artists", "artists"),
+                        Inputs.text(upc, "UPC", "upc"),
+                        Inputs.date(releaseDate, "Release date", "release_date"),
+                        Inputs.number(price, "Price", "price"),
+                        button({
+                            text: "Update",
+                            icon: {icon: "save"},
+                            classes: ["positive", "fit-content"],
+                            disabled: compute((l, n) => l || n, loading, noneChanged),
+                            onclick: () => {
+                                Api.updateAlbum(id.value, {
+                                    title: title.value,
+                                    upc: upc.value,
+                                    release_date: toUTCDate(new Date(releaseDate.value)),
+                                    price: price.value,
+                                    artists: artists.value,
+                                }).then(() => {
+                                    notify("Album updated", NotificationType.success);
+                                    reload();
+                                }).catch((e: any) => {
+                                    console.error(e);
+                                });
+                            }
+                        })
+                    ).build()
+                ])),
+            ).build(),
             create("div")
-                .classes("flex-v", "flex-grow", "container", "border")
+                .classes("flex-v", "container", "border")
                 .children(
                     Generics.table(
                         ["Track", "Length", "Earnings", "Actions"],

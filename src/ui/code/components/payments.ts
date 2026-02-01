@@ -65,7 +65,7 @@ export class Payments {
                                             .build(),
                                     ).build(),
                                 create("td")
-                                    .text(new Date(payment.created_at).toLocaleString())
+                                    .text(new Date(payment.created_at).toLocaleString(undefined, {timeZone: 'UTC'}))
                                     .build(),
                             ).build()
                     ),
