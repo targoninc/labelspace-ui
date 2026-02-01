@@ -258,10 +258,14 @@ b {
 }
 
 .container {
-    padding: var(--layout-gap) calc(var(--layout-gap) * 2);
+    padding: calc(var(--layout-gap) * 2);
     box-sizing: border-box;
     background: var(--white);
     border-radius: var(--radius);
+}
+
+nav.container {
+    padding: var(--layout-gap) !important;
 }
 
 .border {

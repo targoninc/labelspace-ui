@@ -93,7 +93,7 @@ export class Files {
         const newName = signal("");
 
         return create("div")
-            .classes("container", "border", "layer-1", "flex-v")
+            .classes("container", "border", "flex-v")
             .children(
                 Generics.heading(2, "Files"),
                 signalMap(attachments, create("div").classes("flex"),

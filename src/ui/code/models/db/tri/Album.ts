@@ -16,6 +16,7 @@ export interface Album {
     visibility: string;
     secretcode: string;
     has_cover: boolean;
+    campaign_sent: boolean;
     price: number;
     artists: string;
 }
