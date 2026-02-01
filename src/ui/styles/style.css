@@ -539,13 +539,22 @@ button.jessc {
 .album-card {
     width: 200px;
     cursor: pointer;
+    padding: 20px;
+    background: var(--white);
+    border: 1px solid var(--gray-3);
 }
 
 .album-card a {
     word-break: break-word;
 }
 
+.album-card img {
+    width: 100%;
+    height: auto;
+    border-radius: var(--radius);
+}
+
 .album-card:hover {
-    border: 1px solid var(--blue);
-    background: var(--gray-1);
+    border: 1px solid var(--cyan);
+    background: var(--gray-3);
 }
