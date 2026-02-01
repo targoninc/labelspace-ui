@@ -193,22 +193,23 @@ export class Albums {
         load();
 
         return Generics.pageFrame(
-            create("div")
-                .classes("flex-v")
-                .children(
-                    Generics.heading(2, "Album"),
+            horizontal(
+                vertical(
                     when(loading, Generics.loading()),
                     when(album, Albums.album(album, load)),
+                ).classes("flex-grow"),
+                vertical(
                     when(canView, Files.albumFiles(album, load)),
                     when(album, Albums.albumStatistics(album))
-                ).build()
+                )
+            ).build()
         );
     }
 
     static albumStatistics(album: Signal<Album | null>) {
         const upc = compute(a => a?.upc ?? "No UPC", album);
         const options = compute(a => {
-            return { upc: a };
+            return {upc: a};
         }, upc);
 
         return create("div")
@@ -257,103 +258,97 @@ export class Albums {
         const hasReleaseManagementPermission = compute(u => u?.permissions?.some(p => p.name === Permissions.releaseManagement) ?? false, currentUser);
         const triRecordsLink = compute(a => `https://trirecords.eu/album/${a?.id}`, album);
 
-        return create("div")
-            .classes("flex")
-            .children(
-                create("div")
-                    .classes("flex-v")
-                    .children(
-                        Images.changeableImage(id, hasImage, MediaFileType.albumCover, {
-                            changeable: hasReleaseManagementPermission,
-                            deletable: hasReleaseManagementPermission,
-                            size: ImageSize.p500
-                        }),
-                    ).build(),
-                create("div")
-                    .classes("flex-v", "flex-grow")
-                    .children(
-                        Generics.link(triRecordsLink, "Open on Tri Records"),
-                        when(hasReleaseManagementPermission, create("div")
+        return vertical(
+            create("div")
+                .classes("flex-v", "flex-grow")
+                .children(
+                    Generics.link(triRecordsLink, "Open on Tri Records"),
+                    Images.changeableImage(id, hasImage, MediaFileType.albumCover, {
+                        changeable: hasReleaseManagementPermission,
+                        deletable: hasReleaseManagementPermission,
+                        size: ImageSize.p100
+                    }),
+                    when(hasReleaseManagementPermission, create("div")
+                        .classes("flex-v")
+                        .children(
+                            Generics.heading(2, title),
+                            Generics.heading(3, artists),
+                            Generics.property("UPC", upc),
+                            Generics.property("Release date", releaseDate),
+                            Generics.property("Price", currency(price)),
+                        ).build(), true),
+                    when(hasReleaseManagementPermission, Generics.container(1, [
+                        create("div")
                             .classes("flex-v")
                             .children(
-                                Generics.heading(2, title),
-                                Generics.heading(3, artists),
-                                Generics.property("UPC", upc),
-                                Generics.property("Release date", releaseDate),
-                                Generics.property("Price", currency(price)),
-                            ).build(), true),
-                        when(hasReleaseManagementPermission, Generics.container(1, [
-                            create("div")
-                                .classes("flex-v")
-                                .children(
-                                    Inputs.text(title, "Title", "title"),
-                                    Inputs.text(artists, "Artists", "artists"),
-                                    Inputs.text(upc, "UPC", "upc"),
-                                    Inputs.date(releaseDate, "Release date", "release_date"),
-                                    Inputs.number(price, "Price", "price"),
-                                    button({
-                                        text: "Update",
-                                        icon: {icon: "save"},
-                                        classes: ["positive", "fit-content"],
-                                        disabled: compute((l, n) => l || n, loading, noneChanged),
-                                        onclick: () => {
-                                            Api.updateAlbum(id.value, {
-                                                title: title.value,
-                                                upc: upc.value,
-                                                release_date: new Date(releaseDate.value),
-                                                price: price.value,
-                                                artists: artists.value,
-                                            }).then(() => {
-                                                notify("Album updated", NotificationType.success);
-                                                reload();
-                                            }).catch((e: any) => {
-                                                console.error(e);
-                                            });
-                                        }
-                                    })
-                                ).build()
-                        ])),
-                        Generics.earnings(earnings)
-                    ).build(),
-                create("div")
-                    .classes("flex-v", "flex-grow", "container", "border", "layer-1")
-                    .children(
-                        Generics.table(
-                            ["Track", "Length", "Earnings", "Actions"],
-                            tracks,
-                            (track: Track) => create("tr")
-                                .children(
-                                    create("td")
-                                        .children(
-                                            Generics.link("/track/" + track.id, track.title)
-                                        ).build(),
-                                    create("td")
-                                        .text(Time.toTimeFromSeconds(track.length))
-                                        .build(),
-                                    create("td")
-                                        .text(currency(track.earnings))
-                                        .build(),
-                                    create("td")
-                                        .children(
-                                            when(hasReleaseManagementPermission, button({
-                                                icon: { icon: "link_off" },
-                                                disabled: loading,
-                                                onclick: () => {
-                                                    Modals.confirm(() => {
-                                                        loading.value = true;
-                                                        Api.removeTrackFromAlbum(track.id, album.value?.id ?? 0).then(() => {
-                                                            load();
-                                                        }).finally(() => loading.value = false);
-                                                    }, "Remove track from album", "Are you sure you want to remove this track from the album?");
-                                                }
-                                            })),
-                                        ).build()
-                                ).build()
-                        ),
-                        Generics.divider(),
-                        when(hasReleaseManagementPermission, Albums.addTracksSection(search, searchResults, loading, album, load)),
-                    ).build(),
-            ).build();
+                                Inputs.text(title, "Title", "title"),
+                                Inputs.text(artists, "Artists", "artists"),
+                                Inputs.text(upc, "UPC", "upc"),
+                                Inputs.date(releaseDate, "Release date", "release_date"),
+                                Inputs.number(price, "Price", "price"),
+                                button({
+                                    text: "Update",
+                                    icon: {icon: "save"},
+                                    classes: ["positive", "fit-content"],
+                                    disabled: compute((l, n) => l || n, loading, noneChanged),
+                                    onclick: () => {
+                                        Api.updateAlbum(id.value, {
+                                            title: title.value,
+                                            upc: upc.value,
+                                            release_date: new Date(releaseDate.value),
+                                            price: price.value,
+                                            artists: artists.value,
+                                        }).then(() => {
+                                            notify("Album updated", NotificationType.success);
+                                            reload();
+                                        }).catch((e: any) => {
+                                            console.error(e);
+                                        });
+                                    }
+                                })
+                            ).build()
+                    ])),
+                    Generics.earnings(earnings)
+                ).build(),
+            create("div")
+                .classes("flex-v", "flex-grow", "container", "border", "layer-1")
+                .children(
+                    Generics.table(
+                        ["Track", "Length", "Earnings", "Actions"],
+                        tracks,
+                        (track: Track) => create("tr")
+                            .children(
+                                create("td")
+                                    .children(
+                                        Generics.link("/track/" + track.id, track.title)
+                                    ).build(),
+                                create("td")
+                                    .text(Time.toTimeFromSeconds(track.length))
+                                    .build(),
+                                create("td")
+                                    .text(currency(track.earnings))
+                                    .build(),
+                                create("td")
+                                    .children(
+                                        when(hasReleaseManagementPermission, button({
+                                            icon: {icon: "link_off"},
+                                            disabled: loading,
+                                            onclick: () => {
+                                                Modals.confirm(() => {
+                                                    loading.value = true;
+                                                    Api.removeTrackFromAlbum(track.id, album.value?.id ?? 0).then(() => {
+                                                        load();
+                                                    }).finally(() => loading.value = false);
+                                                }, "Remove track from album", "Are you sure you want to remove this track from the album?");
+                                            }
+                                        })),
+                                    ).build()
+                            ).build()
+                    ),
+                    Generics.divider(),
+                    when(hasReleaseManagementPermission, Albums.addTracksSection(search, searchResults, loading, album, load)),
+                ).build(),
+        ).classes("flex-grow").build();
     }
 
     private static addTracksSection(search: Signal<string>, searchResults: Signal<SearchResult[]>, loading: Signal<boolean>, album: Signal<Album | null>, load: Function) {

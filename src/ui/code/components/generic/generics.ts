@@ -17,12 +17,12 @@ import {currency} from "../../functions/formatters.ts";
 import {
     AnyElement,
     compute,
-    create,
+    create, DomNode,
     nullElement,
     signal,
     Signal,
     signalMap,
-    StringOrSignal,
+    StringOrSignal, TypeOrSignal,
     when
 } from "@targoninc/jess";
 import {button} from "@targoninc/jess-components";
@@ -318,13 +318,13 @@ export class Generics {
     }
 }
 
-export function horizontal(...children: AnyElement[]) {
+export function horizontal(...children: (TypeOrSignal<AnyElement> | DomNode)[]) {
     return create("div")
         .classes("flex")
         .children(...children);
 }
 
-export function vertical(...children: AnyElement[]) {
+export function vertical(...children: (TypeOrSignal<AnyElement> | DomNode)[]) {
     return create("div")
         .classes("flex-v")
         .children(...children);
