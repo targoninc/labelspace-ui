@@ -103,7 +103,6 @@ a {
 }
 
 .link-container {
-    width: max-content;
     cursor: pointer;
     transition: all 0.1s;
 }
@@ -535,4 +534,18 @@ button.jessc {
 
 .nowrap {
     flex-wrap: nowrap;
+}
+
+.album-card {
+    width: 200px;
+    cursor: pointer;
+}
+
+.album-card a {
+    word-break: break-word;
+}
+
+.album-card:hover {
+    border: 1px solid var(--blue);
+    background: var(--gray-1);
 }

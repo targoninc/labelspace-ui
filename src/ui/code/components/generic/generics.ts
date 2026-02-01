@@ -318,6 +318,18 @@ export class Generics {
     }
 }
 
+export function horizontal(...children: AnyElement[]) {
+    return create("div")
+        .classes("flex")
+        .children(...children);
+}
+
+export function vertical(...children: AnyElement[]) {
+    return create("div")
+        .classes("flex-v")
+        .children(...children);
+}
+
 export const routes: Route[] = [
     {
         path: "404",

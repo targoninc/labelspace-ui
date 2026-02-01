@@ -1,6 +1,6 @@
 import {Album} from "../models/db/tri/Album.ts";
 import {Api} from "../api/api.ts";
-import {Generics} from "./generic/generics.ts";
+import {Generics, horizontal, vertical} from "./generic/generics.ts";
 import {navigate, reload} from "../routing/Router.ts";
 import {Inputs} from "./generic/inputs.ts";
 import {notify} from "../functions/notifications.ts";
@@ -23,7 +23,7 @@ import {Images} from "./generic/images.ts";
 import {ImageSize} from "../enums/imageSize.ts";
 import {Time} from "../functions/time.ts";
 import {Files} from "./generic/files.ts";
-import {compute, create, InputType, Signal, signal, when} from "@targoninc/jess";
+import {compute, create, InputType, Signal, signal, signalMap, when} from "@targoninc/jess";
 import {button, input} from "@targoninc/jess-components";
 
 export class Albums {
@@ -63,6 +63,8 @@ export class Albums {
             return a.title.toLowerCase().includes(f.toLowerCase()) ||
                 a.artists.toLowerCase().includes(f.toLowerCase());
         }), albums, filter);
+        const filteredUpcoming = compute(a => a.filter(a => !a.release_date || new Date(a.release_date).getTime() > new Date().getTime()), filteredAlbums);
+        const filteredReleased = compute(a => a.filter(a => new Date(a.release_date).getTime() <= new Date().getTime()), filteredAlbums);
         const count = compute(a => a.length + " Albums", filteredAlbums);
         const loading = signal(false);
         Api.getAlbums()
@@ -75,29 +77,26 @@ export class Albums {
                 Generics.heading(2, count),
                 Albums.listActions(canManageReleases, filter),
                 when(loading, Generics.loading()),
-                Generics.table(
-                    ["Cover", "Title", "Release date", "Tracks"],
-                    filteredAlbums,
-                    (album) => create("tr")
-                        .children(
-                            create("td")
-                                .children(
-                                    Generics.image(getImageUrl(MediaFileType.albumCover, album.id, RequestableImageSize.s50))
-                                ).build(),
-                            create("td")
-                                .children(
-                                    Generics.link("/album/" + album.id, album.title)
-                                ).build(),
-                            create("td")
-                                .text(new Date(album.release_date).toLocaleString())
-                                .build(),
-                            create("td")
-                                .text(album.tracks?.length ?? 0)
-                                .build(),
-                        ).build(),
-                    ["scroll-table"]
-                )
+                Generics.heading(3, "Unreleased"),
+                signalMap(filteredUpcoming, horizontal(), album => Albums.albumCard(album)),
+                Generics.heading(3, "Released"),
+                signalMap(filteredReleased, horizontal(), album => Albums.albumCard(album)),
             ).build();
+    }
+
+    private static albumCard(album: Album) {
+        return vertical(
+            Generics.image(getImageUrl(MediaFileType.albumCover, album.id, RequestableImageSize.s100)),
+            Generics.link("/album/" + album.id, album.title),
+            create("span")
+                .text(`${new Date(album.release_date).toLocaleDateString()}`)
+                .build(),
+            create("span")
+                .text(`${album.tracks?.length ?? 0} track${(album.tracks?.length === 1) ? "" : "s"}`)
+                .build()
+        ).onclick(() => {
+            navigate("/album/" + album.id);
+        }).classes("container", "layer-2", "album-card").build();
     }
 
     private static listActions(canManageReleases: Signal<boolean>, filter: Signal<string>) {
