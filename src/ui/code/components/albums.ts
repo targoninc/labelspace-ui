@@ -390,9 +390,6 @@ export class Albums {
         const sentText = compute((a): string => a?.campaign_sent ? "Release newsletter has been sent" : "No release newsletter has been sent", album);
 
         return horizontal(
-            when(hasNewsLetterPermission, create("span")
-                .text(sentText)
-                .build(), true),
             when(hasNewsLetterPermission, button({
                 text: "Send release newsletter",
                 icon: {icon: "send"},
@@ -406,8 +403,11 @@ export class Albums {
                             });
                     }, "Send release newsletter", "Are you sure you want to send the release newsletter for this album?");
                 }
-            }))
-        )
+            })),
+            create("span")
+                .text(sentText)
+                .build()
+        ).classes("align-children")
     }
 
     private static addTracksSection(search: Signal<string>, searchResults: Signal<SearchResult[]>, loading: Signal<boolean>, album: Signal<Album | null>, load: Function) {
