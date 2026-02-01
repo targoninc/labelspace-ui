@@ -319,6 +319,7 @@ export class Albums {
                     ).build()
                 ])),
             ).build(),
+            Albums.campaignSection(album),
             create("div")
                 .classes("flex-v", "container", "border")
                 .children(
@@ -358,6 +359,55 @@ export class Albums {
                     when(hasReleaseManagementPermission, Albums.addTracksSection(search, searchResults, loading, album, load)),
                 ).build(),
         ).classes("flex-grow").build();
+    }
+
+    private static campaignSection(album: Signal<Album | null>) {
+        const hasNewsLetterPermission = compute(u => u?.permissions?.some(p => p.name === Permissions.sendNewsletters) ?? false, currentUser);
+        const canSend = compute(a => {
+            const firstTrack = a?.tracks && a.tracks.length > 0 ? a.tracks[0] : null;
+            if (!firstTrack) {
+                return false;
+            }
+
+            const links = [
+                firstTrack.link_spotify,
+                firstTrack.link_lyda,
+                firstTrack.link_applemusic,
+                firstTrack.link_bandcamp,
+                firstTrack.link_youtube,
+                firstTrack.link_soundcloud,
+            ].filter(l => l && l.trim() !== "");
+            if (links.length < 5 || !a) {
+                return false;
+            }
+
+            const albumReleaseDate = new Date(a.release_date).getTime();
+            const firstTrackReleaseDate = new Date(firstTrack.release_date).getTime();
+            return !a.campaign_sent
+                && albumReleaseDate <= new Date().getTime()
+                && firstTrackReleaseDate <= new Date().getTime();
+        }, album);
+        const sentText = compute((a): string => a?.campaign_sent ? "Release newsletter has been sent" : "No release newsletter has been sent", album);
+
+        return horizontal(
+            when(hasNewsLetterPermission, create("span")
+                .text(sentText)
+                .build(), true),
+            when(hasNewsLetterPermission, button({
+                text: "Send release newsletter",
+                icon: {icon: "send"},
+                disabled: compute(c => !c, canSend),
+                onclick: () => {
+                    Modals.confirm(() => {
+                        Api.sendAlbumNewsletter(album.value?.id ?? 0)
+                            .then(() => {
+                                notify("Newsletter sending done", NotificationType.success);
+                                reload();
+                            });
+                    }, "Send release newsletter", "Are you sure you want to send the release newsletter for this album?");
+                }
+            }))
+        )
     }
 
     private static addTracksSection(search: Signal<string>, searchResults: Signal<SearchResult[]>, loading: Signal<boolean>, album: Signal<Album | null>, load: Function) {

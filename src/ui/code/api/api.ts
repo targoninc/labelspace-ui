@@ -274,4 +274,10 @@ export class Api {
             visible_to_artists
         });
     }
+
+    static sendAlbumNewsletter(id: number) {
+        return Fetcher.post(base + "/albums/actions/sendNewsletter", {
+            id
+        });
+    }
 }

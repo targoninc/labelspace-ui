@@ -5,4 +5,5 @@ export enum Permissions {
     releaseEditing = "releaseEditing",
     importData = "importData",
     fileManagement = "fileManagement",
+    sendNewsletters = "sendNewsletters",
 }
