@@ -181,6 +181,7 @@ export class Albums {
     static albumPage(route: Route, params: any) {
         const album = signal<Album | null>(null);
         const loading = signal(false);
+        const earnings = compute(a => a?.earnings ?? 0, album);
         const hasFileManagementPermission = compute(u => u?.permissions?.some(p => p.name === Permissions.fileManagement) ?? false, currentUser);
         const canView = compute((a, user, hasPermission) =>
             a?.artists.split(",").some(art => user?.artists?.some(art2 => art2.name === art.trim())) || hasPermission, album, currentUser, hasFileManagementPermission);
@@ -200,6 +201,7 @@ export class Albums {
                 ).classes("flex-grow"),
                 vertical(
                     when(canView, Files.albumFiles(album, load)),
+                    Generics.earnings(earnings),
                     when(album, Albums.albumStatistics(album))
                 )
             ).build()
@@ -230,7 +232,6 @@ export class Albums {
         const artists = compute(a => a?.artists ?? "Unknown artists", album);
         const tracks = compute(a => a?.tracks ?? [], album);
         const id = compute(a => a?.id ?? 0, album);
-        const earnings = compute(a => a?.earnings ?? 0, album);
         const noneChanged = compute((t, u, r, p, a) => {
             return t === album.value?.title
                 && u === album.value?.upc
@@ -310,7 +311,6 @@ export class Albums {
                                 })
                             ).build()
                     ])),
-                    Generics.earnings(earnings)
                 ).build(),
             create("div")
                 .classes("flex-v", "flex-grow", "container", "border", "layer-1")

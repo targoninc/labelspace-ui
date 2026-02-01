@@ -271,9 +271,13 @@ export class Generics {
     }
 
     static earnings(number: Signal<number>) {
-        const asCurrency = compute(n => currency(n), number);
-
-        return Generics.property("Earnings", asCurrency);
+        return horizontal(
+            Generics.heading(2, "Total Earnings"),
+            create("span")
+                .classes("currency")
+                .text(currency(number))
+                .build()
+        ).classes("align-children");
     }
 
     static property(name: string, value: any|Signal<any>) {
