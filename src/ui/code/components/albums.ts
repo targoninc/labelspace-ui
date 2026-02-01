@@ -262,12 +262,14 @@ export class Albums {
             create("div")
                 .classes("flex-v", "flex-grow")
                 .children(
-                    Generics.link(triRecordsLink, "Open on Tri Records"),
-                    Images.changeableImage(id, hasImage, MediaFileType.albumCover, {
-                        changeable: hasReleaseManagementPermission,
-                        deletable: hasReleaseManagementPermission,
-                        size: ImageSize.p100
-                    }),
+                    horizontal(
+                        Images.changeableImage(id, hasImage, MediaFileType.albumCover, {
+                            changeable: hasReleaseManagementPermission,
+                            deletable: hasReleaseManagementPermission,
+                            size: ImageSize.p100
+                        }),
+                        Generics.link(triRecordsLink, "Open on Tri Records"),
+                    ),
                     when(hasReleaseManagementPermission, create("div")
                         .classes("flex-v")
                         .children(
