@@ -539,10 +539,13 @@ export class Users {
                 icon: {icon: "delete"},
                 disabled: loading,
                 onclick: () => {
-                    loading.value = true;
-                    Api.deleteArtistLink(l.id)
-                        .then(() => update())
-                        .finally(() => loading.value = false);
+                    Modals.confirm(() => {
+                        loading.value = true;
+                        Api.deleteArtistLink(l.id)
+                            .then(() => update())
+                            .finally(() => loading.value = false);
+                    }, "Delete link", `Are you sure you want to delete the link '${l.text}'?`);
+
                 }
             }),
             when(hasChanges, button({
