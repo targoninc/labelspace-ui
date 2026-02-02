@@ -11,6 +11,7 @@ import {UploadTrackRequestBody} from "../models/UploadTrackRequestBody.ts";
 import {SearchResult} from "../models/SearchResult.ts";
 import { MediaFileType } from "../enums/MediaFileType.ts";
 import {Artist} from "../models/db/tri/Artist.ts";
+import {ArtistLink} from "../models/db/tri/ArtistLink.ts";
 import {AuthenticationJSON, CredentialDescriptor, RegistrationJSON} from "@passwordless-id/webauthn/dist/esm/types";
 import {MfaOption} from "../enums/MfaOption.ts";
 
@@ -168,6 +169,32 @@ export class Api {
         return Fetcher.post(base + "/artists/update", {
             ...artist,
             name,
+        });
+    }
+
+    static getArtistLinks(name: string) {
+        return Fetcher.get<ArtistLink[]>(base + "/artists/links/get", {name});
+    }
+
+    static createArtistLink(artistId: number, text: string, url: string) {
+        return Fetcher.post(base + "/artists/links/create", {
+            artistId,
+            text,
+            url
+        });
+    }
+
+    static updateArtistLink(id: number, text: string, url: string) {
+        return Fetcher.post(base + "/artists/links/update", {
+            id,
+            text,
+            url
+        });
+    }
+
+    static deleteArtistLink(id: number) {
+        return Fetcher.post(base + "/artists/links/delete", {
+            id
         });
     }
 

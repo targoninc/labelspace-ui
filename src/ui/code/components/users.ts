@@ -197,9 +197,7 @@ export class Users {
                                     });
                                     notify("Successfully registered passkey", NotificationType.success);
                                 }).finally(() => loading.value = false);
-                            }).catch(e => {
-                                loading.value = false;
-                            });
+                            }).catch(() => loading.value = false);
                         }, "Add passkey", InputType.text, false, () => {}, {
                             label: "Passkey name"
                         });
