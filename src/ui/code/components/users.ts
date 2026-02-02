@@ -457,7 +457,7 @@ export class Users {
 
         const update = () => {
             loading.value = true;
-            Api.getArtistLinks(a.name)
+            Api.getArtistLinks(a.id)
                 .then(l => links.value = l)
                 .finally(() => loading.value = false);
         }

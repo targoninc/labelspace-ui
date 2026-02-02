@@ -172,8 +172,8 @@ export class Api {
         });
     }
 
-    static getArtistLinks(name: string) {
-        return Fetcher.get<ArtistLink[]>(base + "/artists/links/get", {name});
+    static getArtistLinks(id: number) {
+        return Fetcher.get<ArtistLink[]>(base + "/artists/links/get", {id});
     }
 
     static createArtistLink(artistId: number, text: string, url: string) {
