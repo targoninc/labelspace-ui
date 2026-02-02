@@ -514,6 +514,10 @@ export class Users {
         const save = () => {
             loading.value = true;
             Api.updateArtistLink(l.id, text.value, url.value)
+                .then(() => {
+                    l.text = text.value;
+                    l.url = url.value;
+                })
                 .finally(() => loading.value = false);
         }
 
