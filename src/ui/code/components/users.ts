@@ -490,7 +490,7 @@ export class Users {
                 button({
                     text: "New link",
                     icon: {icon: "add"},
-                    disabled: compute((l, t, u) => l.length >= 5 || !t || !u || t.length === 0 || u.length <= 9, links, newLinkText, newLinkUrl),
+                    disabled: compute((l, t, u) => l.length >= 10 || !t || !u || t.length === 0 || u.length <= 9, links, newLinkText, newLinkUrl),
                     onclick: () => {
                         loading.value = true;
                         Api.createArtistLink(a.id, newLinkText.value, newLinkUrl.value)
@@ -545,7 +545,6 @@ export class Users {
                             .then(() => update())
                             .finally(() => loading.value = false);
                     }, "Delete link", `Are you sure you want to delete the link '${l.text}'?`);
-
                 }
             }),
             when(hasChanges, button({
