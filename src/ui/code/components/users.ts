@@ -470,7 +470,7 @@ export class Users {
             signalMap(
                 links,
                 vertical(),
-                l => Users.artistLink(l, loading),
+                l => Users.artistLink(l, loading, update),
             ),
             horizontal(
                 input({
@@ -506,7 +506,7 @@ export class Users {
         )
     }
 
-    private static artistLink(l: ArtistLink, loading: Signal<boolean>) {
+    private static artistLink(l: ArtistLink, loading: Signal<boolean>, update: () => void) {
         const text = signal(l.text);
         const url = signal(l.url);
         const hasChanges = compute((t, u) => t !== l.text && u !== l.url, text, url);
@@ -533,6 +533,17 @@ export class Users {
                 value: url,
                 label: "URL",
                 onchange: val => url.value = val
+            }),
+            button({
+                text: "Delete",
+                icon: {icon: "delete"},
+                disabled: loading,
+                onclick: () => {
+                    loading.value = true;
+                    Api.deleteArtistLink(l.id)
+                        .then(() => update())
+                        .finally(() => loading.value = false);
+                }
             }),
             when(hasChanges, button({
                 text: "Save",
