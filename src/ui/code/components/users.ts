@@ -1,4 +1,4 @@
-import {Generics, vertical} from "./generic/generics.ts";
+import {Generics, horizontal, vertical} from "./generic/generics.ts";
 import {User} from "../models/db/tri/User.ts";
 import {Api} from "../api/api.ts";
 import {Artist} from "../models/db/tri/Artist.ts";
@@ -25,7 +25,8 @@ import {
 import {PublicKey} from "../models/db/tri/PublicKey.ts";
 import {PermissionIcons} from "../enums/PermissionIcons.ts";
 import {compute, create, InputType, Signal, signal, signalMap, when} from "@targoninc/jess";
-import {button} from "@targoninc/jess-components";
+import {button, input} from "@targoninc/jess-components";
+import {ArtistLink} from "../models/db/tri/ArtistLink.ts";
 
 export class Users {
     static usersPage() {
@@ -252,7 +253,7 @@ export class Users {
 
     private static artist(a: Artist) {
         const description = signal(a.description ?? "");
-        const anyInvalid = compute((d) => {
+        const noChanges = compute((d) => {
             return d === a.description;
         }, description);
         const loading = signal(false);
@@ -268,16 +269,15 @@ export class Users {
                         size: ImageSize.p100,
                         classes: ["artist-logo"]
                     }, "/images/LOGO512.png"),
-                    create("div")
-                        .classes("flex-v")
-                        .children(
-                            Generics.link("https://trirecords.eu/artist/" + a.name, a.name),
-                            Inputs.longtext(description, "Description", "description"),
+                    vertical(
+                        Generics.link("https://trirecords.eu/artist/" + a.name, a.name),
+                        Inputs.longtext(description, "Description", "description"),
+                        horizontal(
                             button({
                                 text: "Update",
                                 icon: {icon: "save"},
                                 classes: ["positive"],
-                                disabled: compute((a, l) => a || l, anyInvalid, loading),
+                                disabled: compute((a, l) => a || l, noChanges, loading),
                                 onclick: () => {
                                     Api.updateArtist(a.name, <Partial<Artist>>{
                                         description: description.value
@@ -288,8 +288,18 @@ export class Users {
                                         });
                                     }).finally(() => loading.value = false);
                                 }
-                            })
-                        ).build()
+                            }),
+                            when(noChanges, button({
+                                text: "Revert",
+                                icon: {icon: "undo"},
+                                classes: ["warning"],
+                                onclick: () => {
+                                    description.value = a.description ?? "";
+                                }
+                            }), true)
+                        )
+                    ),
+                    Users.artistLinks(a)
                 ).build()
         ]);
     }
@@ -439,5 +449,97 @@ export class Users {
                     when(loading, Generics.loading())
                 ).build()
         ]);
+    }
+
+    private static artistLinks(a: Artist) {
+        const links = signal<ArtistLink[]>([]);
+        const loading = signal(false);
+
+        const update = () => {
+            loading.value = true;
+            Api.getArtistLinks(a.name)
+                .then(l => links.value = l)
+                .finally(() => loading.value = false);
+        }
+        update();
+
+        const newLinkText = signal("");
+        const newLinkUrl = signal("");
+
+        return vertical(
+            signalMap(
+                links,
+                vertical(),
+                l => Users.artistLink(l, loading),
+            ),
+            horizontal(
+                input({
+                    name: "newLinkText",
+                    type: InputType.text,
+                    value: newLinkText,
+                    label: "Text",
+                    onchange: val => newLinkText.value = val
+                }),
+                input({
+                    name: "newLinkUrl",
+                    type: InputType.text,
+                    value: newLinkUrl,
+                    label: "URL",
+                    onchange: val => newLinkUrl.value = val
+                }),
+                button({
+                    text: "New link",
+                    icon: {icon: "add"},
+                    disabled: compute((l, t, u) => l.length >= 5 || !t || !u || t.length === 0 || u.length <= 9, links, newLinkText, newLinkUrl),
+                    onclick: () => {
+                        loading.value = true;
+                        Api.createArtistLink(a.id, newLinkText.value, newLinkUrl.value)
+                            .then(() => {
+                                newLinkText.value = "";
+                                newLinkUrl.value = "";
+                                update();
+                            }).finally(() => loading.value = false);
+                    }
+                }),
+                when(loading, Generics.loading()),
+            ).classes("center-items"),
+        )
+    }
+
+    private static artistLink(l: ArtistLink, loading: Signal<boolean>) {
+        const text = signal(l.text);
+        const url = signal(l.url);
+        const hasChanges = compute((t, u) => t !== l.text && u !== l.url, text, url);
+
+        const save = () => {
+            loading.value = true;
+            Api.updateArtistLink(l.id, text.value, url.value)
+                .finally(() => loading.value = false);
+        }
+
+        return horizontal(
+            input({
+                name: `linkText-${l.id}`,
+                type: InputType.text,
+                disabled: loading,
+                value: text,
+                label: "Text",
+                onchange: val => text.value = val
+            }),
+            input({
+                name: `linkUrl-${l.id}`,
+                type: InputType.url,
+                disabled: loading,
+                value: url,
+                label: "URL",
+                onchange: val => url.value = val
+            }),
+            when(hasChanges, button({
+                text: "Save",
+                icon: {icon: "save"},
+                disabled: loading,
+                onclick: save
+            })),
+        ).classes("center-items").build();
     }
 }
