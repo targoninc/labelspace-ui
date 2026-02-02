@@ -276,7 +276,7 @@ export class Generics {
 
     static property(name: string, value: any|Signal<any>) {
         return create("div")
-            .classes("flex", "align-children")
+            .classes("flex", "center-items")
             .children(
                 create("b")
                     .text(name)

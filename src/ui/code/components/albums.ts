@@ -271,7 +271,7 @@ export class Albums {
                             window.open(triRecordsLink.value, "_blank");
                         }
                     }),
-                ).classes("align-children", "split-flex"),
+                ).classes("center-items", "split-flex"),
                 when(hasReleaseManagementPermission, vertical(
                     Images.changeableImage(id, hasImage, MediaFileType.albumCover, {
                         changeable: false,
@@ -407,7 +407,7 @@ export class Albums {
             create("span")
                 .text(sentText)
                 .build()
-        ).classes("align-children")
+        ).classes("center-items")
     }
 
     private static addTracksSection(search: Signal<string>, searchResults: Signal<SearchResult[]>, loading: Signal<boolean>, album: Signal<Album | null>, load: Function) {

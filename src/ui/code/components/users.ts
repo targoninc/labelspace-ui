@@ -1,4 +1,4 @@
-import {Generics} from "./generic/generics.ts";
+import {Generics, vertical} from "./generic/generics.ts";
 import {User} from "../models/db/tri/User.ts";
 import {Api} from "../api/api.ts";
 import {Artist} from "../models/db/tri/Artist.ts";
@@ -22,8 +22,8 @@ import {
     ExtendedAuthenticatorTransport,
     RegistrationJSON
 } from "@passwordless-id/webauthn/dist/esm/types";
-import { PublicKey } from "../models/db/tri/PublicKey.ts";
-import { PermissionIcons } from "../enums/PermissionIcons.ts";
+import {PublicKey} from "../models/db/tri/PublicKey.ts";
+import {PermissionIcons} from "../enums/PermissionIcons.ts";
 import {compute, create, InputType, Signal, signal, signalMap, when} from "@targoninc/jess";
 import {button} from "@targoninc/jess-components";
 
@@ -128,7 +128,8 @@ export class Users {
                                 removeLastModal();
                                 Modals.totpVerificationModal(res.secret, res.qrDataUrl);
                             }).finally(() => loading.value = false);
-                        }, "Add TOTP method", InputType.text, false, () => {}, {
+                        }, "Add TOTP method", InputType.text, false, () => {
+                        }, {
                             label: "TOTP method name"
                         });
                     }
@@ -146,64 +147,61 @@ export class Users {
         const loading = signal(false);
         const message = signal("");
 
-        return create("div")
-            .classes("flex-v")
-            .children(
-                Generics.heading(2, "Passkeys"),
-                when(hasCredentials, create("span")
-                    .text("You have no passkeys configured")
-                    .build(), true),
-                when(hasCredentials, create("div")
-                    .classes("flex-v")
+        return vertical(
+            Generics.heading(2, "Passkeys"),
+            when(hasCredentials, create("span")
+                .text("You have no passkeys configured")
+                .build(), true),
+            when(hasCredentials, vertical(
+                signalMap(public_keys, create("div").classes("flex"), key => create("div")
+                    .classes("flex-v", "card")
                     .children(
-                        signalMap(public_keys, create("div").classes("flex"), key => create("div")
-                            .classes("flex-v", "card")
+                        create("div")
+                            .classes("flex", "center-items")
                             .children(
-                                create("div")
-                                    .classes("flex", "center-items")
-                                    .children(
-                                        Generics.heading(2, key.name),
-                                    ).build(),
-                                create("span")
-                                    .text(compute(t => `Created ${t}`, Time.agoUpdating(new Date(key.created_at), true)))
-                                    .build(),
-                                Users.webAuthNActions(loading, key, message)
-                            ).build()),
+                                Generics.heading(2, key.name),
+                            ).build(),
+                        create("span")
+                            .text(compute(t => `Created ${t}`, Time.agoUpdating(new Date(key.created_at), true)))
+                            .build(),
+                        Users.webAuthNActions(loading, key, message)
                     ).build()),
-                button({
-                    text: "Add passkey",
-                    icon: {icon: "add"},
-                    classes: ["positive", "fit-content"],
-                    disabled: loading,
-                    onclick: async () => {
-                        Modals.input(async (name: string) => {
-                            loading.value = true;
-                            await Api.getWebauthnChallenge().then(async (res) => {
-                                const user = currentUser.value;
-                                if (!user) {
-                                    return;
-                                }
-                                let registration: RegistrationJSON;
-                                try {
-                                    registration = await registerWebauthnMethod(user, res.challenge);
-                                } catch (e: any) {
-                                    notify(`Error: ${e.message}`, NotificationType.error);
-                                    return;
-                                }
-                                Api.registerWebauthnMethod(registration, res.challenge, name).then(() => {
-                                    removeLastModal();
-                                    Api.getUser().then(u => {
-                                        currentUser.value = u;
-                                    });
-                                    notify("Successfully registered passkey", NotificationType.success);
-                                }).finally(() => loading.value = false);
-                            }).catch(() => loading.value = false);
-                        }, "Add passkey", InputType.text, false, () => {}, {
-                            label: "Passkey name"
-                        });
-                    }
-                })
-            ).build();
+            ).build()),
+            button({
+                text: "Add passkey",
+                icon: {icon: "add"},
+                classes: ["positive", "fit-content"],
+                disabled: loading,
+                onclick: async () => {
+                    Modals.input(async (name: string) => {
+                        loading.value = true;
+                        await Api.getWebauthnChallenge().then(async (res) => {
+                            const user = currentUser.value;
+                            if (!user) {
+                                return;
+                            }
+                            let registration: RegistrationJSON;
+                            try {
+                                registration = await registerWebauthnMethod(user, res.challenge);
+                            } catch (e: any) {
+                                notify(`Error: ${e.message}`, NotificationType.error);
+                                return;
+                            }
+                            Api.registerWebauthnMethod(registration, res.challenge, name).then(() => {
+                                removeLastModal();
+                                Api.getUser().then(u => {
+                                    currentUser.value = u;
+                                });
+                                notify("Successfully registered passkey", NotificationType.success);
+                            }).finally(() => loading.value = false);
+                        }).catch(() => loading.value = false);
+                    }, "Add passkey", InputType.text, false, () => {
+                    }, {
+                        label: "Passkey name"
+                    });
+                }
+            })
+        ).build();
     }
 
     private static webAuthNActions(loading: Signal<boolean>, key: PublicKey, message: Signal<string>) {
@@ -246,55 +244,54 @@ export class Users {
     private static yourArtists() {
         const artists = compute(u => u?.artists ?? [], currentUser);
 
-        return create("div")
-            .classes("flex-v")
-            .children(
-                Generics.heading(2, "Your artists"),
-                signalMap(artists, create("div").classes("flex-v"), a => {
-                    const description = signal(a.description ?? "");
-                    const anyInvalid = compute((d) => {
-                        return d === a.description;
-                    }, description);
-                    const loading = signal(false);
+        return vertical(
+            Generics.heading(2, "Your artists"),
+            signalMap(artists, vertical(), Users.artist)
+        ).build();
+    }
 
-                    return Generics.container(1, [
-                        create("div")
-                            .classes("flex")
-                            .children(
-                                Images.changeableImage(a.id, a.has_logo, MediaFileType.artistLogo, {
-                                    changeable: true,
-                                    deletable: false,
-                                    afterChange: reload,
-                                    size: ImageSize.p100,
-                                    classes: ["artist-logo"]
-                                }, "/images/LOGO512.png"),
-                                create("div")
-                                    .classes("flex-v")
-                                    .children(
-                                        Generics.link("https://trirecords.eu/artist/" + a.name, a.name),
-                                        Inputs.longtext(description, "Description", "description"),
-                                        button({
-                                            text: "Update",
-                                            icon: {icon: "save"},
-                                            classes: ["positive"],
-                                            disabled: compute((a, l) => a || l, anyInvalid, loading),
-                                            onclick: () => {
-                                                Api.updateArtist(a.name, <Partial<Artist>>{
-                                                    description: description.value
-                                                }).then(() => {
-                                                    notify("Updated artist", NotificationType.success);
-                                                    Api.getUser().then(u => {
-                                                        currentUser.value = u;
-                                                    });
-                                                })
-                                                    .finally(() => loading.value = false);
-                                            }
-                                        })
-                                    ).build()
-                            ).build()
-                    ]);
-                })
-            ).build();
+    private static artist(a: Artist) {
+        const description = signal(a.description ?? "");
+        const anyInvalid = compute((d) => {
+            return d === a.description;
+        }, description);
+        const loading = signal(false);
+
+        return Generics.container(1, [
+            create("div")
+                .classes("flex")
+                .children(
+                    Images.changeableImage(a.id, a.has_logo, MediaFileType.artistLogo, {
+                        changeable: true,
+                        deletable: false,
+                        afterChange: reload,
+                        size: ImageSize.p100,
+                        classes: ["artist-logo"]
+                    }, "/images/LOGO512.png"),
+                    create("div")
+                        .classes("flex-v")
+                        .children(
+                            Generics.link("https://trirecords.eu/artist/" + a.name, a.name),
+                            Inputs.longtext(description, "Description", "description"),
+                            button({
+                                text: "Update",
+                                icon: {icon: "save"},
+                                classes: ["positive"],
+                                disabled: compute((a, l) => a || l, anyInvalid, loading),
+                                onclick: () => {
+                                    Api.updateArtist(a.name, <Partial<Artist>>{
+                                        description: description.value
+                                    }).then(() => {
+                                        notify("Updated artist", NotificationType.success);
+                                        Api.getUser().then(u => {
+                                            currentUser.value = u;
+                                        });
+                                    }).finally(() => loading.value = false);
+                                }
+                            })
+                        ).build()
+                ).build()
+        ]);
     }
 
     static personalData() {
