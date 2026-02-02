@@ -509,7 +509,7 @@ export class Users {
     private static artistLink(l: ArtistLink, loading: Signal<boolean>, update: () => void) {
         const text = signal(l.text);
         const url = signal(l.url);
-        const hasChanges = compute((t, u) => t !== l.text && u !== l.url, text, url);
+        const hasChanges = compute((t, u) => t !== l.text || u !== l.url, text, url);
 
         const save = () => {
             loading.value = true;
