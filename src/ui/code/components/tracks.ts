@@ -1,5 +1,5 @@
 import {Api} from "../api/api.ts";
-import {Generics} from "./generic/generics.ts";
+import {Generics, horizontal} from "./generic/generics.ts";
 import {Track} from "../models/db/tri/Track.ts";
 import {Route} from "../routing/Route.ts";
 import {Inputs} from "./generic/inputs.ts";
@@ -21,11 +21,11 @@ import {Images} from "./generic/images.ts";
 import {ImageSize} from "../enums/imageSize.ts";
 import {Time} from "../functions/time.ts";
 import {currency} from "../functions/formatters.ts";
-import {compute, create, InputType, nullElement, signal, Signal, when} from "@targoninc/jess";
+import {compute, create, InputType, nullElement, signal, Signal, signalMap, when} from "@targoninc/jess";
 import {button, input, searchableSelect} from "@targoninc/jess-components";
 
 function getServiceLinks(track$: Signal<Track | null>): Signal<ServiceLink[]> {
-    return compute((t: Track|null) => {
+    return compute((t: Track | null) => {
         const links: ServiceLink[] = [];
         const properties: (keyof Track)[] = Object.keys(t ?? {}).filter(k => k.startsWith("link_")) as (keyof Track)[];
         for (const property of properties) {
@@ -43,7 +43,7 @@ function getServiceLinks(track$: Signal<Track | null>): Signal<ServiceLink[]> {
 
 export class Tracks {
     static trackPage(route: Route, params: any) {
-        const track = signal<Track|null>(null);
+        const track = signal<Track | null>(null);
         const loading = signal(false);
         Api.getTrack(params.id ?? 0)
             .then(a => track.value = a)
@@ -69,10 +69,8 @@ export class Tracks {
         const artists = compute(t => t?.artists ?? "Unknown artists", track$);
         const price = compute(t => t?.price ?? 0, track$);
         const earnings = compute(t => t?.earnings ?? 0, track$);
-        const album = compute(t => t?.album ?? null, track$);
+        const albums = compute(t => t?.albums ?? [], track$);
         const serviceLinks = getServiceLinks(track$);
-        const albumLink = compute(album => `/album/${album?.id}`, album);
-        const albumTitle = compute(album => album?.title ?? "Unknown album", album);
         const id = compute(t => t?.id ?? 0, track$);
         const hasImage = compute(t => t?.has_cover ?? false, track$);
         const hasReleaseManagementPermission = compute(u => u?.permissions?.some(p => p.name === Permissions.releaseManagement) ?? false, currentUser);
@@ -112,7 +110,10 @@ export class Tracks {
                                         create("span")
                                             .text("In")
                                             .build(),
-                                        Generics.link(albumLink, albumTitle)
+                                        signalMap(
+                                            albums,
+                                            horizontal(),
+                                            a => Generics.link(`/album/${a?.id}`, a?.title ?? "Unknown album")),
                                     ).build(),
                                 when(hasReleaseManagementPermission, create("div")
                                     .classes("flex-v")
@@ -132,7 +133,7 @@ export class Tracks {
                                             button({
                                                 text: "Update track",
                                                 classes: ["positive", "fit-content"],
-                                                icon: { icon: "save" },
+                                                icon: {icon: "save"},
                                                 onclick: () => {
                                                     const links = serviceLinks.value;
 
@@ -183,7 +184,7 @@ export class Tracks {
         }, stats);
         const load = () => {
             loading.value = true;
-            Api.getRoyaltiesByMonth({ isrc: isrc.value })
+            Api.getRoyaltiesByMonth({isrc: isrc.value})
                 .then(s => stats.value = s)
                 .finally(() => loading.value = false);
         };
