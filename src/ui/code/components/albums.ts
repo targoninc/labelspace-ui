@@ -24,7 +24,7 @@ import {ImageSize} from "../enums/imageSize.ts";
 import {Time} from "../functions/time.ts";
 import {Files} from "./generic/files.ts";
 import {compute, create, InputType, Signal, signal, signalMap, when} from "@targoninc/jess";
-import {button, input} from "@targoninc/jess-components";
+import {button, input, toggle} from "@targoninc/jess-components";
 
 export class Albums {
     static page() {
@@ -411,9 +411,16 @@ export class Albums {
     }
 
     private static addTracksSection(search: Signal<string>, searchResults: Signal<SearchResult[]>, loading: Signal<boolean>, album: Signal<Album | null>, load: Function) {
+        const isSingle = signal(false);
+
         return create("div")
             .classes("flex-v")
             .children(
+                toggle({
+                    text: "Is Single album",
+                    checked: isSingle,
+                    onchange: newVal => isSingle.value = newVal
+                }),
                 input({
                     type: InputType.text,
                     name: "search",
@@ -446,14 +453,15 @@ export class Albums {
                                         onclick: () => {
                                             loading.value = true;
                                             const add = () => {
-                                                Api.addTrackToAlbum(track.id, album.value?.id ?? 0).then(() => {
+                                                Api.addTrackToAlbum(track.id, album.value?.id ?? 0, isSingle.value).then(() => {
                                                     load();
                                                 }).finally(() => loading.value = false);
                                             }
 
                                             Api.getTrack(track.id)
                                                 .then(track => {
-                                                    if (track.album_id) {
+                                                    const property = isSingle.value ? track.single_album_id : track.album_id;
+                                                    if (property) {
                                                         Modals.confirm(add, "Conflict", "This track is already in an album. Do you want to add it to this album? This will remove it from the other album.");
                                                     } else {
                                                         add();

@@ -10,6 +10,7 @@ export interface Track {
     notifications?: Notification[];
     id: number;
     album_id?: number;
+    single_album_id?: number;
     title: string;
     artists: string;
     isrc: string;
