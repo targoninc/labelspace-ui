@@ -6,11 +6,9 @@ export interface Track {
     repost_user_id?: number;
     user?: User;
     comments?: Comment[];
-    album?: Album;
+    albums?: Album[];
     notifications?: Notification[];
     id: number;
-    album_id?: number;
-    single_album_id?: number;
     title: string;
     artists: string;
     isrc: string;

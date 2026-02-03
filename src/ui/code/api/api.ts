@@ -151,11 +151,10 @@ export class Api {
         return Fetcher.get<SearchResult[]>(base + "/search/tracks?search=" + q);
     }
 
-    static addTrackToAlbum(track_id: number, album_id: number, is_single: boolean) {
+    static addTrackToAlbum(track_id: number, album_id: number) {
         return Fetcher.post(base + "/albums/actions/addTrack", {
             track_id,
-            album_ids: [album_id],
-            is_single
+            album_ids: [album_id]
         });
     }
 
