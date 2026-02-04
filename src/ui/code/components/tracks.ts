@@ -152,7 +152,7 @@ export class Tracks {
                         }),
                     ).build()
                 ])),
-            ).build(),
+            ).classes("flex-grow").build(),
             vertical(
                 when(hasReleaseManagementPermission, Generics.container(1, [
                     Inputs.serviceLinks(serviceLinks)
