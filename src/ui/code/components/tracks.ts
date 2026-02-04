@@ -219,7 +219,7 @@ export class Tracks {
                                     Generics.link("/track/" + track.id, track.title)
                                 ).build(),
                             create("td")
-                                .text(new Date(track.release_date).toLocaleString(undefined, {timeZone: 'UTC'}))
+                                .text(Time.localDate(track.release_date))
                                 .build(),
                         ).build(),
                     ["scroll-table"]
