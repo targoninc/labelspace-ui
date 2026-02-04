@@ -198,72 +198,66 @@ export class Tracks {
             .then(a => tracks.value = a)
             .finally(() => loading.value = false);
 
-        return create("div")
-            .classes("flex-v")
-            .children(
-                Generics.heading(2, count),
-                Tracks.tracksTabActions(canManageReleases, filter),
-                when(loading, Generics.loading()),
-                Generics.table(
-                    ["Cover", "Title", "Release date"],
-                    filteredTracks,
-                    (track) => create("tr")
-                        .onclick(() => navigate(`/track/${track.id}`))
-                        .children(
-                            create("td")
-                                .children(
-                                    Generics.image(getImageUrl(MediaFileType.trackCover, track.id, RequestableImageSize.s50))
-                                ).build(),
-                            create("td")
-                                .children(
-                                    Generics.link("/track/" + track.id, track.title)
-                                ).build(),
-                            create("td")
-                                .text(Time.localDate(track.release_date))
-                                .build(),
-                        ).build(),
-                    ["scroll-table"]
-                )
-            ).build();
+        return vertical(
+            Generics.heading(2, count),
+            Tracks.tracksTabActions(canManageReleases, filter),
+            when(loading, Generics.loading()),
+            Generics.table(
+                ["Cover", "Title", "Release date"],
+                filteredTracks,
+                (track) => create("tr")
+                    .onclick(() => navigate(`/track/${track.id}`))
+                    .children(
+                        create("td")
+                            .children(
+                                Generics.image(getImageUrl(MediaFileType.trackCover, track.id, RequestableImageSize.s50))
+                            ).build(),
+                        create("td")
+                            .children(
+                                Generics.link("/track/" + track.id, track.title)
+                            ).build(),
+                        create("td")
+                            .text(Time.localDate(track.release_date))
+                            .build(),
+                    ).build(),
+                ["scroll-table"]
+            )
+        ).build();
     }
 
     private static tracksTabActions(canManageReleases: Signal<boolean>, filter: Signal<string>) {
-        return create("div")
-            .classes("flex")
-            .children(
-                when(canManageReleases, button({
-                    text: "Create track",
-                    icon: {icon: "add"},
-                    classes: ["positive"],
-                    onclick: () => {
-                        navigate("/new-track");
-                    }
-                })),
-                input({
-                    type: InputType.text,
-                    name: "filter",
-                    placeholder: "Filter",
-                    value: filter,
-                    onkeydown: (e) => {
-                        setTimeout(() => {
-                            filter.value = target(e).value;
-                        }, 10);
-                    },
-                }),
-            ).build();
+        return horizontal(
+            when(canManageReleases, button({
+                text: "Create track",
+                icon: {icon: "add"},
+                classes: ["positive"],
+                onclick: () => {
+                    navigate("/new-track");
+                }
+            })),
+            input({
+                type: InputType.text,
+                name: "filter",
+                placeholder: "Filter",
+                value: filter,
+                onkeydown: (e) => {
+                    setTimeout(() => {
+                        filter.value = target(e).value;
+                    }, 10);
+                },
+            }),
+        ).build();
     }
 
     static createPage() {
         if (!currentUser.value?.permissions?.some(p => p.name === Permissions.releaseManagement)) {
             return Generics.pageFrame(
-                create("div")
-                    .classes("flex-v")
-                    .children(
-                        Generics.heading(2, "Not allowed"),
-                        create("p")
-                            .text("You are not allowed to create tracks.")
-                            .build()
-                    ).build()
+                vertical(
+                    Generics.heading(2, "Not allowed"),
+                    create("p")
+                        .text("You are not allowed to create tracks.")
+                        .build()
+                ).build()
             );
         }
 
@@ -285,43 +279,41 @@ export class Tracks {
         const anyEmpty = compute((t, u, r, p) => t === "" || u === "" || r === null || p === 0, title, artists, release_date, price);
 
         return Generics.pageFrame(
-            create("div")
-                .classes("flex-v")
-                .children(
-                    Generics.heading(2, "Create track"),
-                    Tracks.trackProperties(title, artists, credits, release_date, isrc, genres, genre, length, price),
-                    Inputs.serviceLinks(serviceLinks),
-                    button({
-                        text: "Create",
-                        classes: ["positive", "fit-content"],
-                        disabled: anyEmpty,
-                        onclick: () => {
-                            const links = serviceLinks.value;
+            vertical(
+                Generics.heading(2, "Create track"),
+                Tracks.trackProperties(title, artists, credits, release_date, isrc, genres, genre, length, price),
+                Inputs.serviceLinks(serviceLinks),
+                button({
+                    text: "Create",
+                    classes: ["positive", "fit-content"],
+                    disabled: anyEmpty,
+                    onclick: () => {
+                        const links = serviceLinks.value;
 
-                            Api.createTrack({
-                                title: title.value,
-                                artists: artists.value,
-                                release_date: toUTCDate(new Date(release_date.value)),
-                                price: price.value,
-                                isrc: isrc.value,
-                                credits: credits.value,
-                                genre: genre.value,
-                                length: length.value,
-                                link_spotify: links.find(l => l.service === LinkServices.spotify)?.link ?? "",
-                                link_youtube: links.find(l => l.service === LinkServices.youtube)?.link ?? "",
-                                link_soundcloud: links.find(l => l.service === LinkServices.soundcloud)?.link ?? "",
-                                link_applemusic: links.find(l => l.service === LinkServices.applemusic)?.link ?? "",
-                                link_bandcamp: links.find(l => l.service === LinkServices.bandcamp)?.link ?? "",
-                                link_lyda: links.find(l => l.service === LinkServices.lyda)?.link ?? "",
-                            }).then(() => {
-                                notify("Track created", NotificationType.success);
-                                navigate("/releases");
-                            }).catch(e => {
-                                console.error(e);
-                            });
-                        }
-                    })
-                ).build(),
+                        Api.createTrack({
+                            title: title.value,
+                            artists: artists.value,
+                            release_date: toUTCDate(new Date(release_date.value)),
+                            price: price.value,
+                            isrc: isrc.value,
+                            credits: credits.value,
+                            genre: genre.value,
+                            length: length.value,
+                            link_spotify: links.find(l => l.service === LinkServices.spotify)?.link ?? "",
+                            link_youtube: links.find(l => l.service === LinkServices.youtube)?.link ?? "",
+                            link_soundcloud: links.find(l => l.service === LinkServices.soundcloud)?.link ?? "",
+                            link_applemusic: links.find(l => l.service === LinkServices.applemusic)?.link ?? "",
+                            link_bandcamp: links.find(l => l.service === LinkServices.bandcamp)?.link ?? "",
+                            link_lyda: links.find(l => l.service === LinkServices.lyda)?.link ?? "",
+                        }).then(() => {
+                            notify("Track created", NotificationType.success);
+                            navigate("/releases");
+                        }).catch(e => {
+                            console.error(e);
+                        });
+                    }
+                })
+            ).build(),
         );
     }
 
@@ -329,24 +321,22 @@ export class Tracks {
         name: string;
         id: string
     }[], genre: Signal<string>, length: Signal<number>, price: Signal<number>) {
-        return create("div")
-            .classes("flex-v")
-            .children(
-                Inputs.text(title, "Title", "title"),
-                Inputs.text(artists, "Artists", "artists"),
-                Inputs.text(credits, "Credits", "credits"),
-                Inputs.date(release_date, "Release date", "release_date"),
-                Inputs.text(isrc, "ISRC", "isrc"),
-                searchableSelect({
-                    label: "Genre",
-                    options: signal(genres),
-                    value: genre,
-                    onchange: (v) => {
-                        genre.value = v;
-                    }
-                }),
-                Inputs.number(length, "Length", "length"),
-                Inputs.number(price, "Price", "price"),
-            ).build();
+        return vertical(
+            Inputs.text(title, "Title", "title"),
+            Inputs.text(artists, "Artists", "artists"),
+            Inputs.text(credits, "Credits", "credits"),
+            Inputs.date(release_date, "Release date", "release_date"),
+            Inputs.text(isrc, "ISRC", "isrc"),
+            searchableSelect({
+                label: "Genre",
+                options: signal(genres),
+                value: genre,
+                onchange: (v) => {
+                    genre.value = v;
+                }
+            }),
+            Inputs.number(length, "Length", "length"),
+            Inputs.number(price, "Price", "price"),
+        ).build();
     }
 }
