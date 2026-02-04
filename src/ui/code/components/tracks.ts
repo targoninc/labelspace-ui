@@ -153,11 +153,13 @@ export class Tracks {
                     ).build()
                 ])),
             ).build(),
-            when(hasReleaseManagementPermission, Generics.container(1, [
-                Inputs.serviceLinks(serviceLinks)
-            ])),
-            Generics.earnings(earnings),
-            when(track$, Tracks.trackStatistics(track$))
+            vertical(
+                when(hasReleaseManagementPermission, Generics.container(1, [
+                    Inputs.serviceLinks(serviceLinks)
+                ])),
+                Generics.earnings(earnings),
+                when(track$, Tracks.trackStatistics(track$))
+            )
         ).build();
     }
 
