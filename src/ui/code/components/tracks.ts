@@ -1,5 +1,5 @@
 import {Api} from "../api/api.ts";
-import {Generics, horizontal} from "./generic/generics.ts";
+import {Generics, horizontal, vertical} from "./generic/generics.ts";
 import {Track} from "../models/db/tri/Track.ts";
 import {Route} from "../routing/Route.ts";
 import {Inputs} from "./generic/inputs.ts";
@@ -91,15 +91,13 @@ export class Tracks {
                 create("div")
                     .classes("flex")
                     .children(
-                        create("div")
-                            .classes("flex-v")
-                            .children(
-                                Images.changeableImage(id, hasImage, MediaFileType.trackCover, {
-                                    changeable: hasReleaseManagementPermission,
-                                    deletable: hasReleaseManagementPermission,
-                                    size: ImageSize.p500
-                                }),
-                            ).build(),
+                        vertical(
+                            Images.changeableImage(id, hasImage, MediaFileType.trackCover, {
+                                changeable: hasReleaseManagementPermission,
+                                deletable: hasReleaseManagementPermission,
+                                size: ImageSize.p50
+                            }),
+                        ).build(),
                         create("div")
                             .classes("flex-v", "flex-grow")
                             .children(
