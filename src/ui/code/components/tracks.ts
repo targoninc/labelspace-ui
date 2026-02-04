@@ -84,78 +84,74 @@ export class Tracks {
         const credits = compute(t => t?.credits ?? "", track$);
         const triRecordsLink = compute(t => `https://trirecords.eu/track/${t?.id}`, track$);
 
-        return vertical(
-            horizontal(
-                create("div")
-                    .classes("flex-v", "flex-grow")
-                    .children(
-                        horizontal(
-                            Generics.heading(2, compute((a, t) => `${a} - ${t}`, artists, title)),
-                            button({
-                                text: "Open on Tri Records",
-                                icon: {icon: "open_in_new"},
-                                classes: ["positive"],
-                                onclick: () => window.open(triRecordsLink.value, "_blank")
-                            }),
-                        ).classes("center-items", "split-flex"),
-                        horizontal(
-                            create("span")
-                                .text("In")
-                                .build(),
-                            signalMap(
-                                albums,
-                                horizontal(),
-                                a => Generics.link(`/album/${a?.id}`, a?.title ?? "Unknown album")),
-                        ).build(),
-                        Images.changeableImage(id, hasImage, MediaFileType.trackCover, {
-                            changeable: hasReleaseManagementPermission,
-                            deletable: hasReleaseManagementPermission,
-                            size: ImageSize.p50
-                        }),
-                        when(hasReleaseManagementPermission, vertical(
-                            Generics.heading(2, title),
-                            Generics.heading(3, artists),
-                            Generics.property("ISRC", isrc),
-                            Generics.property("Release date", releaseDate),
-                            Generics.property("Price", currency(price)),
-                            Generics.property("Length", compute(l => Time.toTimeFromSeconds(l), length)),
-                        ).build(), true),
-                        when(hasReleaseManagementPermission, Generics.container(1, [
-                            vertical(
-                                Tracks.trackProperties(title, artists, credits, releaseDate, isrc, genres, genre, length, price),
-                                button({
-                                    text: "Update track",
-                                    classes: ["positive", "fit-content"],
-                                    icon: {icon: "save"},
-                                    onclick: () => {
-                                        const links = serviceLinks.value;
+        return horizontal(
+            vertical(
+                horizontal(
+                    Generics.heading(2, compute((a, t) => `${a} - ${t}`, artists, title)),
+                    button({
+                        text: "Open on Tri Records",
+                        icon: {icon: "open_in_new"},
+                        classes: ["positive"],
+                        onclick: () => window.open(triRecordsLink.value, "_blank")
+                    }),
+                ).classes("center-items", "split-flex"),
+                horizontal(
+                    create("span")
+                        .text("In")
+                        .build(),
+                    signalMap(
+                        albums,
+                        horizontal(),
+                        a => Generics.link(`/album/${a?.id}`, a?.title ?? "Unknown album")),
+                ).build(),
+                Images.changeableImage(id, hasImage, MediaFileType.trackCover, {
+                    changeable: hasReleaseManagementPermission,
+                    deletable: hasReleaseManagementPermission,
+                    size: ImageSize.p50
+                }),
+                when(hasReleaseManagementPermission, vertical(
+                    Generics.heading(2, title),
+                    Generics.heading(3, artists),
+                    Generics.property("ISRC", isrc),
+                    Generics.property("Release date", releaseDate),
+                    Generics.property("Price", currency(price)),
+                    Generics.property("Length", compute(l => Time.toTimeFromSeconds(l), length)),
+                ).build(), true),
+                when(hasReleaseManagementPermission, Generics.container(1, [
+                    vertical(
+                        Tracks.trackProperties(title, artists, credits, releaseDate, isrc, genres, genre, length, price),
+                        button({
+                            text: "Update track",
+                            classes: ["positive", "fit-content"],
+                            icon: {icon: "save"},
+                            onclick: () => {
+                                const links = serviceLinks.value;
 
-                                        Api.updateTrack(track$.value?.id ?? 0, {
-                                            title: title.value,
-                                            isrc: isrc.value,
-                                            release_date: toUTCDate(new Date(releaseDate.value)),
-                                            price: price.value,
-                                            length: length.value,
-                                            credits: credits.value,
-                                            genre: genre.value,
-                                            artists: artists.value,
-                                            link_spotify: links.find(l => l.service === LinkServices.spotify)?.link ?? "",
-                                            link_youtube: links.find(l => l.service === LinkServices.youtube)?.link ?? "",
-                                            link_soundcloud: links.find(l => l.service === LinkServices.soundcloud)?.link ?? "",
-                                            link_applemusic: links.find(l => l.service === LinkServices.applemusic)?.link ?? "",
-                                            link_bandcamp: links.find(l => l.service === LinkServices.bandcamp)?.link ?? "",
-                                            link_lyda: links.find(l => l.service === LinkServices.lyda)?.link ?? "",
-                                        }).then(() => {
-                                            notify("Track updated", NotificationType.success);
-                                            navigate("/track/" + track$.value?.id);
-                                        }).catch(e => {
-                                            console.error(e);
-                                        });
-                                    }
-                                }),
-                            ).build()
-                        ])),
-                    ).build(),
+                                Api.updateTrack(track$.value?.id ?? 0, {
+                                    title: title.value,
+                                    isrc: isrc.value,
+                                    release_date: toUTCDate(new Date(releaseDate.value)),
+                                    price: price.value,
+                                    length: length.value,
+                                    credits: credits.value,
+                                    genre: genre.value,
+                                    artists: artists.value,
+                                    link_spotify: links.find(l => l.service === LinkServices.spotify)?.link ?? "",
+                                    link_youtube: links.find(l => l.service === LinkServices.youtube)?.link ?? "",
+                                    link_soundcloud: links.find(l => l.service === LinkServices.soundcloud)?.link ?? "",
+                                    link_applemusic: links.find(l => l.service === LinkServices.applemusic)?.link ?? "",
+                                    link_bandcamp: links.find(l => l.service === LinkServices.bandcamp)?.link ?? "",
+                                    link_lyda: links.find(l => l.service === LinkServices.lyda)?.link ?? "",
+                                }).then(() => {
+                                    notify("Track updated", NotificationType.success);
+                                    navigate("/track/" + track$.value?.id);
+                                }).catch(e => {
+                                    console.error(e);
+                                });
+                            }
+                        }),
+                    ).build()
+                ])),
             ).build(),
             when(hasReleaseManagementPermission, Generics.container(1, [
                 Inputs.serviceLinks(serviceLinks)
