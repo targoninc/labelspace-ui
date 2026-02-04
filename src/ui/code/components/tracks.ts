@@ -53,7 +53,6 @@ export class Tracks {
             create("div")
                 .classes("flex-v")
                 .children(
-                    Generics.heading(2, "Track"),
                     when(loading, Generics.loading()),
                     when(track, Tracks.track(track))
                 ).build()
@@ -90,12 +89,15 @@ export class Tracks {
                 create("div")
                     .classes("flex-v", "flex-grow")
                     .children(
-                        Generics.link(triRecordsLink, "Open on Tri Records"),
-                        Images.changeableImage(id, hasImage, MediaFileType.trackCover, {
-                            changeable: hasReleaseManagementPermission,
-                            deletable: hasReleaseManagementPermission,
-                            size: ImageSize.p50
-                        }),
+                        horizontal(
+                            Generics.heading(2, compute((a, t) => `${a} - ${t}`, artists, title)),
+                            button({
+                                text: "Open on Tri Records",
+                                icon: {icon: "open_in_new"},
+                                classes: ["positive"],
+                                onclick: () => window.open(triRecordsLink.value, "_blank")
+                            }),
+                        ).classes("center-items", "split-flex"),
                         horizontal(
                             create("span")
                                 .text("In")
@@ -105,6 +107,11 @@ export class Tracks {
                                 horizontal(),
                                 a => Generics.link(`/album/${a?.id}`, a?.title ?? "Unknown album")),
                         ).build(),
+                        Images.changeableImage(id, hasImage, MediaFileType.trackCover, {
+                            changeable: hasReleaseManagementPermission,
+                            deletable: hasReleaseManagementPermission,
+                            size: ImageSize.p50
+                        }),
                         when(hasReleaseManagementPermission, vertical(
                             Generics.heading(2, title),
                             Generics.heading(3, artists),
