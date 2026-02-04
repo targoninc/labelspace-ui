@@ -85,89 +85,77 @@ export class Tracks {
         const credits = compute(t => t?.credits ?? "", track$);
         const triRecordsLink = compute(t => `https://trirecords.eu/track/${t?.id}`, track$);
 
-        return create("div")
-            .classes("flex-v")
-            .children(
+        return vertical(
+            horizontal(
                 create("div")
-                    .classes("flex")
+                    .classes("flex-v", "flex-grow")
                     .children(
-                        vertical(
-                            Images.changeableImage(id, hasImage, MediaFileType.trackCover, {
-                                changeable: hasReleaseManagementPermission,
-                                deletable: hasReleaseManagementPermission,
-                                size: ImageSize.p50
-                            }),
+                        Generics.link(triRecordsLink, "Open on Tri Records"),
+                        Images.changeableImage(id, hasImage, MediaFileType.trackCover, {
+                            changeable: hasReleaseManagementPermission,
+                            deletable: hasReleaseManagementPermission,
+                            size: ImageSize.p50
+                        }),
+                        horizontal(
+                            create("span")
+                                .text("In")
+                                .build(),
+                            signalMap(
+                                albums,
+                                horizontal(),
+                                a => Generics.link(`/album/${a?.id}`, a?.title ?? "Unknown album")),
                         ).build(),
-                        create("div")
-                            .classes("flex-v", "flex-grow")
-                            .children(
-                                Generics.link(triRecordsLink, "Open on Tri Records"),
-                                create("div")
-                                    .classes("flex")
-                                    .children(
-                                        create("span")
-                                            .text("In")
-                                            .build(),
-                                        signalMap(
-                                            albums,
-                                            horizontal(),
-                                            a => Generics.link(`/album/${a?.id}`, a?.title ?? "Unknown album")),
-                                    ).build(),
-                                when(hasReleaseManagementPermission, create("div")
-                                    .classes("flex-v")
-                                    .children(
-                                        Generics.heading(2, title),
-                                        Generics.heading(3, artists),
-                                        Generics.property("ISRC", isrc),
-                                        Generics.property("Release date", releaseDate),
-                                        Generics.property("Price", currency(price)),
-                                        Generics.property("Length", compute(l => Time.toTimeFromSeconds(l), length)),
-                                    ).build(), true),
-                                when(hasReleaseManagementPermission, Generics.container(1, [
-                                    create("div")
-                                        .classes("flex-v")
-                                        .children(
-                                            Tracks.trackProperties(title, artists, credits, releaseDate, isrc, genres, genre, length, price),
-                                            button({
-                                                text: "Update track",
-                                                classes: ["positive", "fit-content"],
-                                                icon: {icon: "save"},
-                                                onclick: () => {
-                                                    const links = serviceLinks.value;
+                        when(hasReleaseManagementPermission, vertical(
+                            Generics.heading(2, title),
+                            Generics.heading(3, artists),
+                            Generics.property("ISRC", isrc),
+                            Generics.property("Release date", releaseDate),
+                            Generics.property("Price", currency(price)),
+                            Generics.property("Length", compute(l => Time.toTimeFromSeconds(l), length)),
+                        ).build(), true),
+                        when(hasReleaseManagementPermission, Generics.container(1, [
+                            vertical(
+                                Tracks.trackProperties(title, artists, credits, releaseDate, isrc, genres, genre, length, price),
+                                button({
+                                    text: "Update track",
+                                    classes: ["positive", "fit-content"],
+                                    icon: {icon: "save"},
+                                    onclick: () => {
+                                        const links = serviceLinks.value;
 
-                                                    Api.updateTrack(track$.value?.id ?? 0, {
-                                                        title: title.value,
-                                                        isrc: isrc.value,
-                                                        release_date: toUTCDate(new Date(releaseDate.value)),
-                                                        price: price.value,
-                                                        length: length.value,
-                                                        credits: credits.value,
-                                                        genre: genre.value,
-                                                        artists: artists.value,
-                                                        link_spotify: links.find(l => l.service === LinkServices.spotify)?.link ?? "",
-                                                        link_youtube: links.find(l => l.service === LinkServices.youtube)?.link ?? "",
-                                                        link_soundcloud: links.find(l => l.service === LinkServices.soundcloud)?.link ?? "",
-                                                        link_applemusic: links.find(l => l.service === LinkServices.applemusic)?.link ?? "",
-                                                        link_bandcamp: links.find(l => l.service === LinkServices.bandcamp)?.link ?? "",
-                                                        link_lyda: links.find(l => l.service === LinkServices.lyda)?.link ?? "",
-                                                    }).then(() => {
-                                                        notify("Track updated", NotificationType.success);
-                                                        navigate("/track/" + track$.value?.id);
-                                                    }).catch(e => {
-                                                        console.error(e);
-                                                    });
-                                                }
-                                            }),
-                                        ).build()
-                                ])),
-                            ).build(),
+                                        Api.updateTrack(track$.value?.id ?? 0, {
+                                            title: title.value,
+                                            isrc: isrc.value,
+                                            release_date: toUTCDate(new Date(releaseDate.value)),
+                                            price: price.value,
+                                            length: length.value,
+                                            credits: credits.value,
+                                            genre: genre.value,
+                                            artists: artists.value,
+                                            link_spotify: links.find(l => l.service === LinkServices.spotify)?.link ?? "",
+                                            link_youtube: links.find(l => l.service === LinkServices.youtube)?.link ?? "",
+                                            link_soundcloud: links.find(l => l.service === LinkServices.soundcloud)?.link ?? "",
+                                            link_applemusic: links.find(l => l.service === LinkServices.applemusic)?.link ?? "",
+                                            link_bandcamp: links.find(l => l.service === LinkServices.bandcamp)?.link ?? "",
+                                            link_lyda: links.find(l => l.service === LinkServices.lyda)?.link ?? "",
+                                        }).then(() => {
+                                            notify("Track updated", NotificationType.success);
+                                            navigate("/track/" + track$.value?.id);
+                                        }).catch(e => {
+                                            console.error(e);
+                                        });
+                                    }
+                                }),
+                            ).build()
+                        ])),
                     ).build(),
-                when(hasReleaseManagementPermission, Generics.container(1, [
-                    Inputs.serviceLinks(serviceLinks)
-                ])),
-                Generics.earnings(earnings),
-                when(track$, Tracks.trackStatistics(track$))
-            ).build();
+            ).build(),
+            when(hasReleaseManagementPermission, Generics.container(1, [
+                Inputs.serviceLinks(serviceLinks)
+            ])),
+            Generics.earnings(earnings),
+            when(track$, Tracks.trackStatistics(track$))
+        ).build();
     }
 
     static trackStatistics(track: Signal<Track | null>) {
