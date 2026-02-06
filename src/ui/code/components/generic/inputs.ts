@@ -1,6 +1,6 @@
 import {ServiceLink} from "../../models/ServiceLink.ts";
 import {LinkServices} from "../../enums/LinkServices.ts";
-import {Generics} from "./generics.ts";
+import {Generics, vertical} from "./generics.ts";
 import {linkPath} from "../../functions/formatters.ts";
 import {notify} from "../../functions/notifications.ts";
 import {NotificationType} from "../../enums/NotificationType.ts";
@@ -8,7 +8,8 @@ import {button, icon, input, searchableSelect, SelectOption, textarea} from "@ta
 import {compute, create, InputType, signal, Signal, signalMap} from "@targoninc/jess";
 
 export class Inputs {
-    static password(password: Signal<string>, placeholder: string = "Password", name: string = "password", onEnter: Function = () => {}) {
+    static password(password: Signal<string>, placeholder: string = "Password", name: string = "password", onEnter: Function = () => {
+    }) {
         return input<string>({
             type: InputType.password,
             name,
@@ -86,44 +87,42 @@ export class Inputs {
             id: s
         }));
 
-        return create("div")
-            .classes("flex-v")
-            .children(
-                signalMap(serviceLinks, create("div").classes("flex", "center-items"), link => Inputs.editableServiceLink(link, serviceLinks)),
-                Generics.container(2, [
-                    create("div")
-                        .classes("flex", "center-items")
-                        .children(
-                            searchableSelect({
-                                options: signal(options),
-                                label: "Service",
-                                value: type,
-                                onchange: (v) => type.value = v
-                            }),
-                            input({
-                                type: InputType.url,
-                                name: "link",
-                                label: "Link",
-                                placeholder: "https://open.spotify.com/track/",
-                                attributes: ["autocomplete", "link"],
-                                value: link,
-                                onchange: (v) => link.value = v
-                            }),
-                            button({
-                                text: "Add link",
-                                icon: { icon: "add" },
-                                classes: ["positive"],
-                                disabled: compute((sl, t) => sl.some(l => l.service === t), serviceLinks, type),
-                                onclick: () => {
-                                    serviceLinks.value = [...serviceLinks.value, {
-                                        service: type.value,
-                                        link: link.value
-                                    }];
-                                }
-                            })
-                        ).build()
-                ]),
-            ).build();
+        return vertical(
+            signalMap(serviceLinks, vertical(), link => Inputs.editableServiceLink(link, serviceLinks)),
+            Generics.container(2, [
+                create("div")
+                    .classes("flex", "center-items")
+                    .children(
+                        searchableSelect({
+                            options: signal(options),
+                            label: "Service",
+                            value: type,
+                            onchange: (v) => type.value = v
+                        }),
+                        input({
+                            type: InputType.url,
+                            name: "link",
+                            label: "Link",
+                            placeholder: "https://open.spotify.com/track/",
+                            attributes: ["autocomplete", "link"],
+                            value: link,
+                            onchange: (v) => link.value = v
+                        }),
+                        button({
+                            text: "Add link",
+                            icon: {icon: "add"},
+                            classes: ["positive"],
+                            disabled: compute((sl, t) => sl.some(l => l.service === t), serviceLinks, type),
+                            onclick: () => {
+                                serviceLinks.value = [...serviceLinks.value, {
+                                    service: type.value,
+                                    link: link.value
+                                }];
+                            }
+                        })
+                    ).build()
+            ]),
+        ).build();
     }
 
     static editableServiceLink(link: ServiceLink, serviceLinks: Signal<ServiceLink[]>) {
