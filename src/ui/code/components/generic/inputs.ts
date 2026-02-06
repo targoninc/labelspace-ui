@@ -118,6 +118,8 @@ export class Inputs {
                                     service: type.value,
                                     link: link.value
                                 }];
+                                link.value = "";
+                                type.value = "";
                             }
                         })
                     ).build()
