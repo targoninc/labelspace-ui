@@ -103,7 +103,7 @@ export class Inputs {
                             type: InputType.url,
                             name: "link",
                             label: "Link",
-                            placeholder: "https://open.spotify.com/track/",
+                            placeholder: "https://lyda.app/track/",
                             attributes: ["autocomplete", "link"],
                             value: link,
                             onchange: (v) => link.value = v
