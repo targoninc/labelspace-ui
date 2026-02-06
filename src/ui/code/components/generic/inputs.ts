@@ -94,7 +94,7 @@ export class Inputs {
                     .classes("flex", "center-items")
                     .children(
                         searchableSelect({
-                            options: signal(options),
+                            options: compute(links => options.filter(o => !links.some(l => l.service === o.id)), serviceLinks),
                             label: "Service",
                             value: type,
                             onchange: (v) => type.value = v
