@@ -498,6 +498,8 @@ button.jessc {
     padding: 2px 2px 2px 20px;
     background: var(--service-link-color);
     --service-link-color: var(--gray-1);
+    max-width: max-content;
+    align-self: end;
 }
 
 .service-link.spotify {
