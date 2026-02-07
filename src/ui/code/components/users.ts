@@ -47,7 +47,7 @@ export class Users {
             Generics.heading(2, "Users"),
             Users.createSection(users),
             Generics.table(
-                ["Username", "Artists", "Last login", "Email addresses", "TOTP methods", "Passkeys", "Permissions"],
+                ["Username", "Artists", "Last login", "Email addresses", "TOTP methods", "Passkeys", "Earned", "Paid", "Available", "Permissions"],
                 users,
                 (user: User) => Users.userInTable(user)
             )
@@ -71,6 +71,9 @@ export class Users {
                 create("td").text(user.emails?.length ?? 0).build(),
                 create("td").text(user.totp?.length ?? 0).build(),
                 create("td").text(user.public_keys?.length ?? 0).build(),
+                create("td").text(user.available?.total ?? 0).build(),
+                create("td").text(user.available?.paidOut ?? 0).build(),
+                create("td").text(user.available?.available ?? 0).build(),
                 create("td")
                     .children(
                         create("div")

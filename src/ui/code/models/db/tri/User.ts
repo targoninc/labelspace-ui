@@ -34,4 +34,5 @@ export interface User extends Express.User {
     email_mfa_code: string;
     passkey_user_id: string;
     public_keys?: PublicKey[];
+    available?: { total: string; paidOut: string; available: string };
 }
