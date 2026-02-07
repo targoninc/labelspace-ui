@@ -27,6 +27,7 @@ import {PermissionIcons} from "../enums/PermissionIcons.ts";
 import {compute, create, InputType, Signal, signal, signalMap, when} from "@targoninc/jess";
 import {button, input} from "@targoninc/jess-components";
 import {ArtistLink} from "../models/db/tri/ArtistLink.ts";
+import {currency} from "../functions/formatters.ts";
 
 export class Users {
     static usersPage() {
@@ -74,9 +75,15 @@ export class Users {
                 create("td").text(user.emails?.length ?? 0).build(),
                 create("td").text(user.totp?.length ?? 0).build(),
                 create("td").text(user.public_keys?.length ?? 0).build(),
-                create("td").text(user.available?.total ?? 0).build(),
-                create("td").text(user.available?.paidOut ?? 0).build(),
-                create("td").text(user.available?.available ?? 0).build(),
+                create("td").children(
+                    Generics.heading(3, `$${user.available?.total ?? "0"}`, true)
+                ).build(),
+                create("td").children(
+                    Generics.heading(3, `$${user.available?.paidOut ?? "0"}`, true)
+                ).build(),
+                create("td").children(
+                    Generics.heading(3, `$${user.available?.available ?? "0"}`, true)
+                ).build(),
                 create("td")
                     .children(
                         create("div")
