@@ -63,8 +63,11 @@ export class Users {
                     .text(user.username)
                     .build(),
                 create("td")
-                    .text(user.artists?.map(a => a.name).join(", ") ?? "No artists")
-                    .build(),
+                    .children(
+                        horizontal(
+                            ...user.artists?.map(a => Generics.link("https://trirecords.eu/artist/" + a.name, a.name)) ?? []
+                        )
+                    ).build(),
                 create("td")
                     .text(user.lastlogin ? Time.agoUpdating(new Date(user.lastlogin), true) : "--")
                     .build(),
