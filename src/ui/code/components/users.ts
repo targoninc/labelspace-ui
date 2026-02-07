@@ -40,7 +40,7 @@ export class Users {
         const users = signal<User[]>([]);
         const loading = signal(false);
         Api.getUsers()
-            .then(u => users.value = u)
+            .then(u => users.value = u.sort((a, b) => parseFloat(b.available?.total ?? "0") - parseFloat(a.available?.total ?? "0")))
             .finally(() => loading.value = false);
 
         return Generics.pageFrame(
