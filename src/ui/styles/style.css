@@ -507,6 +507,11 @@ button.jessc {
     color: black;
 }
 
+.service-link.tidal {
+    --service-link-color: white;
+    color: black;
+}
+
 .service-link.youtube {
     --service-link-color: #ff0000;
 }
