@@ -5,4 +5,5 @@ export enum LinkServices {
     applemusic = "applemusic",
     bandcamp = "bandcamp",
     lyda = "lyda",
+    tidal = "tidal",
 }

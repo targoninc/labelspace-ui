@@ -12,5 +12,6 @@ export interface UploadTrackRequestBody {
     link_soundcloud: string,
     link_applemusic: string,
     link_bandcamp: string,
+    link_tidal: string,
     link_lyda: string,
 }

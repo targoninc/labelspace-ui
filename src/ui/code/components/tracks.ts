@@ -141,6 +141,7 @@ export class Tracks {
                                     link_soundcloud: links.find(l => l.service === LinkServices.soundcloud)?.link ?? "",
                                     link_applemusic: links.find(l => l.service === LinkServices.applemusic)?.link ?? "",
                                     link_bandcamp: links.find(l => l.service === LinkServices.bandcamp)?.link ?? "",
+                                    link_tidal: links.find(l => l.service === LinkServices.tidal)?.link ?? "",
                                     link_lyda: links.find(l => l.service === LinkServices.lyda)?.link ?? "",
                                 }).then(() => {
                                     notify("Track updated", NotificationType.success);
@@ -309,6 +310,7 @@ export class Tracks {
                             link_soundcloud: links.find(l => l.service === LinkServices.soundcloud)?.link ?? "",
                             link_applemusic: links.find(l => l.service === LinkServices.applemusic)?.link ?? "",
                             link_bandcamp: links.find(l => l.service === LinkServices.bandcamp)?.link ?? "",
+                            link_tidal: links.find(l => l.service === LinkServices.tidal)?.link ?? "",
                             link_lyda: links.find(l => l.service === LinkServices.lyda)?.link ?? "",
                         }).then(() => {
                             notify("Track created", NotificationType.success);
