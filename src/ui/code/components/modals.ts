@@ -1,4 +1,4 @@
-import {Generics} from "./generic/generics.ts";
+import {Generics, vertical} from "./generic/generics.ts";
 import {addModal, removeLastModal} from "../functions/modals.ts";
 import {Api} from "../api/api.ts";
 import {currentUser} from "../state.ts";
@@ -56,7 +56,8 @@ export class Modals {
         ));
     }
 
-    static input<T>(callback: Function, title: string, inputType: InputType, removeModalAfterCallback = true, onCancel: Function = () => {}, inputConfig: InputConfig<T>|{} = {}) {
+    static input<T>(callback: Function, title: string, inputType: InputType, removeModalAfterCallback = true, onCancel: Function = () => {
+    }, inputConfig: InputConfig<T> | {} = {}) {
         const value = signal<T>("" as T);
         const loading = signal(false);
         const id = signal(Math.random().toString(36).substring(7));
@@ -120,6 +121,7 @@ export class Modals {
 
     static totpVerificationModal(secret: string, qrDataUrl: string) {
         const token = signal("");
+        const error = signal("");
 
         addModal(Modals.modalBase(
             Generics.heading(1, "TOTP verification"),
@@ -135,77 +137,60 @@ export class Modals {
                                 .text(secret)
                                 .build()
                         ).build(),
-                    create("div")
-                        .classes("flex-v")
-                        .children(
-                            create("div")
-                                .classes("flex", "center-items")
-                                .children(
-                                    input({
-                                        type: InputType.text,
-                                        name: "token",
-                                        placeholder: "Token",
-                                        attributes: ["autocomplete", "off"],
-                                        value: token,
-                                        onchange: (v) => token.value = v
-                                    }),
-                                ).build(),
-                            create("div")
-                                .classes("flex", "center-items")
-                                .children(
-                                    button({
-                                        text: "Verify",
-                                        icon: {icon: "verified"},
-                                        classes: ["positive"],
-                                        onclick: async (e) => {
-                                            if (!token.value) {
-                                                return;
-                                            }
-                                            await Api.verifyTotp(currentUser.value?.id ?? 0, token.value, "totp").then(() => {
-                                                Api.getUser().then(u => {
-                                                    currentUser.value = u;
-                                                });
+                    vertical(
+                        create("div")
+                            .classes("flex", "center-items")
+                            .children(
+                                input({
+                                    type: InputType.text,
+                                    name: "token",
+                                    placeholder: "Token",
+                                    attributes: ["autocomplete", "off"],
+                                    value: token,
+                                    onchange: (v) => token.value = v
+                                }),
+                            ).build(),
+                        when(error, create("span")
+                            .classes("red")
+                            .text(error)
+                            .build()),
+                        create("div")
+                            .classes("flex", "center-items")
+                            .children(
+                                button({
+                                    text: "Verify",
+                                    icon: {icon: "verified"},
+                                    classes: ["positive"],
+                                    onclick: async (e) => {
+                                        if (!token.value) {
+                                            return;
+                                        }
+                                        await Api.verifyTotp(currentUser.value?.id ?? 0, token.value, "totp").then(() => {
+                                            removeLastModal();
+                                            Api.getUser().then(u => {
+                                                currentUser.value = u;
                                             });
-                                            removeLastModal();
-                                        }
-                                    }),
-                                    button({
-                                        text: "Cancel",
-                                        icon: {icon: "cancel"},
-                                        classes: ["negative"],
-                                        onclick: async () => {
-                                            removeLastModal();
-                                        }
-                                    }),
-                                ).build()
-                        ).build()
+                                        }).catch((e) => {
+                                            error.value = e.message;
+                                        });
+                                    }
+                                }),
+                                button({
+                                    text: "Cancel",
+                                    icon: {icon: "cancel"},
+                                    classes: ["negative"],
+                                    onclick: async () => {
+                                        removeLastModal();
+                                    }
+                                }),
+                            ).build()
+                    ).build()
                 ).build()
         ));
     }
 
-    static select(options: SelectOption[], title: StringOrSignal, message: StringOrSignal, label: StringOrSignal, callback: Function = () => {}) {
-        const loading = signal(false);
-        const selection = signal<any>(null);
-
-        addModal(Modals.modalBase(
-            Generics.heading(1, title),
-            create("div")
-                .classes("flex-v")
-                .children(
-                    create("p")
-                        .text(message)
-                        .build(),
-                    searchableSelect({
-                        options: signal(options),
-                        value: selection,
-                        label
-                    }),
-                    Modals.genericModalButtons(loading, callback, selection, true, () => {})
-                ).build()
-        ));
-    }
-
-    static buttons(options: SelectOption[], title: StringOrSignal, message: StringOrSignal, callback: Function = () => {}) {
+    static buttons(options: SelectOption[], title: StringOrSignal, message: StringOrSignal, callback: Function = () => {
+    }) {
         addModal(Modals.modalBase(
             Generics.heading(1, title),
             create("div")
