@@ -273,7 +273,6 @@ export class Tracks {
         const credits = signal("");
         const release_date = signal(today());
         const price = signal(1);
-        const serviceLinks = signal<ServiceLink[]>([]);
         const genre = signal<string>("");
         const length = signal(0);
         const genres = Object.values(Genre).map((genre: string) => {
