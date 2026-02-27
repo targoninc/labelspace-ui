@@ -1,4 +1,4 @@
-import {Generics} from "./generic/generics.ts";
+import {Generics, horizontal, vertical} from "./generic/generics.ts";
 import {currentUser} from "../state.ts";
 import {Api} from "../api/api.ts";
 import {currency} from "../functions/formatters.ts";
@@ -7,8 +7,9 @@ import {Modals} from "./modals.ts";
 import {Payment} from "../models/db/finance/Payment.ts";
 import {notify} from "../functions/notifications.ts";
 import {NotificationType} from "../enums/NotificationType.ts";
-import {compute, create, signal, when} from "@targoninc/jess";
-import {button, icon} from "@targoninc/jess-components";
+import {compute, create, InputType, signal, when} from "@targoninc/jess";
+import {button, icon, input} from "@targoninc/jess-components";
+import {navigate} from "../routing/Router.ts";
 
 export class Payments {
     static page() {
@@ -79,7 +80,10 @@ export class Payments {
         const paidOut = compute(a => "Paid out " + currency(a?.paidOut), info);
         const availableUsd = compute(a => currency(a?.available), info);
         const available = compute(a => "Available " + currency(a?.available), info);
-        const payable = compute(i => i?.available > 0, info);
+        const paypalMailSetting = compute(u => u?.settings?.find(s => s.key === 'paypalMail'), currentUser);
+        const paypalMail = compute(s => s?.value, paypalMailSetting);
+        const hasPaypalMail = compute(m => !!m, paypalMail);
+        const payable = compute((i, h) => i?.available && i?.available > 0 && h, info, hasPaypalMail);
 
         const loading = signal(true);
         const load = () => {
@@ -115,6 +119,16 @@ export class Payments {
                             }, "Confirm request", compute(a => `Are you sure you want to request a payment for ${a} USD?`, availableUsd))
                         }
                     })),
+                    when(hasPaypalMail, horizontal(
+                        create("span")
+                            .classes("error")
+                            .text("You must set a paypal mail address to request a payment"),
+                        button({
+                            text: "Go to settings",
+                            icon: { icon: "settings" },
+                            onclick: () => navigate("profile")
+                        })
+                    ).classes("align-children").build(), true),
                     when(requestLoading, Generics.loading()),
                 ).build()),
         ]);

@@ -245,6 +245,10 @@ b {
     font-weight: bold;
 }
 
+.error {
+    color: var(--red);
+}
+
 .notification.error {
     color: var(--red);
 }

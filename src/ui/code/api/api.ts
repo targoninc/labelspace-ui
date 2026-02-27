@@ -50,6 +50,10 @@ export class Api {
         return await Fetcher.post(base + "/user/actions/update", { user });
     }
 
+    static async updateSetting(key: string, value: any) {
+        return await Fetcher.post(base + "/user/actions/update-setting", { key, value });
+    }
+
     static async getRoyaltiesByMonth(options: { upc?: string; isrc?: string } = {}) {
         return await Fetcher.get<Statistic[]>(base + "/statistics/royaltiesByMonth", options);
     }

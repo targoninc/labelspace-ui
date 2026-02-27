@@ -120,9 +120,8 @@ export class Users {
         const userId = compute(u => u?.id ?? 0, currentUser);
         const loading = signal(false);
 
-        return create("div")
-            .classes("flex-v")
-            .children(
+        return Generics.container(1, [
+            vertical(
                 Generics.heading(2, "TOTP methods"),
                 when(hasMethods, create("span")
                     .text("You have no TOTP methods configured")
@@ -148,7 +147,8 @@ export class Users {
                         });
                     }
                 })
-            ).build();
+            ).build()
+        ]);
     }
 
     private static totpDevices(totpMethods: Signal<UserTotp[]>, loading: Signal<boolean>, userId: Signal<any>) {
@@ -161,61 +161,63 @@ export class Users {
         const loading = signal(false);
         const message = signal("");
 
-        return vertical(
-            Generics.heading(2, "Passkeys"),
-            when(hasCredentials, create("span")
-                .text("You have no passkeys configured")
-                .build(), true),
-            when(hasCredentials, vertical(
-                signalMap(public_keys, create("div").classes("flex"), key => create("div")
-                    .classes("flex-v", "card")
-                    .children(
-                        create("div")
-                            .classes("flex", "center-items")
-                            .children(
-                                Generics.heading(2, key.name),
-                            ).build(),
-                        create("span")
-                            .text(compute(t => `Created ${t}`, Time.agoUpdating(new Date(key.created_at), true)))
-                            .build(),
-                        Users.webAuthNActions(loading, key, message)
-                    ).build()),
-            ).build()),
-            button({
-                text: "Add passkey",
-                icon: {icon: "add"},
-                classes: ["positive", "fit-content"],
-                disabled: loading,
-                onclick: async () => {
-                    Modals.input(async (name: string) => {
-                        loading.value = true;
-                        await Api.getWebauthnChallenge().then(async (res) => {
-                            const user = currentUser.value;
-                            if (!user) {
-                                return;
-                            }
-                            let registration: RegistrationJSON;
-                            try {
-                                registration = await registerWebauthnMethod(user, res.challenge);
-                            } catch (e: any) {
-                                notify(`Error: ${e.message}`, NotificationType.error);
-                                return;
-                            }
-                            Api.registerWebauthnMethod(registration, res.challenge, name).then(() => {
-                                removeLastModal();
-                                Api.getUser().then(u => {
-                                    currentUser.value = u;
-                                });
-                                notify("Successfully registered passkey", NotificationType.success);
-                            }).finally(() => loading.value = false);
-                        }).catch(() => loading.value = false);
-                    }, "Add passkey", InputType.text, false, () => {
-                    }, {
-                        label: "Passkey name"
-                    });
-                }
-            })
-        ).build();
+        return Generics.container(1, [
+            vertical(
+                Generics.heading(2, "Passkeys"),
+                when(hasCredentials, create("span")
+                    .text("You have no passkeys configured")
+                    .build(), true),
+                when(hasCredentials, vertical(
+                    signalMap(public_keys, create("div").classes("flex"), key => create("div")
+                        .classes("flex-v", "card")
+                        .children(
+                            create("div")
+                                .classes("flex", "center-items")
+                                .children(
+                                    Generics.heading(2, key.name),
+                                ).build(),
+                            create("span")
+                                .text(compute(t => `Created ${t}`, Time.agoUpdating(new Date(key.created_at), true)))
+                                .build(),
+                            Users.webAuthNActions(loading, key, message)
+                        ).build()),
+                ).build()),
+                button({
+                    text: "Add passkey",
+                    icon: {icon: "add"},
+                    classes: ["positive", "fit-content"],
+                    disabled: loading,
+                    onclick: async () => {
+                        Modals.input(async (name: string) => {
+                            loading.value = true;
+                            await Api.getWebauthnChallenge().then(async (res) => {
+                                const user = currentUser.value;
+                                if (!user) {
+                                    return;
+                                }
+                                let registration: RegistrationJSON;
+                                try {
+                                    registration = await registerWebauthnMethod(user, res.challenge);
+                                } catch (e: any) {
+                                    notify(`Error: ${e.message}`, NotificationType.error);
+                                    return;
+                                }
+                                Api.registerWebauthnMethod(registration, res.challenge, name).then(() => {
+                                    removeLastModal();
+                                    Api.getUser().then(u => {
+                                        currentUser.value = u;
+                                    });
+                                    notify("Successfully registered passkey", NotificationType.success);
+                                }).finally(() => loading.value = false);
+                            }).catch(() => loading.value = false);
+                        }, "Add passkey", InputType.text, false, () => {
+                        }, {
+                            label: "Passkey name"
+                        });
+                    }
+                })
+            ).build()
+        ]);
     }
 
     private static webAuthNActions(loading: Signal<boolean>, key: PublicKey, message: Signal<string>) {
@@ -272,48 +274,46 @@ export class Users {
         const loading = signal(false);
 
         return Generics.container(1, [
-            create("div")
-                .classes("flex")
-                .children(
-                    Images.changeableImage(a.id, a.has_logo, MediaFileType.artistLogo, {
-                        changeable: true,
-                        deletable: false,
-                        afterChange: reload,
-                        size: ImageSize.p100,
-                        classes: ["artist-logo"]
-                    }, "/images/LOGO512.png"),
-                    vertical(
-                        Generics.link("https://trirecords.eu/artist/" + a.name, a.name),
-                        Inputs.longtext(description, "Description", "description"),
-                        horizontal(
-                            button({
-                                text: "Update",
-                                icon: {icon: "save"},
-                                classes: ["positive"],
-                                disabled: compute((a, l) => a || l, noChanges, loading),
-                                onclick: () => {
-                                    Api.updateArtist(a.name, <Partial<Artist>>{
-                                        description: description.value
-                                    }).then(() => {
-                                        notify("Updated artist", NotificationType.success);
-                                        Api.getUser().then(u => {
-                                            currentUser.value = u;
-                                        });
-                                    }).finally(() => loading.value = false);
-                                }
-                            }),
-                            when(noChanges, button({
-                                text: "Revert",
-                                icon: {icon: "undo"},
-                                classes: ["warning"],
-                                onclick: () => {
-                                    description.value = a.description ?? "";
-                                }
-                            }), true)
-                        )
-                    ),
-                    Users.artistLinks(a)
-                ).build()
+            horizontal(
+                Images.changeableImage(a.id, a.has_logo, MediaFileType.artistLogo, {
+                    changeable: true,
+                    deletable: false,
+                    afterChange: reload,
+                    size: ImageSize.p100,
+                    classes: ["artist-logo"]
+                }, "/images/LOGO512.png"),
+                vertical(
+                    Generics.link("https://trirecords.eu/artist/" + a.name, a.name),
+                    Inputs.longtext(description, "Description", "description"),
+                    horizontal(
+                        button({
+                            text: "Update",
+                            icon: {icon: "save"},
+                            classes: ["positive"],
+                            disabled: compute((a, l) => a || l, noChanges, loading),
+                            onclick: () => {
+                                Api.updateArtist(a.name, <Partial<Artist>>{
+                                    description: description.value
+                                }).then(() => {
+                                    notify("Updated artist", NotificationType.success);
+                                    Api.getUser().then(u => {
+                                        currentUser.value = u;
+                                    });
+                                }).finally(() => loading.value = false);
+                            }
+                        }),
+                        when(noChanges, button({
+                            text: "Revert",
+                            icon: {icon: "undo"},
+                            classes: ["warning"],
+                            onclick: () => {
+                                description.value = a.description ?? "";
+                            }
+                        }), true)
+                    )
+                ),
+                Users.artistLinks(a)
+            ).build()
         ]);
     }
 
@@ -327,84 +327,113 @@ export class Users {
         }, user, legalName, country, state);
         const message = signal("");
         const loading = signal(false);
+        const mailLoading = signal(false);
         const disabled = compute((c, l) => !c || l, changed, loading);
         const emails = compute(u => u?.emails ?? [], user);
+        const paypalMailSetting = compute(u => u?.settings?.find(s => s.key === 'paypalMail'), currentUser);
+        const paypalMail = compute(s => s?.value ?? "", paypalMailSetting);
 
-        return create("div")
-            .classes("flex-v")
-            .children(
-                Generics.heading(3, "Personal Data"),
-                Inputs.password(legalName, "Legal name", "legal_name"),
-                Inputs.text(country, "Country", "country"),
-                Inputs.text(state, "State", "state"),
-                create("div")
-                    .classes("flex", "center-items")
-                    .children(
-                        button({
-                            text: "Save",
-                            icon: {icon: "save"},
-                            classes: ["positive"],
-                            disabled: disabled,
-                            onclick: () => {
-                                loading.value = true;
-                                Api.updateUser(<Partial<User>>{
-                                    legal_name: legalName.value,
-                                    country: country.value,
-                                    state: state.value,
-                                }).then(() => {
-                                    notify("Saved", NotificationType.success);
-                                    Api.getUser().then(u => {
-                                        currentUser.value = u;
-                                    });
-                                }).catch(e => {
-                                    message.value = e.message;
-                                }).finally(() => {
-                                    loading.value = false;
+        return vertical(
+            Generics.heading(3, "Personal Data"),
+            Inputs.password(legalName, "Legal name", "legal_name"),
+            Inputs.text(country, "Country", "country"),
+            Inputs.text(state, "State", "state"),
+            create("div")
+                .classes("flex", "center-items")
+                .children(
+                    button({
+                        text: "Save",
+                        icon: {icon: "save"},
+                        classes: ["positive"],
+                        disabled: disabled,
+                        onclick: () => {
+                            loading.value = true;
+                            Api.updateUser(<Partial<User>>{
+                                legal_name: legalName.value,
+                                country: country.value,
+                                state: state.value,
+                            }).then(() => {
+                                notify("Saved", NotificationType.success);
+                                Api.getUser().then(u => {
+                                    currentUser.value = u;
                                 });
-                            }
-                        }),
-                        when(loading, Generics.loading())
-                    ).build(),
-                Generics.message(message),
-                Generics.table(
-                    ["Email", "Primary", "Verified", "Actions"],
-                    emails,
-                    (email) => create("tr")
-                        .children(
-                            create("td")
-                                .children(
-                                    Generics.privateText(email.email)
-                                ).build(),
-                            create("td")
-                                .text(email.primary ? "Yes" : "No")
-                                .build(),
-                            create("td")
-                                .text(email.verified ? "Yes" : "No")
-                                .build(),
-                            create("td")
-                                .build()
-                        ).build(),
-                ),
-                Generics.heading(3, "Password"),
-                create("div")
-                    .classes("flex")
+                            }).catch(e => {
+                                message.value = e.message;
+                            }).finally(() => {
+                                loading.value = false;
+                            });
+                        }
+                    }),
+                    when(loading, Generics.loading())
+                ).build(),
+            Generics.message(message),
+            Generics.table(
+                ["Email", "Primary", "Verified"],
+                emails,
+                (email) => create("tr")
                     .children(
-                        button({
-                            icon: {icon: "password"},
-                            title: "Send password reset mail",
-                            text: "Change password",
-                            disabled: loading,
-                            onclick: () => {
-                                const name = currentUser.value?.username;
-                                if (name) {
-                                    Api.requestPasswordReset(name)
-                                        .then(() => notify("Password reset email sent.", NotificationType.success))
-                                        .finally(() => loading.value = false);
-                                }
-                            },
-                        })
-                    ),
-            ).build();
+                        create("td")
+                            .children(
+                                Generics.privateText(email.email)
+                            ).build(),
+                        create("td")
+                            .text(email.primary ? "Yes" : "No")
+                            .build(),
+                        create("td")
+                            .text(email.verified ? "Yes" : "No")
+                            .build()
+                    ).build(),
+            ),
+            vertical(
+                input({
+                    type: InputType.password,
+                    name: "paypalMail",
+                    placeholder: "Paypal mail",
+                    label: "Paypal mail",
+                    value: paypalMail,
+                    disabled: mailLoading,
+                    onchange: (v) => paypalMail.value = v
+                }),
+                horizontal(
+                    button({
+                        text: "Save",
+                        icon: {icon: "save"},
+                        classes: ["positive"],
+                        disabled: mailLoading,
+                        onclick: () => {
+                            mailLoading.value = true;
+                            Api.updateSetting("paypalMail", paypalMail.value).then(() => {
+                                notify("Paypal mail updated", NotificationType.success);
+                                Api.getUser().then(u => {
+                                    currentUser.value = u;
+                                });
+                            }).catch(e => {
+                                notify("Failed to update paypal mail: " + e.message, NotificationType.error);
+                            }).finally(() => {
+                                mailLoading.value = false;
+                            });
+                        }
+                    })
+                )
+            ).classes("card"),
+            horizontal(
+                Generics.heading(3, "Password"),
+                button({
+                    icon: {icon: "password"},
+                    title: "Send password reset mail",
+                    text: "Change password",
+                    disabled: loading,
+                    onclick: () => {
+                        const name = currentUser.value?.username;
+                        if (name) {
+                            Api.requestPasswordReset(name)
+                                .then(() => notify("Password reset email sent.", NotificationType.success))
+                                .finally(() => loading.value = false);
+                        }
+                    },
+                })
+            ).classes("card", "align-children"),
+        ).build();
     }
 
     private static createSection(users: Signal<User[]>) {
