@@ -8,7 +8,7 @@ userLoading.value = true;
 Api.getUser()
     .then(user => {
         currentUser.value = user;
-        if (user && currentRoute.value?.path === "login") {
+        if (user && (window.location.pathname === "/") || (window.location.pathname === "/login")) {
             navigate("dashboard");
         }
     })
