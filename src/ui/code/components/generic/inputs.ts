@@ -116,7 +116,7 @@ export class Inputs {
                             text: "Add link",
                             icon: {icon: "add"},
                             classes: ["positive"],
-                            disabled: compute((tl, n) => tl.some(l => l.host === new URL(n).host) && newLink.value.trim() !== "", links, newLink),
+                            disabled: compute((tl, n) => tl.some(l => n && l.host === new URL(n).host) && newLink.value.trim() !== "", links, newLink),
                             onclick: () => {
                                 Api.addTrackLink(track$.value!.id, newLink.value)
                                     .then(() => {
