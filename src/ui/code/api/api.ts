@@ -311,4 +311,16 @@ export class Api {
             id
         });
     }
+
+    static addTrackLink(id: number, url: string) {
+        return Fetcher.post(base + "/tracks/actions/addLink", {
+            id, url
+        })
+    }
+
+    static removeTrackLink(id: number, url: string) {
+        return Fetcher.post(base + "/tracks/actions/removeLink", {
+            id, url
+        });
+    }
 }

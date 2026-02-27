@@ -6,6 +6,10 @@ import {notify} from "../../functions/notifications.ts";
 import {NotificationType} from "../../enums/NotificationType.ts";
 import {button, icon, input, searchableSelect, SelectOption, textarea} from "@targoninc/jess-components";
 import {compute, create, InputType, signal, Signal, signalMap} from "@targoninc/jess";
+import {Track} from "../../models/db/tri/Track.ts";
+import {TrackLink} from "../../models/db/tri/TrackLink.ts";
+import {Api} from "../../api/api.ts";
+import {AlbumLink} from "../../models/db/tri/AlbumLink.ts";
 
 export class Inputs {
     static password(password: Signal<string>, placeholder: string = "Password", name: string = "password", onEnter: Function = () => {
@@ -79,47 +83,50 @@ export class Inputs {
         });
     }
 
-    static serviceLinks(serviceLinks: Signal<ServiceLink[]>) {
-        const link = signal("");
-        const type = signal("");
-        const options: SelectOption[] = Object.values(LinkServices).map(s => ({
-            name: s,
-            id: s
-        }));
+    static serviceLinks(track$: Signal<Track | null>) {
+        const newLink = signal("");
+        const links = compute(t => t?.links ?? [], track$);
+        const loading = signal(false);
+        const refresh = () => {
+            if (loading.value) {
+                return;
+            }
+            loading.value = true;
+            Api.getTrack(track$.value!.id)
+                .then(t => track$.value = t)
+                .finally(() => loading.value = false);
+        }
 
         return vertical(
-            signalMap(serviceLinks, vertical(), link => Inputs.editableServiceLink(link, serviceLinks)),
+            signalMap(links, vertical(), link => Inputs.trackLink(track$, link, refresh)),
             Generics.container(2, [
                 create("div")
                     .classes("flex", "center-items")
                     .children(
-                        searchableSelect({
-                            options: compute(links => options.filter(o => links.every(l => l.service !== o.id)), serviceLinks),
-                            label: "Service",
-                            value: type,
-                            onchange: (v) => type.value = v
-                        }),
                         input({
                             type: InputType.url,
                             name: "link",
                             label: "Link",
                             placeholder: "https://lyda.app/track/",
                             attributes: ["autocomplete", "link"],
-                            value: link,
-                            onchange: (v) => link.value = v
+                            value: newLink,
+                            onchange: (v) => newLink.value = v
                         }),
                         button({
                             text: "Add link",
                             icon: {icon: "add"},
                             classes: ["positive"],
-                            disabled: compute((sl, t) => sl.some(l => l.service === t), serviceLinks, type),
+                            disabled: compute((tl, n) => tl.some(l => l.host === new URL(n).host) && newLink.value.trim() !== "", links, newLink),
                             onclick: () => {
-                                serviceLinks.value = [...serviceLinks.value, {
-                                    service: type.value,
-                                    link: link.value
-                                }];
-                                link.value = "";
-                                type.value = "";
+                                Api.addTrackLink(track$.value!.id, newLink.value)
+                                    .then(() => {
+                                        notify("Link added", NotificationType.success);
+                                        newLink.value = "";
+                                        refresh();
+                                    })
+                                    .catch(() => {
+                                        notify("Failed to add link", NotificationType.error);
+                                    });
                             }
                         })
                     ).build()
@@ -127,23 +134,42 @@ export class Inputs {
         ).build();
     }
 
-    static editableServiceLink(link: ServiceLink, serviceLinks: Signal<ServiceLink[]>) {
+    static trackLink(track$: Signal<Track | null>, link: TrackLink, refresh: () => void) {
+        const serviceMap: Record<string, LinkServices> = {
+            "open.spotify.com": LinkServices.spotify,
+            "music.apple.com": LinkServices.applemusic,
+            "soundcloud.com": LinkServices.soundcloud,
+            "trirecords.bandcamp.com": LinkServices.bandcamp,
+            "lyda.app": LinkServices.lyda,
+            "tidal.com": LinkServices.tidal,
+            "youtube.com": LinkServices.youtube,
+            "www.youtube.com": LinkServices.youtube,
+            "youtu.be": LinkServices.youtube,
+        }
+        const service = serviceMap[link.host] ?? link.host;
+
         return create("div")
-            .classes("flex", "center-items", "service-link", link.service)
+            .classes("flex", "center-items", "service-link", service)
             .children(
                 create("span")
-                    .text(`${link.service}${linkPath(link.link)}`)
+                    .text(`${service}${linkPath(link.url)}`)
                     .onclick(() => {
-                        navigator.clipboard.writeText(link.link);
+                        navigator.clipboard.writeText(link.url);
                         notify("Copied to clipboard", NotificationType.success);
-                    })
-                    .build(),
+                    }).build(),
                 icon({
                     icon: "delete",
                     classes: ["clickable-icon"],
                     title: "Remove link",
                     onclick: () => {
-                        serviceLinks.value = serviceLinks.value.filter(l => l.service !== link.service);
+                        Api.removeTrackLink(track$.value!.id, link.url)
+                            .then(() => {
+                                notify("Link removed", NotificationType.success);
+                                refresh();
+                            })
+                            .catch(() => {
+                                notify("Failed to remove link", NotificationType.error);
+                            });
                     }
                 })
             ).build();

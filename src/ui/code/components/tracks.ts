@@ -24,23 +24,6 @@ import {currency} from "../functions/formatters.ts";
 import {compute, create, InputType, nullElement, signal, Signal, signalMap, when} from "@targoninc/jess";
 import {button, input, searchableSelect} from "@targoninc/jess-components";
 
-function getServiceLinks(track$: Signal<Track | null>): Signal<ServiceLink[]> {
-    return compute((t: Track | null) => {
-        const links: ServiceLink[] = [];
-        const properties: (keyof Track)[] = Object.keys(t ?? {}).filter(k => k.startsWith("link_")) as (keyof Track)[];
-        for (const property of properties) {
-            const service = property.replace("link_", "") as LinkServices;
-            if (t?.[property]) {
-                links.push(<ServiceLink>{
-                    service,
-                    link: t?.[property]
-                });
-            }
-        }
-        return links;
-    }, track$);
-}
-
 export class Tracks {
     static trackPage(route: Route, params: any) {
         const track = signal<Track | null>(null);
@@ -69,7 +52,6 @@ export class Tracks {
         const price = compute(t => t?.price ?? 0, track$);
         const earnings = compute(t => t?.earnings ?? 0, track$);
         const albums = compute(t => t?.albums ?? [], track$);
-        const serviceLinks = getServiceLinks(track$);
         const id = compute(t => t?.id ?? 0, track$);
         const hasImage = compute(t => t?.has_cover ?? false, track$);
         const hasReleaseManagementPermission = compute(u => u?.permissions?.some(p => p.name === Permissions.releaseManagement) ?? false, currentUser);
@@ -125,8 +107,6 @@ export class Tracks {
                             classes: ["positive", "fit-content"],
                             icon: {icon: "save"},
                             onclick: () => {
-                                const links = serviceLinks.value;
-
                                 Api.updateTrack(track$.value?.id ?? 0, {
                                     title: title.value,
                                     isrc: isrc.value,
@@ -136,13 +116,6 @@ export class Tracks {
                                     credits: credits.value,
                                     genre: genre.value,
                                     artists: artists.value,
-                                    link_spotify: links.find(l => l.service === LinkServices.spotify)?.link ?? "",
-                                    link_youtube: links.find(l => l.service === LinkServices.youtube)?.link ?? "",
-                                    link_soundcloud: links.find(l => l.service === LinkServices.soundcloud)?.link ?? "",
-                                    link_applemusic: links.find(l => l.service === LinkServices.applemusic)?.link ?? "",
-                                    link_bandcamp: links.find(l => l.service === LinkServices.bandcamp)?.link ?? "",
-                                    link_tidal: links.find(l => l.service === LinkServices.tidal)?.link ?? "",
-                                    link_lyda: links.find(l => l.service === LinkServices.lyda)?.link ?? "",
                                 }).then(() => {
                                     notify("Track updated", NotificationType.success);
                                     navigate("/track/" + track$.value?.id);
@@ -156,7 +129,7 @@ export class Tracks {
             ).classes("flex-grow").build(),
             vertical(
                 when(hasReleaseManagementPermission, Generics.container(1, [
-                    Inputs.serviceLinks(serviceLinks)
+                    Inputs.serviceLinks(track$)
                 ])),
                 Generics.earnings(earnings),
                 when(track$, Tracks.trackStatistics(track$))
