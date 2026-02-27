@@ -288,14 +288,11 @@ export class Tracks {
             vertical(
                 Generics.heading(2, "Create track"),
                 Tracks.trackProperties(title, artists, credits, release_date, isrc, genres, genre, length, price),
-                Inputs.serviceLinks(serviceLinks),
                 button({
                     text: "Create",
                     classes: ["positive", "fit-content"],
                     disabled: anyEmpty,
                     onclick: () => {
-                        const links = serviceLinks.value;
-
                         Api.createTrack({
                             title: title.value,
                             artists: artists.value,
@@ -305,13 +302,6 @@ export class Tracks {
                             credits: credits.value,
                             genre: genre.value,
                             length: length.value,
-                            link_spotify: links.find(l => l.service === LinkServices.spotify)?.link ?? "",
-                            link_youtube: links.find(l => l.service === LinkServices.youtube)?.link ?? "",
-                            link_soundcloud: links.find(l => l.service === LinkServices.soundcloud)?.link ?? "",
-                            link_applemusic: links.find(l => l.service === LinkServices.applemusic)?.link ?? "",
-                            link_bandcamp: links.find(l => l.service === LinkServices.bandcamp)?.link ?? "",
-                            link_tidal: links.find(l => l.service === LinkServices.tidal)?.link ?? "",
-                            link_lyda: links.find(l => l.service === LinkServices.lyda)?.link ?? "",
                         }).then(() => {
                             notify("Track created", NotificationType.success);
                             navigate("/releases");
