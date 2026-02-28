@@ -157,6 +157,7 @@ export class Albums {
                     Inputs.number(price, "Price", "price"),
                     button({
                         text: "Create",
+                        icon: { icon: "add" },
                         classes: ["positive"],
                         disabled: anyEmpty,
                         onclick: () => {

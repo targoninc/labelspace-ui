@@ -262,6 +262,7 @@ export class Tracks {
                 Tracks.trackProperties(title, artists, credits, release_date, isrc, genres, genre, length, price),
                 button({
                     text: "Create",
+                    icon: { icon: "add" },
                     classes: ["positive", "fit-content"],
                     disabled: anyEmpty,
                     onclick: () => {
