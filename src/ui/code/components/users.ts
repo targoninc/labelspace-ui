@@ -28,6 +28,7 @@ import {compute, create, InputType, Signal, signal, signalMap, when} from "@targ
 import {button, input} from "@targoninc/jess-components";
 import {ArtistLink} from "../models/db/tri/ArtistLink.ts";
 import {currency} from "../functions/formatters.ts";
+import {Artists} from "./artists.ts";
 
 export class Users {
     static usersPage() {
@@ -44,14 +45,19 @@ export class Users {
             .finally(() => loading.value = false);
 
         return Generics.pageFrame(
-            when(loading, Generics.loading()),
-            Generics.heading(2, "Users"),
-            Users.createSection(users),
-            Generics.table(
-                ["Username", "Artists", "Last login", "Email addresses", "TOTP methods", "Passkeys", "Earned", "Paid", "Available", "Permissions"],
-                users,
-                (user: User) => Users.userInTable(user)
-            )
+            vertical(
+                when(loading, Generics.loading()),
+                Generics.heading(2, "Users"),
+                horizontal(
+                    Users.createSection(users),
+                    Artists.createSection(users),
+                ),
+                Generics.table(
+                    ["ID", "Username", "Artists", "Last login", "Email addresses", "TOTP methods", "Passkeys", "Earned", "Paid", "Available", "Permissions"],
+                    users,
+                    (user: User) => Users.userInTable(user)
+                )
+            ).build(),
         )
     }
 
@@ -60,6 +66,9 @@ export class Users {
 
         return create("tr")
             .children(
+                create("td")
+                    .text(user.id)
+                    .build(),
                 create("td")
                     .text(user.username)
                     .build(),

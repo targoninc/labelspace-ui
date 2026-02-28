@@ -335,4 +335,11 @@ export class Api {
             id, url
         });
     }
+
+    static createArtist(name: string, linkedUserId: number) {
+        return Fetcher.post(base + "/artists/actions/create", {
+            name,
+            linkedUserId
+        });
+    }
 }
