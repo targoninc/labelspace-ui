@@ -83,7 +83,7 @@ export class Generics {
             ).build();
     }
 
-    static container(layer: number, content: (AnyElement|Signal<AnyElement>)[], extraClasses: string[] = []) {
+    static container(layer: number, content: (AnyElement|Signal<AnyElement>|DomNode)[], extraClasses: string[] = []) {
         return create("div")
             .classes("container", "border", "layer-" + layer, ...extraClasses)
             .children(...content)

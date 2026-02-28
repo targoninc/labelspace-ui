@@ -1,10 +1,10 @@
 import {User} from "./User.js";
 import type {Track} from "./Track.ts";
 import {AlbumAttachment} from "./AlbumAttachment.ts";
-import {AlbumLink} from "./AlbumLink.ts";
+import {Link} from "./Link.ts";
 
 export interface Album {
-    links: AlbumLink[];
+    links: Link[];
     attachments?: AlbumAttachment[];
     earnings?: number;
     tracks?: Track[];

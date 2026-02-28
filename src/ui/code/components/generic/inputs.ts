@@ -1,15 +1,14 @@
-import {ServiceLink} from "../../models/ServiceLink.ts";
-import {LinkServices} from "../../enums/LinkServices.ts";
-import {Generics, vertical} from "./generics.ts";
+import {Generics, horizontal, vertical} from "./generics.ts";
 import {linkPath} from "../../functions/formatters.ts";
 import {notify} from "../../functions/notifications.ts";
 import {NotificationType} from "../../enums/NotificationType.ts";
-import {button, icon, input, searchableSelect, SelectOption, textarea} from "@targoninc/jess-components";
+import {button, icon, input, textarea} from "@targoninc/jess-components";
 import {compute, create, InputType, signal, Signal, signalMap} from "@targoninc/jess";
 import {Track} from "../../models/db/tri/Track.ts";
-import {TrackLink} from "../../models/db/tri/TrackLink.ts";
 import {Api} from "../../api/api.ts";
-import {AlbumLink} from "../../models/db/tri/AlbumLink.ts";
+import {Link} from "../../models/db/tri/Link.ts";
+import {LinkServices} from "../../enums/LinkServices.ts";
+import {Album} from "../../models/db/tri/Album.ts";
 
 export class Inputs {
     static password(password: Signal<string>, placeholder: string = "Password", name: string = "password", onEnter: Function = () => {
@@ -83,58 +82,58 @@ export class Inputs {
         });
     }
 
-    static serviceLinks(track$: Signal<Track | null>) {
+    static serviceLinks(entity$: Signal<Track | Album | null>, type: "album" | "track") {
         const newLink = signal("");
-        const links = compute(t => t?.links ?? [], track$);
+        const links = compute(t => t?.links ?? [], entity$);
         const loading = signal(false);
+        const method: Record<string, Function> = {
+            track: Api.getTrack,
+            album: Api.getAlbum,
+        };
         const refresh = () => {
             if (loading.value) {
                 return;
             }
             loading.value = true;
-            Api.getTrack(track$.value!.id)
-                .then(t => track$.value = t)
+            method[type](entity$.value!.id)
+                .then((e: Track | Album) => entity$.value = e)
                 .finally(() => loading.value = false);
         }
 
         return vertical(
-            signalMap(links, vertical(), link => Inputs.trackLink(track$, link, refresh)),
-            Generics.container(2, [
-                create("div")
-                    .classes("flex", "center-items")
-                    .children(
-                        input({
-                            type: InputType.url,
-                            name: "link",
-                            label: "Link",
-                            placeholder: "https://lyda.app/track/",
-                            attributes: ["autocomplete", "link"],
-                            value: newLink,
-                            onchange: (v) => newLink.value = v
-                        }),
-                        button({
-                            text: "Add link",
-                            icon: {icon: "add"},
-                            classes: ["positive"],
-                            disabled: compute((tl, n) => tl.some(l => n && l.host === new URL(n).host) && newLink.value.trim() !== "", links, newLink),
-                            onclick: () => {
-                                Api.addTrackLink(track$.value!.id, newLink.value)
-                                    .then(() => {
-                                        notify("Link added", NotificationType.success);
-                                        newLink.value = "";
-                                        refresh();
-                                    })
-                                    .catch(() => {
-                                        notify("Failed to add link", NotificationType.error);
-                                    });
-                            }
-                        })
-                    ).build()
-            ]),
+            signalMap(links, vertical(), link => Inputs.trackLink(type, entity$, link, refresh)),
+            horizontal(
+                input({
+                    type: InputType.url,
+                    name: "link",
+                    placeholder: `https://lyda.app/${type}/`,
+                    attributes: ["autocomplete", "link"],
+                    value: newLink,
+                    onchange: (v) => newLink.value = v
+                }),
+                button({
+                    text: "Add link",
+                    icon: {icon: "add"},
+                    classes: ["positive"],
+                    disabled: compute((tl, n) => tl.some(l => n && l.host === new URL(n).host) && newLink.value.trim() !== "", links, newLink),
+                    onclick: () => {
+                        const methods: Record<string, Function> = {
+                            track: Api.addTrackLink,
+                            album: Api.addAlbumLink,
+                        };
+                        methods[type](entity$.value!.id, newLink.value)
+                            .then(() => {
+                                notify("Link added", NotificationType.success);
+                                newLink.value = "";
+                                refresh();
+                            }).catch(() => notify("Failed to add link", NotificationType.error));
+                    }
+                })
+            ).classes("fullWidth").build()
         ).build();
     }
 
-    static trackLink(track$: Signal<Track | null>, link: TrackLink, refresh: () => void) {
+    static trackLink(type: "album" | "track", entity$: Signal<Track | Album | null>, link: Link, refresh: () => void) {
         const serviceMap: Record<string, LinkServices> = {
             "open.spotify.com": LinkServices.spotify,
             "music.apple.com": LinkServices.applemusic,
@@ -153,8 +152,8 @@ export class Inputs {
             .children(
                 create("span")
                     .text(`${service}${linkPath(link.url)}`)
-                    .onclick(() => {
-                        navigator.clipboard.writeText(link.url);
+                    .onclick(async () => {
+                        await navigator.clipboard.writeText(link.url);
                         notify("Copied to clipboard", NotificationType.success);
                     }).build(),
                 icon({
@@ -162,7 +161,12 @@ export class Inputs {
                     classes: ["clickable-icon"],
                     title: "Remove link",
                     onclick: () => {
-                        Api.removeTrackLink(track$.value!.id, link.url)
+                        const method: Record<string, Function> = {
+                            track: Api.removeTrackLink,
+                            album: Api.removeAlbumLink,
+                        };
+
+                        method[type](entity$.value!.id, link.url)
                             .then(() => {
                                 notify("Link removed", NotificationType.success);
                                 refresh();

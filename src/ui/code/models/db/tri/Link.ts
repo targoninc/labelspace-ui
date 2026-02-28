@@ -1,5 +1,4 @@
-export interface AlbumLink {
-    album_id: number;
+export interface Link {
     url: string;
     host: string;
     shown: boolean;

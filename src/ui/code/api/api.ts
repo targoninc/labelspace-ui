@@ -323,4 +323,16 @@ export class Api {
             id, url
         });
     }
+
+    static addAlbumLink(id: number, url: string) {
+        return Fetcher.post(base + "/albums/actions/addLink", {
+            id, url
+        })
+    }
+
+    static removeAlbumLink(id: number, url: string) {
+        return Fetcher.post(base + "/albums/actions/removeLink", {
+            id, url
+        });
+    }
 }

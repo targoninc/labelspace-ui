@@ -129,7 +129,7 @@ export class Tracks {
             ).classes("flex-grow").build(),
             vertical(
                 when(hasReleaseManagementPermission, Generics.container(1, [
-                    Inputs.serviceLinks(track$)
+                    Inputs.serviceLinks(track$, "track")
                 ])),
                 Generics.earnings(earnings),
                 when(track$, Tracks.trackStatistics(track$))
