@@ -238,7 +238,12 @@ export class Account {
         const username = signal(data.value.username);
         const password = signal(data.value.password);
         const message = signal("");
-        login(loading, username, password, message, data.value.challenge);
+        login(loading, username, password, message, data.value.challenge, {
+            onError: (error: Error) => {
+                notify(error.message ?? "Login failed", NotificationType.error);
+                step.value = "login";
+            }
+        });
         return Account.waitingBox("Logging in...", "Please wait");
     }
 
