@@ -175,7 +175,9 @@ body {
 }
 
 #content {
-    height: 100%;
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow: hidden;
 }
 
 .hidden {
@@ -306,6 +308,21 @@ nav.container {
 
 .split-flex {
     justify-content: space-between;
+}
+
+.page-frame {
+    height: 100%;
+    max-height: 100dvh;
+    overflow: hidden;
+    flex-wrap: nowrap;
+}
+
+.page-content {
+    width: 100%;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 button.positive, .button.positive {
