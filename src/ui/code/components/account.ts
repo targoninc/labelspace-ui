@@ -61,7 +61,7 @@ export class Account {
 
         return Generics.pageFrame(
             create("div")
-                .classes("flex-v")
+                .classes("flex-v", "auth-box")
                 .children(template)
                 .build()
         );

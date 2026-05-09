@@ -78,6 +78,10 @@
     }
 }
 
+* {
+    box-sizing: border-box;
+}
+
 .material-symbols-outlined {
     font-variation-settings: 'FILL' 1,
     'wght' 400,
@@ -572,4 +576,13 @@ button.jessc {
 .album-card:hover {
     border: 1px solid var(--cyan);
     background: var(--gray-3);
+}
+
+.auth-box {
+    max-width: 600px;
+    width: 100%;
+    padding: calc(var(--layout-gap) * 2);
+    background: var(--white);
+    border-radius: calc(var(--radius) * 2);
+    margin: auto;
 }
