@@ -16,10 +16,48 @@ import {AuthenticationJSON, CredentialDescriptor, RegistrationJSON} from "@passw
 import {MfaOption} from "../enums/MfaOption.ts";
 import {PaymentStatus} from "../enums/PaymentStatus.ts";
 
-const base = window.location.origin.includes("localhost") ? "http://localhost:8090" : "https://artists-api.trirecords.eu";
+type PublicUiConfig = {
+    labelUiUrl: string;
+    portalApiUrl: string;
+};
+
+let base = "";
 
 export class Api {
     static baseUrl = base;
+    static labelUiUrl = "";
+
+    private static joinUrl(baseUrl: string, path: string) {
+        return new URL(path, baseUrl.endsWith("/") ? baseUrl : `${baseUrl}/`).toString();
+    }
+
+    static labelUrl(path: string) {
+        return this.joinUrl(this.labelUiUrl, path);
+    }
+
+    static async initialize() {
+        const bootstrapResponse = await fetch("/api-url", {
+            credentials: "same-origin",
+        });
+
+        if (!bootstrapResponse.ok) {
+            throw new Error(`Failed to load backend API URL: ${bootstrapResponse.status} ${bootstrapResponse.statusText}`);
+        }
+
+        const bootstrapApiUrl = (await bootstrapResponse.text()).trim();
+        if (!bootstrapApiUrl) {
+            throw new Error("Backend API URL bootstrap endpoint returned an empty value.");
+        }
+
+        const config = await Fetcher.get<PublicUiConfig>(`${bootstrapApiUrl}/config/ui`);
+        if (!config?.portalApiUrl || !config.labelUiUrl) {
+            throw new Error("Backend UI config response is missing required URLs.");
+        }
+
+        base = config.portalApiUrl.trim();
+        this.baseUrl = base;
+        this.labelUiUrl = config.labelUiUrl.trim();
+    }
 
     static async getUser() {
         return await Fetcher.get<User>(base + "/user/get");

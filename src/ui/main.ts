@@ -3,6 +3,8 @@ import {Api} from "./code/api/api.ts";
 import {navigate, startRouter} from "./code/routing/Router.ts";
 import {routes} from "./code/components/generic/generics.ts";
 
+await Api.initialize();
+
 router.value!.setRoutes(routes);
 userLoading.value = true;
 Api.getUser()

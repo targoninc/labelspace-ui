@@ -264,7 +264,7 @@ export class Albums {
             }, debounce);
         });
         const hasImage = compute(a => a?.has_cover ?? false, album);
-        const triRecordsLink = compute(a => `https://trirecords.eu/album/${a?.id}`, album);
+        const triRecordsLink = compute(a => Api.labelUrl(`/album/${a?.id}`), album);
 
         return vertical(
             vertical(

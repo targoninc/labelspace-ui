@@ -75,7 +75,7 @@ export class Users {
                 create("td")
                     .children(
                         horizontal(
-                            ...user.artists?.map(a => Generics.link("https://trirecords.eu/artist/" + a.name, a.name)) ?? []
+                            ...user.artists?.map(a => Generics.link(Api.labelUrl(`/artist/${a.name}`), a.name)) ?? []
                         )
                     ).build(),
                 create("td")
@@ -293,7 +293,7 @@ export class Users {
                         classes: ["artist-logo"]
                     }, "/images/LOGO512.png"),
                     vertical(
-                        Generics.link("https://trirecords.eu/artist/" + a.name, a.name),
+                        Generics.link(Api.labelUrl(`/artist/${a.name}`), a.name),
                         Inputs.longtext(description, "Description", "description"),
                         horizontal(
                             button({

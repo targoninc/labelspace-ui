@@ -64,7 +64,7 @@ export class Tracks {
             };
         });
         const credits = compute(t => t?.credits ?? "", track$);
-        const triRecordsLink = compute(t => `https://trirecords.eu/track/${t?.id}`, track$);
+        const triRecordsLink = compute(t => Api.labelUrl(`/track/${t?.id}`), track$);
 
         return horizontal(
             vertical(
