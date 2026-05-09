@@ -338,15 +338,9 @@ export const routes: Route[] = [
     },
     {
         path: "login",
-        aliases: ["/"],
+        aliases: ["/", "password-reset"],
         title: "Login",
         template: Account.loginPage,
-        allowWithoutLogin: true
-    },
-    {
-        path: "password-reset",
-        title: "Password reset",
-        template: Account.passwordReset,
         allowWithoutLogin: true
     },
     {

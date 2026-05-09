@@ -35,9 +35,17 @@ export class Account {
             complete: Account.completeBox,
             "reset-password": Account.resetPasswordBox,
             "password-reset-requested": Account.passwordResetRequestedBox,
+            "password-reset": Account.enterNewPasswordBox,
         };
 
-        const step = signal<string>("login");
+        const altEntryPoints = ["password-reset"];
+        let firstStep = "login";
+        const matchedAlt = altEntryPoints.find(e => window.location.pathname.includes(e));
+        if (matchedAlt) {
+            firstStep = matchedAlt;
+        }
+
+        const step = signal<string>(firstStep);
         const data = signal<LoginData>({
             username: "",
             password: "",
@@ -275,6 +283,56 @@ export class Account {
         ).build();
     }
 
+    static enterNewPasswordBox(step: Signal<string>, _data: Signal<LoginData>) {
+        const url = new URL(window.location.href);
+        const token = url.searchParams.get("token");
+
+        const password = signal("");
+        const password2 = signal("");
+        const message = signal("");
+        const loading = signal(false);
+        const success = signal(false);
+        const sendable = compute(
+            (p1, p2, l, s) => p1.length > 8 && p2.length > 8 && p1 === p2 && !l && !s,
+            password, password2, loading, success,
+        );
+
+        const doReset = () => {
+            loading.value = true;
+            Api.resetPassword({
+                token,
+                newPassword: password.value,
+                newPasswordConfirm: password2.value,
+            }).then(() => {
+                success.value = true;
+                message.value = "Password reset successful.";
+            }).catch(e => {
+                message.value = `Password reset failed: ${e.message}`;
+            }).finally(() => {
+                loading.value = false;
+            });
+        };
+
+        return vertical(
+            Generics.heading(2, "Enter new password"),
+            when(compute(s => !s, success), Inputs.password(password, "New password")),
+            when(compute(s => !s, success), Inputs.password(password2, "Confirm password")),
+            when(sendable, button({
+                text: "Reset password",
+                icon: {icon: "lock_reset"},
+                onclick: doReset,
+                classes: ["positive"],
+            })),
+            when(success, button({
+                text: "Go to login",
+                icon: {icon: "arrow_forward"},
+                classes: ["positive"],
+                onclick: () => step.value = "login",
+            })),
+            Generics.message(message),
+        ).build();
+    }
+
     static passwordResetRequestedBox(step: Signal<string>, _data: Signal<LoginData>) {
         return vertical(
             Generics.heading(2, "Reset email sent"),
@@ -288,49 +346,4 @@ export class Account {
         ).build();
     }
 
-    static passwordReset() {
-        const url = new URL(window.location.href);
-        const token = url.searchParams.get("token");
-
-        const password = signal("");
-        const password2 = signal("");
-        const message = signal("");
-        const loading = signal(false);
-        const success = signal(false);
-        const sendable = compute((p1, p2, l, s) => p1.length > 8 && p2.length > 8 && p1 === p2 && !l && !s, password, password2, loading, success);
-        const resetPassword = async () => {
-            Api.resetPassword({
-                token,
-                newPassword: password.value,
-                newPasswordConfirm: password2.value
-            }).then(() => {
-                success.value = true;
-                message.value = "Password reset successful. You can now login with your new password.";
-                setTimeout(() => {
-                    window.close();
-                }, 5000);
-            }).catch(e => {
-                success.value = false;
-                message.value = `Password reset failed: ${e.message}`;
-            }).finally(() => {
-                loading.value = false;
-            });
-        };
-
-        return Generics.pageFrame(
-            create("div")
-                .classes("flex-v")
-                .children(
-                    Generics.heading(1, "Password reset"),
-                    when(success, Inputs.password(password, "New password"), true),
-                    when(success, Inputs.password(password2, "Confirm password"), true),
-                    when(sendable, button({
-                        text: "Reset password",
-                        onclick: resetPassword,
-                        classes: ["positive"]
-                    })),
-                    Generics.message(message)
-                ).build()
-        );
-    }
 }
