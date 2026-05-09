@@ -4,7 +4,7 @@ import {Route} from "../../routing/Route.ts";
 import {Account} from "../account.ts";
 import {Users} from "../users.ts";
 import {Permissions} from "../../enums/Permissions.ts";
-import {currentUser, userLoading} from "../../state.ts";
+import {currentRoute, currentUser, userLoading} from "../../state.ts";
 import type {NavItem} from "../../models/NavItem.ts";
 import {Statistics} from "../statistics.ts";
 import {Payments} from "../payments.ts";
@@ -37,7 +37,7 @@ export class Generics {
     }
 
     static nav() {
-        const loginShown = compute((u, l) => !u && !l, currentUser, userLoading);
+        const loginShown = compute((u, l, r) => !u && !l && r?.path !== "login", currentUser, userLoading, currentRoute);
 
         return create("nav")
             .classes("container", "layer-1", "flex", "split-flex", "center-items")
