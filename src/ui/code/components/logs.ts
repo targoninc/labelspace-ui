@@ -1,28 +1,180 @@
 import {Log} from "../models/db/tri/Log.ts";
 import {Api} from "../api/api.ts";
 import {Generics} from "./generic/generics.ts";
-import {signal, when} from "@targoninc/jess";
+import {NotificationType} from "../enums/NotificationType.ts";
+import {getLogLevelClassName, getLogLevelLabel, LogLevel} from "../enums/LogLevel.ts";
+import {notify} from "../functions/notifications.ts";
+import {compute, create, signal, when} from "@targoninc/jess";
+import {button, input, searchableSelect, SelectOption} from "@targoninc/jess-components";
 
 export class Logs {
     static page() {
         const logs = signal<Log[]>([]);
         const loading = signal(false);
-        Api.getLogs()
-            .then(l => logs.value = l)
-            .finally(() => loading.value = false);
+        const logLevel = signal("all");
+        const message = signal("");
+        const startTime = signal("");
+        const endTime = signal("");
+        const invalidTimeRange = compute((start, end) => !!start && !!end && new Date(start) > new Date(end), startTime, endTime);
+        const noResults = compute((entries, isLoading) => entries.length === 0 && !isLoading, logs, loading);
+        const logLevelOptions = signal<SelectOption[]>([
+            {id: "all", name: "All levels"},
+            {id: LogLevel.debug.toString(), name: getLogLevelLabel(LogLevel.debug)},
+            {id: LogLevel.success.toString(), name: getLogLevelLabel(LogLevel.success)},
+            {id: LogLevel.info.toString(), name: getLogLevelLabel(LogLevel.info)},
+            {id: LogLevel.warning.toString(), name: getLogLevelLabel(LogLevel.warning)},
+            {id: LogLevel.error.toString(), name: getLogLevelLabel(LogLevel.error)},
+            {id: LogLevel.critical.toString(), name: getLogLevelLabel(LogLevel.critical)},
+            {id: LogLevel.unknown.toString(), name: getLogLevelLabel(LogLevel.unknown)},
+        ]);
+
+        const load = () => {
+            if (loading.value || invalidTimeRange.value) {
+                return;
+            }
+
+            loading.value = true;
+            Api.getLogs({
+                logLevel: logLevel.value === "all" ? undefined : parseInt(logLevel.value, 10),
+                message: message.value.trim() || undefined,
+                startTime: startTime.value ? new Date(startTime.value).toISOString() : undefined,
+                endTime: endTime.value ? new Date(endTime.value).toISOString() : undefined,
+            })
+                .then(l => logs.value = l)
+                .catch((error: Error) => {
+                    notify(error.message ?? "Failed to load logs.", NotificationType.error);
+                })
+                .finally(() => loading.value = false);
+        };
+
+        const clearFilters = () => {
+            logLevel.value = "all";
+            message.value = "";
+            startTime.value = "";
+            endTime.value = "";
+            load();
+        };
+
+        load();
 
         return Generics.pageFrame(
-            Generics.heading(2, "Logs"),
-            when(loading, Generics.loading()),
-            Generics.table(
-                ["Time", "Level", "Message"],
-                logs,
-                (log: Log) => Generics.tableRow(
-                    new Date(log.time).toLocaleString(undefined, {timeZone: 'UTC'}),
-                    log.logLevel,
-                    log.message
-                )
-            )
+            create("div")
+                .classes("flex-v", "logs-page")
+                .children(
+                    Generics.heading(2, "Logs"),
+                    create("div")
+                        .classes("container", "layer-2", "border", "log-filters")
+                        .children(
+                            create("div")
+                                .classes("log-filter-field")
+                                .children(
+                                    searchableSelect({
+                                        label: "Log level",
+                                        options: logLevelOptions,
+                                        value: logLevel,
+                                        onchange: (value) => {
+                                            logLevel.value = value;
+                                        }
+                                    })
+                                ).build(),
+                            create("div")
+                                .classes("log-filter-field")
+                                .children(
+                                    input({
+                                        type: "text",
+                                        name: "messageFilter",
+                                        label: "Message",
+                                        placeholder: "Filter by message",
+                                        value: message,
+                                        onchange: (value) => {
+                                            message.value = value;
+                                        },
+                                        onkeydown: (event) => {
+                                            if (event.key === "Enter") {
+                                                load();
+                                            }
+                                        }
+                                    })
+                                ).build(),
+                            create("div")
+                                .classes("log-filter-field")
+                                .children(
+                                    input({
+                                        type: "datetime-local",
+                                        name: "startTime",
+                                        label: "From",
+                                        value: startTime,
+                                        onchange: (value) => {
+                                            startTime.value = value;
+                                        }
+                                    })
+                                ).build(),
+                            create("div")
+                                .classes("log-filter-field")
+                                .children(
+                                    input({
+                                        type: "datetime-local",
+                                        name: "endTime",
+                                        label: "To",
+                                        value: endTime,
+                                        onchange: (value) => {
+                                            endTime.value = value;
+                                        }
+                                    })
+                                ).build(),
+                            create("div")
+                                .classes("flex", "center-items", "log-filter-actions")
+                                .children(
+                                    button({
+                                        text: "Apply",
+                                        icon: { icon: "filter_alt" },
+                                        disabled: compute((isLoading, invalid) => isLoading || invalid, loading, invalidTimeRange),
+                                        onclick: load,
+                                    }),
+                                    button({
+                                        text: "Clear",
+                                        icon: { icon: "clear" },
+                                        disabled: loading,
+                                        onclick: clearFilters,
+                                    }),
+                                    when(loading, Generics.loading())
+                                ).build()
+                        ).build(),
+                    when(invalidTimeRange, create("span")
+                        .classes("error")
+                        .text("Start time must be before end time.")
+                        .build()),
+                    when(noResults, create("span")
+                        .text("No logs found for the current filters.")
+                        .build()),
+                    Generics.table(
+                        ["Time", "Level", "Message"],
+                        logs,
+                        (log: Log) => {
+                            const levelClassName = getLogLevelClassName(log.logLevel);
+                            return create("tr")
+                                .classes("log-row", `log-${levelClassName}`)
+                                .children(
+                                    create("td")
+                                        .text(`${new Date(log.time).toLocaleString(undefined, {timeZone: "UTC"})} UTC`)
+                                        .build(),
+                                    create("td")
+                                        .children(
+                                            create("span")
+                                                .classes("log-level-pill", `log-${levelClassName}`)
+                                                .text(getLogLevelLabel(log.logLevel))
+                                                .build()
+                                        ).build(),
+                                    create("td")
+                                        .classes("log-message")
+                                        .title(log.message)
+                                        .text(log.message)
+                                        .build()
+                                ).build();
+                        },
+                        ["scroll-table"]
+                    )
+                ).build()
         );
     }
 }

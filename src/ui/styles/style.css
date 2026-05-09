@@ -385,6 +385,31 @@ hr {
     overflow: auto;
 }
 
+.logs-page {
+    gap: var(--layout-gap);
+}
+
+.log-filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    gap: var(--layout-gap);
+}
+
+.log-filter-field {
+    flex: 1 1 220px;
+    min-width: 220px;
+}
+
+.log-filter-field > * {
+    width: 100%;
+}
+
+.log-filter-actions {
+    flex-wrap: wrap;
+    margin-left: auto;
+}
+
 thead tr th {
     position: sticky;
     top: 0;
@@ -442,6 +467,57 @@ tr:last-child td:last-child {
 
 td {
     background: var(--gray-1);
+}
+
+.log-row {
+    --log-level-color: var(--gray-5);
+}
+
+.log-row td:first-child {
+    box-shadow: inset 4px 0 0 var(--log-level-color);
+}
+
+.log-level-pill {
+    display: inline-block;
+    background: var(--log-level-color);
+    border-radius: 999px;
+    padding: var(--inline-padding);
+    font-size: .8rem;
+    font-weight: bold;
+    min-width: 6rem;
+    text-align: center;
+}
+
+.log-message {
+    word-break: break-word;
+}
+
+.log-debug {
+    --log-level-color: var(--gray-5);
+}
+
+.log-success {
+    --log-level-color: var(--green);
+}
+
+.log-info {
+    --log-level-color: var(--blue);
+}
+
+.log-warning {
+    --log-level-color: var(--orange);
+}
+
+.log-error {
+    --log-level-color: var(--red);
+}
+
+.log-critical {
+    --log-level-color: var(--red);
+}
+
+.log-unknown {
+    --log-level-color: var(--gray-7);
 }
 
 .privateText {

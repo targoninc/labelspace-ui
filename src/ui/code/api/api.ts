@@ -82,8 +82,15 @@ export class Api {
         return await Fetcher.postWithResponse<RoyaltyInfo>(base + "/payments/available");
     }
 
-    static async getLogs() {
-        return await Fetcher.get<Log[]>(base + "/logs/get");
+    static async getLogs(options: {
+        logLevel?: number;
+        message?: string;
+        startTime?: string;
+        endTime?: string;
+        offset?: number;
+        limit?: number;
+    } = {}) {
+        return await Fetcher.get<Log[]>(base + "/logs/get", options);
     }
 
     static async getAlbums() {
