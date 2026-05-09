@@ -14,6 +14,7 @@ import {Artist} from "../models/db/tri/Artist.ts";
 import {ArtistLink} from "../models/db/tri/ArtistLink.ts";
 import {AuthenticationJSON, CredentialDescriptor, RegistrationJSON} from "@passwordless-id/webauthn/dist/esm/types";
 import {MfaOption} from "../enums/MfaOption.ts";
+import {PaymentStatus} from "../enums/PaymentStatus.ts";
 
 const base = window.location.origin.includes("localhost") ? "http://localhost:8090" : "https://artists-api.trirecords.eu";
 
@@ -74,8 +75,15 @@ export class Api {
         return await Fetcher.get<Statistic[]>(base + "/statistics/royaltiesByCountry");
     }
 
-    static async getPayments() {
-        return await Fetcher.get<Payment[]>(base + "/payments/get");
+    static async getPayments(options: {
+        status?: PaymentStatus;
+        startTime?: string;
+        endTime?: string;
+        minAmount?: number;
+        maxAmount?: number;
+        userQuery?: string;
+    } = {}) {
+        return await Fetcher.get<Payment[]>(base + "/payments/get", options);
     }
 
     static async getAvailablePaymentAmount() {
