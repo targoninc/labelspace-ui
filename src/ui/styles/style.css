@@ -392,20 +392,31 @@ hr {
 .log-filters {
     display: flex;
     flex-wrap: wrap;
-    align-items: end;
+    align-items: flex-end;
     gap: var(--layout-gap);
+    padding: var(--layout-gap) !important;
 }
 
 .log-filter-field {
-    flex: 1 1 220px;
-    min-width: 220px;
+    flex: 1 1 180px;
+    min-width: 180px;
+    align-self: flex-end;
 }
 
 .log-filter-field > * {
     width: 100%;
 }
 
+.log-filter-label {
+    width: 100%;
+}
+
+.log-filter-select {
+    width: 100%;
+}
+
 .log-filter-actions {
+    flex: 0 0 auto;
     flex-wrap: wrap;
     margin-left: auto;
 }

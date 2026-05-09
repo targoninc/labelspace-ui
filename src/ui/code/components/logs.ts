@@ -5,7 +5,7 @@ import {NotificationType} from "../enums/NotificationType.ts";
 import {getLogLevelClassName, getLogLevelLabel, LogLevel} from "../enums/LogLevel.ts";
 import {notify} from "../functions/notifications.ts";
 import {compute, create, signal, when} from "@targoninc/jess";
-import {button, input, searchableSelect, SelectOption} from "@targoninc/jess-components";
+import {button, input} from "@targoninc/jess-components";
 
 export class Logs {
     static page() {
@@ -17,7 +17,7 @@ export class Logs {
         const endTime = signal("");
         const invalidTimeRange = compute((start, end) => !!start && !!end && new Date(start) > new Date(end), startTime, endTime);
         const noResults = compute((entries, isLoading) => entries.length === 0 && !isLoading, logs, loading);
-        const logLevelOptions = signal<SelectOption[]>([
+        const logLevelOptions = [
             {id: "all", name: "All levels"},
             {id: LogLevel.debug.toString(), name: getLogLevelLabel(LogLevel.debug)},
             {id: LogLevel.success.toString(), name: getLogLevelLabel(LogLevel.success)},
@@ -26,14 +26,34 @@ export class Logs {
             {id: LogLevel.error.toString(), name: getLogLevelLabel(LogLevel.error)},
             {id: LogLevel.critical.toString(), name: getLogLevelLabel(LogLevel.critical)},
             {id: LogLevel.unknown.toString(), name: getLogLevelLabel(LogLevel.unknown)},
-        ]);
+        ];
+        let reloadQueued = false;
+        const logLevelSelect = create("select")
+            .classes("jess", "log-filter-select")
+            .children(
+                ...logLevelOptions.map(option => create("option")
+                    .attributes("value", option.id)
+                    .text(option.name)
+                    .build())
+            ).build() as HTMLSelectElement;
+        logLevelSelect.value = logLevel.value;
+        logLevelSelect.onchange = () => {
+            logLevel.value = logLevelSelect.value;
+            load();
+        };
 
         const load = () => {
-            if (loading.value || invalidTimeRange.value) {
+            if (invalidTimeRange.value) {
+                return;
+            }
+
+            if (loading.value) {
+                reloadQueued = true;
                 return;
             }
 
             loading.value = true;
+            reloadQueued = false;
             Api.getLogs({
                 logLevel: logLevel.value === "all" ? undefined : parseInt(logLevel.value, 10),
                 message: message.value.trim() || undefined,
@@ -44,11 +64,17 @@ export class Logs {
                 .catch((error: Error) => {
                     notify(error.message ?? "Failed to load logs.", NotificationType.error);
                 })
-                .finally(() => loading.value = false);
+                .finally(() => {
+                    loading.value = false;
+                    if (reloadQueued) {
+                        load();
+                    }
+                });
         };
 
         const clearFilters = () => {
             logLevel.value = "all";
+            logLevelSelect.value = "all";
             message.value = "";
             startTime.value = "";
             endTime.value = "";
@@ -68,14 +94,14 @@ export class Logs {
                             create("div")
                                 .classes("log-filter-field")
                                 .children(
-                                    searchableSelect({
-                                        label: "Log level",
-                                        options: logLevelOptions,
-                                        value: logLevel,
-                                        onchange: (value) => {
-                                            logLevel.value = value;
-                                        }
-                                    })
+                                    create("label")
+                                        .classes("jess", "flex-v", "log-filter-label")
+                                        .children(
+                                            create("span")
+                                                .text("Log level")
+                                                .build(),
+                                            logLevelSelect
+                                        ).build()
                                 ).build(),
                             create("div")
                                 .classes("log-filter-field")
@@ -88,11 +114,7 @@ export class Logs {
                                         value: message,
                                         onchange: (value) => {
                                             message.value = value;
-                                        },
-                                        onkeydown: (event) => {
-                                            if (event.key === "Enter") {
-                                                load();
-                                            }
+                                            load();
                                         }
                                     })
                                 ).build(),
@@ -106,6 +128,7 @@ export class Logs {
                                         value: startTime,
                                         onchange: (value) => {
                                             startTime.value = value;
+                                            load();
                                         }
                                     })
                                 ).build(),
@@ -119,18 +142,13 @@ export class Logs {
                                         value: endTime,
                                         onchange: (value) => {
                                             endTime.value = value;
+                                            load();
                                         }
                                     })
                                 ).build(),
                             create("div")
                                 .classes("flex", "center-items", "log-filter-actions")
                                 .children(
-                                    button({
-                                        text: "Apply",
-                                        icon: { icon: "filter_alt" },
-                                        disabled: compute((isLoading, invalid) => isLoading || invalid, loading, invalidTimeRange),
-                                        onclick: load,
-                                    }),
                                     button({
                                         text: "Clear",
                                         icon: { icon: "clear" },

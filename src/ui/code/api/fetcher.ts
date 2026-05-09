@@ -2,6 +2,12 @@ import {NotificationType} from "../enums/NotificationType.ts";
 import {notify} from "../functions/notifications.ts";
 
 export class Fetcher {
+    private static cleanParams(params: Record<string, any>) {
+        return Object.fromEntries(
+            Object.entries(params).filter(([, value]) => value !== undefined && value !== null && value !== "")
+        );
+    }
+
     private static async handleResponse<T = null>(res: Response, parseOutput = true): Promise<T|null> {
         const text = await res.text();
         if (!res.ok) {
@@ -26,8 +32,9 @@ export class Fetcher {
         }
     }
 
-    static async get<T>(url: string, params: any = {}): Promise<T> {
-        const urlWithParams = url + (Object.keys(params).length > 0 ? "?" + new URLSearchParams(params).toString() : "");
+    static async get<T>(url: string, params: any = {}): Promise<T | null> {
+        const cleanParams = this.cleanParams(params);
+        const urlWithParams = url + (Object.keys(cleanParams).length > 0 ? "?" + new URLSearchParams(cleanParams).toString() : "");
 
         const res = await fetch(urlWithParams, {
             method: "GET",
@@ -40,7 +47,7 @@ export class Fetcher {
         return await this.handleResponse<T>(res);
     }
 
-    static async post(url: string, body: any = {}): Promise<string> {
+    static async post(url: string, body: any = {}): Promise<string | null> {
         const res = await fetch(url, {
             method: "POST",
             headers: {
@@ -53,7 +60,7 @@ export class Fetcher {
         return await this.handleResponse(res, false);
     }
 
-    static async postWithResponse<T>(url: string, body: any = {}): Promise<T> {
+    static async postWithResponse<T>(url: string, body: any = {}): Promise<T | null> {
         const res = await fetch(url, {
             method: "POST",
             headers: {
