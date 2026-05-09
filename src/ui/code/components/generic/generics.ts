@@ -76,7 +76,7 @@ export class Generics {
 
     static pageFrame(...content: (AnyElement|Signal<AnyElement>)[]) {
         return create("div")
-            .classes("container", "flex-v")
+            .classes("container", "flex-v", "full-height")
             .children(
                 Generics.nav(),
                 Generics.container(1, content)

@@ -143,6 +143,14 @@ a.button:hover {
     flex-direction: column;
 }
 
+.full-height {
+    height: 100%;
+}
+
+.full-width {
+    width: 100%;
+}
+
 .card {
     padding: var(--layout-gap) calc(var(--layout-gap) * 2);
     background: var(--white);
