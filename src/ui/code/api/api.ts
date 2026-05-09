@@ -19,6 +19,7 @@ import {PaymentStatus} from "../enums/PaymentStatus.ts";
 type PublicUiConfig = {
     labelUiUrl: string;
     portalApiUrl: string;
+    contactEmail: string;
 };
 
 let base = "";
@@ -26,6 +27,7 @@ let base = "";
 export class Api {
     static baseUrl = base;
     static labelUiUrl = "";
+    static contactEmail = "";
 
     private static joinUrl(baseUrl: string, path: string) {
         return new URL(path, baseUrl.endsWith("/") ? baseUrl : `${baseUrl}/`).toString();
@@ -50,13 +52,14 @@ export class Api {
         }
 
         const config = await Fetcher.get<PublicUiConfig>(`${bootstrapApiUrl}/config/ui`);
-        if (!config?.portalApiUrl || !config.labelUiUrl) {
+        if (!config?.portalApiUrl || !config.labelUiUrl || !config.contactEmail) {
             throw new Error("Backend UI config response is missing required URLs.");
         }
 
         base = config.portalApiUrl.trim();
         this.baseUrl = base;
         this.labelUiUrl = config.labelUiUrl.trim();
+        this.contactEmail = config.contactEmail.trim();
     }
 
     static async getUser() {
