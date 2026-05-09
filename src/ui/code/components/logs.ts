@@ -4,7 +4,8 @@ import {Generics} from "./generic/generics.ts";
 import {NotificationType} from "../enums/NotificationType.ts";
 import {getLogLevelClassName, getLogLevelLabel, LogLevel} from "../enums/LogLevel.ts";
 import {notify} from "../functions/notifications.ts";
-import {compute, create, signal, when} from "@targoninc/jess";
+import {Time} from "../functions/time.ts";
+import {compute, create, InputType, signal, when} from "@targoninc/jess";
 import {button, input} from "@targoninc/jess-components";
 
 export class Logs {
@@ -15,6 +16,7 @@ export class Logs {
         const message = signal("");
         const startTime = signal("");
         const endTime = signal("");
+        const relativeTimestamp = signal(true);
         const invalidTimeRange = compute((start, end) => !!start && !!end && new Date(start) > new Date(end), startTime, endTime);
         const noResults = compute((entries, isLoading) => entries.length === 0 && !isLoading, logs, loading);
         const logLevelOptions = [
@@ -60,7 +62,7 @@ export class Logs {
                 startTime: startTime.value ? new Date(startTime.value).toISOString() : undefined,
                 endTime: endTime.value ? new Date(endTime.value).toISOString() : undefined,
             })
-                .then(l => logs.value = l)
+                .then(l => logs.value = l ?? [])
                 .catch((error: Error) => {
                     notify(error.message ?? "Failed to load logs.", NotificationType.error);
                 })
@@ -78,6 +80,7 @@ export class Logs {
             message.value = "";
             startTime.value = "";
             endTime.value = "";
+            relativeTimestamp.value = true;
             load();
         };
 
@@ -107,7 +110,7 @@ export class Logs {
                                 .classes("log-filter-field")
                                 .children(
                                     input({
-                                        type: "text",
+                                        type: InputType.text,
                                         name: "messageFilter",
                                         label: "Message",
                                         placeholder: "Filter by message",
@@ -122,7 +125,7 @@ export class Logs {
                                 .classes("log-filter-field")
                                 .children(
                                     input({
-                                        type: "datetime-local",
+                                        type: InputType.datetimelocal,
                                         name: "startTime",
                                         label: "From",
                                         value: startTime,
@@ -136,7 +139,7 @@ export class Logs {
                                 .classes("log-filter-field")
                                 .children(
                                     input({
-                                        type: "datetime-local",
+                                        type: InputType.datetimelocal,
                                         name: "endTime",
                                         label: "To",
                                         value: endTime,
@@ -145,6 +148,18 @@ export class Logs {
                                             load();
                                         }
                                     })
+                                ).build(),
+                            create("div")
+                                .classes("log-filter-toggle-field")
+                                .children(
+                                    Generics.toggle(
+                                        "Relative timestamp",
+                                        relativeTimestamp,
+                                        checked => {
+                                            relativeTimestamp.value = checked;
+                                        },
+                                        ["log-filter-toggle"]
+                                    )
                                 ).build(),
                             create("div")
                                 .classes("flex", "center-items", "log-filter-actions")
@@ -170,13 +185,25 @@ export class Logs {
                         logs,
                         (log: Log) => {
                             const levelClassName = getLogLevelClassName(log.logLevel);
+                            const relativeTime = Time.agoNumericUpdating(log.time);
+                            const localDateTime = Time.localDateTime(log.time);
+                            const displayedTime = compute((showRelative, relative) => showRelative ? relative : localDateTime, relativeTimestamp, relativeTime);
                             return create("tr")
                                 .classes("log-row", `log-${levelClassName}`)
                                 .children(
                                     create("td")
-                                        .text(`${new Date(log.time).toLocaleString(undefined, {timeZone: "UTC"})} UTC`)
+                                        .classes("log-time", "text-small")
+                                        .children(
+                                            create("time")
+                                                .classes("log-time-label")
+                                                .attributes("datetime", new Date(log.time).toISOString())
+                                                .title(localDateTime)
+                                                .text(displayedTime)
+                                                .build()
+                                        )
                                         .build(),
                                     create("td")
+                                        .classes("log-level-cell")
                                         .children(
                                             create("span")
                                                 .classes("log-level-pill", `log-${levelClassName}`)
@@ -190,7 +217,7 @@ export class Logs {
                                         .build()
                                 ).build();
                         },
-                        ["scroll-table"]
+                        ["scroll-table", "logs-table"]
                     )
                 ).build()
         );

@@ -184,6 +184,69 @@ body {
     display: none;
 }
 
+.toggle {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--small-gap);
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+}
+
+.toggle .slider {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+    margin: 0;
+    pointer-events: none;
+}
+
+.toggle-container {
+    width: 2.5rem;
+    height: 1.5rem;
+    padding: 2px;
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+    background: var(--gray-3);
+    border: 1px solid var(--gray-4);
+    border-radius: 999px;
+    transition: background .15s ease-in-out, border-color .15s ease-in-out;
+}
+
+.toggle:hover .toggle-container {
+    background: var(--gray-4);
+}
+
+.toggle .slider:focus-visible + .toggle-container {
+    outline: 2px solid var(--blue);
+    outline-offset: 2px;
+}
+
+.toggle .slider:checked + .toggle-container {
+    background: var(--blue);
+    border-color: var(--blue);
+}
+
+.toggle-slider {
+    display: block;
+    width: 1rem;
+    height: 1rem;
+    background: var(--white);
+    border-radius: 50%;
+    transition: transform .15s ease-in-out;
+}
+
+.toggle .slider:checked + .toggle-container .toggle-slider {
+    transform: translateX(1rem);
+}
+
+.toggle-text {
+    font-size: .9rem;
+}
+
 p, h1, h2, h3, h4, h5, h6 {
     margin: 0;
     padding: 0;
@@ -385,6 +448,14 @@ hr {
     overflow: auto;
 }
 
+.text-small {
+    font-size: .8rem;
+}
+
+.logs-table table {
+    table-layout: fixed;
+}
+
 .logs-page {
     gap: var(--layout-gap);
 }
@@ -403,6 +474,11 @@ hr {
     align-self: flex-end;
 }
 
+.log-filter-toggle-field {
+    flex: 0 0 auto;
+    align-self: flex-end;
+}
+
 .log-filter-field > * {
     width: 100%;
 }
@@ -413,6 +489,10 @@ hr {
 
 .log-filter-select {
     width: 100%;
+}
+
+.log-filter-toggle {
+    min-height: 2.5rem;
 }
 
 .log-filter-actions {
@@ -484,8 +564,30 @@ td {
     --log-level-color: var(--gray-5);
 }
 
+.logs-table th:nth-child(1),
+.logs-table .log-time {
+    width: 12rem;
+}
+
+.logs-table th:nth-child(2),
+.logs-table .log-level-cell {
+    width: 8rem;
+}
+
 .log-row td:first-child {
     box-shadow: inset 4px 0 0 var(--log-level-color);
+}
+
+.log-time-label {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+.log-level-cell {
+    white-space: nowrap;
 }
 
 .log-level-pill {

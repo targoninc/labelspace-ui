@@ -18,6 +18,7 @@ import {
     AnyElement,
     compute,
     create, DomNode,
+    InputType,
     nullElement,
     signal,
     Signal,
@@ -145,6 +146,35 @@ export class Generics {
             .classes(mono ? "monospace" : "_")
             .text(text)
             .build();
+    }
+
+    static toggle(
+        text: StringOrSignal,
+        checked: TypeOrSignal<boolean> = false,
+        onchange: (checked: boolean) => void = () => {},
+        extraClasses: StringOrSignal[] = [],
+    ) {
+        return create("label")
+            .classes("toggle", ...extraClasses)
+            .children(
+                create("input")
+                    .type(InputType.checkbox)
+                    .classes("slider")
+                    .checked(checked)
+                    .onchange(e => onchange((e.target as HTMLInputElement).checked))
+                    .build(),
+                create("div")
+                    .classes("toggle-container")
+                    .children(
+                        create("span")
+                            .classes("toggle-slider")
+                            .build()
+                    ).build(),
+                create("span")
+                    .classes("toggle-text")
+                    .text(text)
+                    .build(),
+            ).build();
     }
 
     static table<T>(headers: StringOrSignal[], entries: Signal<T[]>|T[], rowTemplate: (entry: T) => AnyElement, classes: StringOrSignal[] = []) {
