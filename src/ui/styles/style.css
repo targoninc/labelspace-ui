@@ -399,13 +399,13 @@ button.positive:hover, .button.positive:hover {
 }
 
 button.negative, .button.negative {
-    background: var(--red);
-    --jessc-text-color: var(--white);
     border-color: var(--light-red);
 }
 
 button.negative:hover, .button.negative:hover {
     --jessc-text-color: var(--black);
+    background: var(--red);
+    border-color: var(--light-red);
 }
 
 button.active, .button.active {
