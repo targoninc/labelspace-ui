@@ -284,42 +284,44 @@ export class Users {
 
         return Generics.container(1, [
             horizontal(
-                Images.changeableImage(a.id, a.has_logo, MediaFileType.artistLogo, {
-                    changeable: true,
-                    deletable: false,
-                    afterChange: reload,
-                    size: ImageSize.p100,
-                    classes: ["artist-logo"]
-                }, "/images/LOGO512.png"),
                 vertical(
-                    Generics.link("https://trirecords.eu/artist/" + a.name, a.name),
-                    Inputs.longtext(description, "Description", "description"),
-                    horizontal(
-                        button({
-                            text: "Update",
-                            icon: {icon: "save"},
-                            classes: ["positive"],
-                            disabled: compute((a, l) => a || l, noChanges, loading),
-                            onclick: () => {
-                                Api.updateArtist(a.name, <Partial<Artist>>{
-                                    description: description.value
-                                }).then(() => {
-                                    notify("Updated artist", NotificationType.success);
-                                    Api.getUser().then(u => {
-                                        currentUser.value = u;
-                                    });
-                                }).finally(() => loading.value = false);
-                            }
-                        }),
-                        when(noChanges, button({
-                            text: "Revert",
-                            icon: {icon: "undo"},
-                            classes: ["warning"],
-                            onclick: () => {
-                                description.value = a.description ?? "";
-                            }
-                        }), true)
-                    )
+                    Images.changeableImage(a.id, a.has_logo, MediaFileType.artistLogo, {
+                        changeable: true,
+                        deletable: false,
+                        afterChange: reload,
+                        size: ImageSize.p100,
+                        classes: ["artist-logo"]
+                    }, "/images/LOGO512.png"),
+                    vertical(
+                        Generics.link("https://trirecords.eu/artist/" + a.name, a.name),
+                        Inputs.longtext(description, "Description", "description"),
+                        horizontal(
+                            button({
+                                text: "Update",
+                                icon: {icon: "save"},
+                                classes: ["positive"],
+                                disabled: compute((a, l) => a || l, noChanges, loading),
+                                onclick: () => {
+                                    Api.updateArtist(a.name, <Partial<Artist>>{
+                                        description: description.value
+                                    }).then(() => {
+                                        notify("Updated artist", NotificationType.success);
+                                        Api.getUser().then(u => {
+                                            currentUser.value = u;
+                                        });
+                                    }).finally(() => loading.value = false);
+                                }
+                            }),
+                            when(noChanges, button({
+                                text: "Revert",
+                                icon: {icon: "undo"},
+                                classes: ["warning"],
+                                onclick: () => {
+                                    description.value = a.description ?? "";
+                                }
+                            }), true)
+                        )
+                    ),
                 ),
                 Users.artistLinks(a)
             ).build()
@@ -509,7 +511,7 @@ export class Users {
         const update = () => {
             loading.value = true;
             Api.getArtistLinks(a.id)
-                .then(l => links.value = l)
+                .then(l => links.value = l ?? [])
                 .finally(() => loading.value = false);
         }
         update();
@@ -541,6 +543,7 @@ export class Users {
                 button({
                     text: "New link",
                     icon: {icon: "add"},
+                    classes: ["align-end", "positive"],
                     disabled: compute((l, t, u) => l.length >= 10 || !t || !u || t.length === 0 || u.length <= 9, links, newLinkText, newLinkUrl),
                     onclick: () => {
                         loading.value = true;
@@ -593,6 +596,7 @@ export class Users {
                 text: "Delete",
                 icon: {icon: "delete"},
                 disabled: loading,
+                classes: ["align-end", "negative"],
                 onclick: () => {
                     Modals.confirm(() => {
                         loading.value = true;

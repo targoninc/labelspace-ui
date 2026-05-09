@@ -724,6 +724,10 @@ button.jessc {
     align-self: end;
 }
 
+.align-end {
+    align-self: end;
+}
+
 .service-link.spotify {
     --service-link-color: #1db954;
     color: black;
