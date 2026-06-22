@@ -1,11 +1,11 @@
-# LabelSpace UI (artist-space-ui)
+# LabelSpace UI
 
-Artist portal frontend for the LabelSpace platform. Built with Bun, @targoninc/jess, and Chart.js. Serves as the admin panel for artists to manage profiles, tracks, albums, view statistics, request payments, and configure MFA.
+Frontend for LabelSpace. Built with Bun, @targoninc/jess, and Chart.js. Serves as the admin panel for artists to manage profiles, tracks, albums, view statistics, request payments, and configure MFA.
 
 ## Prerequisites
 
 - [Bun](https://bun.sh) 1.x
-- LabelSpace API running (see artist-space-backend)
+- [LabelSpace API](https://github.com/targoninc/labelspace-api) running
 
 ## Quick Start (Development)
 
@@ -51,7 +51,7 @@ docker run -p 3050:3050 -e API_URL=http://localhost:8090 loudar/labelspace-ui
 
 ### Environment Variables
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `PORT` | No | Server port (default: 3050) |
-| `API_URL` | Yes | URL of the LabelSpace API |
+| Variable  | Required | Description                 |
+|-----------|----------|-----------------------------|
+| `PORT`    | No       | Server port (default: 3050) |
+| `API_URL` | Yes      | URL of the LabelSpace API   |
