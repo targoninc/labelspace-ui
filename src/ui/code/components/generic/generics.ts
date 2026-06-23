@@ -27,6 +27,7 @@ import {
     when
 } from "@targoninc/jess";
 import {button} from "@targoninc/jess-components";
+import {Api} from "../../api/api.ts";
 
 export class Generics {
     static notFound() {
@@ -48,10 +49,8 @@ export class Generics {
                     .children(
                         Generics.image("/images/LOGO256.png", ["header-logo"]),
                         create("h1")
-                            .children(
-                                create("b").text("Tri").build(),
-                                create("span").text("Records").build(),
-                            ).build(),
+                            .text(Api.labelName)
+                            .build(),
                         horizontal(
                             ...routes.filter(r => r.showInNav !== undefined)
                                 .map(r => {

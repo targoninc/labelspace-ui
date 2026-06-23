@@ -20,6 +20,7 @@ type PublicUiConfig = {
     labelUiUrl: string;
     portalApiUrl: string;
     contactEmail: string;
+    labelName: string;
 };
 
 let base = "";
@@ -28,6 +29,7 @@ export class Api {
     static baseUrl = base;
     static labelUiUrl = "";
     static contactEmail = "";
+    static labelName = "LabelSpace";
 
     private static joinUrl(baseUrl: string, path: string) {
         return new URL(path, baseUrl.endsWith("/") ? baseUrl : `${baseUrl}/`).toString();
@@ -60,6 +62,7 @@ export class Api {
         this.baseUrl = base;
         this.labelUiUrl = config.labelUiUrl.trim();
         this.contactEmail = config.contactEmail.trim();
+        this.labelName = config.labelName?.trim() || "LabelSpace";
     }
 
     static async getUser() {
