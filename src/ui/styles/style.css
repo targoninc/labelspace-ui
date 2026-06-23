@@ -47,7 +47,7 @@
     --jessc-interactive-color-active: var(--black);
     --jessc-interactive-border: var(--gray-3);
     --jessc-interactive-border-focused: var(--blue);
-    --jessc-interactive-border-active: var(--blue);
+    --jessc-interactive-border-active: var(--black);
     --jessc-border-radius-small: var(--radius);
     --jessc-border-radius-medium: var(--radius);
     --jessc-border-radius-large: var(--radius);
@@ -114,10 +114,41 @@ a.button {
     height: max-content;
 }
 
+.nogap {
+    gap: 0 !important;
+}
+
 .nav-tab {
     border-bottom: 2px solid var(--gray-4);
     border-radius: var(--radius) var(--radius) 0 0 !important;
-    padding: .25em .5em !important;
+    padding: .25em .75em !important;
+
+    &.active {
+        background: transparent !important;
+        box-shadow: inset 0 -15px 15px -15px var(--blue);
+        border-color: var(--blue) !important;
+    }
+}
+
+.tabs {
+    gap: 0 !important;
+}
+
+.tab {
+    &.active {
+        border-color: var(--gray-5) !important;
+        box-shadow: inset 0 0 10px -1px var(--white);
+    }
+
+    &:first-child {
+        border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
+    }
+
+    &:last-child {
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+    }
 }
 
 .fit-content {
@@ -441,6 +472,11 @@ hr {
 }
 
 .table-wrapper.scroll-table {
+    max-height: 75dvh;
+    overflow: auto;
+}
+
+.scroll-table {
     max-height: 75dvh;
     overflow: auto;
 }

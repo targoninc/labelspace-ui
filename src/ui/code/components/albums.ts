@@ -77,10 +77,14 @@ export class Albums {
                 Generics.heading(2, count),
                 Albums.listActions(canManageReleases, filter),
                 when(loading, Generics.loading()),
-                Generics.heading(3, "Unreleased"),
-                signalMap(filteredUpcoming, horizontal(), album => Albums.albumCard(album)),
-                Generics.heading(3, "Released"),
-                signalMap(filteredReleased, horizontal(), album => Albums.albumCard(album)),
+                create("div")
+                    .classes("scroll-table")
+                    .children(
+                        Generics.heading(3, "Unreleased"),
+                        signalMap(filteredUpcoming, horizontal(), album => Albums.albumCard(album)),
+                        Generics.heading(3, "Released"),
+                        signalMap(filteredReleased, horizontal(), album => Albums.albumCard(album)),
+                    ).build()
             ).build();
     }
 
@@ -147,7 +151,7 @@ export class Albums {
 
         return Generics.pageFrame(
             create("div")
-                .classes("flex-v")
+                .classes("flex-v", "auth-box")
                 .children(
                     Generics.heading(2, "Create album"),
                     Inputs.text(title, "Title", "title"),

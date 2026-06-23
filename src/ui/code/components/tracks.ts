@@ -257,33 +257,35 @@ export class Tracks {
         const anyEmpty = compute((t, u, r, p) => t === "" || u === "" || r === null || p === 0, title, artists, release_date, price);
 
         return Generics.pageFrame(
-            vertical(
-                Generics.heading(2, "Create track"),
-                Tracks.trackProperties(title, artists, credits, release_date, isrc, genres, genre, length, price),
-                button({
-                    text: "Create",
-                    icon: { icon: "add" },
-                    classes: ["positive", "fit-content"],
-                    disabled: anyEmpty,
-                    onclick: () => {
-                        Api.createTrack({
-                            title: title.value,
-                            artists: artists.value,
-                            release_date: toUTCDate(new Date(release_date.value)),
-                            price: price.value,
-                            isrc: isrc.value,
-                            credits: credits.value,
-                            genre: genre.value,
-                            length: length.value,
-                        }).then(() => {
-                            notify("Track created", NotificationType.success);
-                            navigate("/releases");
-                        }).catch(e => {
-                            console.error(e);
-                        });
-                    }
-                })
-            ).build(),
+            create("div")
+                .classes("flex-v", "auth-box")
+                .children(
+                    Generics.heading(2, "Create track"),
+                    Tracks.trackProperties(title, artists, credits, release_date, isrc, genres, genre, length, price),
+                    button({
+                        text: "Create",
+                        icon: { icon: "add" },
+                        classes: ["positive", "fit-content"],
+                        disabled: anyEmpty,
+                        onclick: () => {
+                            Api.createTrack({
+                                title: title.value,
+                                artists: artists.value,
+                                release_date: toUTCDate(new Date(release_date.value)),
+                                price: price.value,
+                                isrc: isrc.value,
+                                credits: credits.value,
+                                genre: genre.value,
+                                length: length.value,
+                            }).then(() => {
+                                notify("Track created", NotificationType.success);
+                                navigate("/releases");
+                            }).catch(e => {
+                                console.error(e);
+                            });
+                        }
+                    })
+                ).build(),
         );
     }
 

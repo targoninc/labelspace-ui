@@ -52,15 +52,17 @@ export class Generics {
                                 create("b").text("Tri").build(),
                                 create("span").text("Records").build(),
                             ).build(),
-                        ...routes.filter(r => r.showInNav !== undefined)
-                            .map(r => {
-                                const show = compute(u => r.showInNav && r.showInNav(u), currentUser);
-                                return when(show, Nav.navItem(<NavItem>{
-                                    text: r.title,
-                                    path: r.path,
-                                    icon: r.icon,
-                                }));
-                            })
+                        horizontal(
+                            ...routes.filter(r => r.showInNav !== undefined)
+                                .map(r => {
+                                    const show = compute(u => r.showInNav && r.showInNav(u), currentUser);
+                                    return when(show, Nav.navItem(<NavItem>{
+                                        text: r.title,
+                                        path: r.path,
+                                        icon: r.icon,
+                                    }));
+                                })
+                        ).classes("nogap")
                     ).build(),
                 when(loginShown, button({
                     text: "Login",
@@ -243,7 +245,7 @@ export class Generics {
 
     static tabSelector(tab$: Signal<string>, tabs: Tab[]) {
         return create("div")
-            .classes("flex", "center-items")
+            .classes("flex", "center-items", "tabs")
             .children(
                 ...tabs.map(tab => {
                     const activeClass = compute((t): string => t === tab.key ? "active" : "_", tab$);
@@ -251,7 +253,7 @@ export class Generics {
                     return button({
                         text: tab.text,
                         icon: { icon: tab.icon },
-                        classes: [activeClass],
+                        classes: [activeClass, "tab"],
                         onclick: () => {
                             tab$.value = tab.key;
                         }
