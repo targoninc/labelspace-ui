@@ -318,7 +318,7 @@ export class Generics {
             ).build();
     }
 
-    static pill(text: string, classes: string[]) {
+    static pill(text: StringOrSignal, classes: StringOrSignal[]) {
         return create("span")
             .classes("pill", ...classes)
             .text(text)

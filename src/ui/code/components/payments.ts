@@ -283,12 +283,14 @@ export class Payments {
         const requestLoading = signal(false);
 
         return Generics.container(0, [
-            when(total, Generics.heading(3, total, true)),
-            when(paidOut, Generics.heading(3, paidOut, true)),
+            horizontal(
+                when(total, Generics.pill(total, ["blue"])),
+                when(paidOut, Generics.pill(paidOut, ["blue"])),
+            ),
             when(available, create("div")
                 .classes("flex", "center-items")
                 .children(
-                    Generics.heading(2, available, true),
+                    Generics.pill(available, [compute((i): string => i ? "green" : "gray", payable), "big"]),
                     when(payable, button({
                         text: "Request payment",
                         icon: { icon: "wallet" },
@@ -318,6 +320,6 @@ export class Payments {
                     ).classes("align-children").build(), true),
                     when(requestLoading, Generics.loading()),
                 ).build()),
-        ]);
+        ], ["flex-v"]);
     }
 }

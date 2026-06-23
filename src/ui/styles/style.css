@@ -376,7 +376,7 @@ b {
     padding: calc(var(--layout-gap) * 2);
     box-sizing: border-box;
     background: var(--white);
-    border-radius: var(--radius);
+    border-radius: calc(var(--radius) * 2);
 }
 
 nav.container {
@@ -680,7 +680,7 @@ button.jess {
     width: min(100%, 600px);
     border: 1px solid var(--gray-2);
     padding: var(--layout-gap) calc(var(--layout-gap) * 2);
-    border-radius: var(--radius);
+    border-radius: calc(var(--radius) * 2);
     background: var(--white);
 }
 
@@ -710,6 +710,19 @@ button.jess {
     padding: var(--inline-padding);
     font-size: .8rem;
     max-width: max-content;
+    font-variant-numeric: tabular-nums;
+
+    &.big {
+        font-size: 1.2rem;
+    }
+}
+
+.pill {
+    padding: .2em .75em;
+}
+
+.gray {
+    --status-color: var(--gray-5);
 }
 
 .green {
