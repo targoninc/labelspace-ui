@@ -10,16 +10,16 @@
     --magenta: #ec008c;
     --black: #000000;
     --white: #ffffff;
-    --gray-1: #e6e7e8;
-    --gray-2: #d1d3d4;
-    --gray-3: #bcbec0;
-    --gray-4: #a7a9ac;
-    --gray-5: #939598;
-    --gray-6: #808285;
-    --gray-7: #6d6e71;
-    --gray-8: #58595b;
-    --gray-9: #414042;
-    --gray-10: #231f20;
+    --gray-1: color-mix(in oklab, var(--white), var(--black) 5%);
+    --gray-2: color-mix(in oklab, var(--white), var(--black) 10%);
+    --gray-3: color-mix(in oklab, var(--white), var(--black) 25%);
+    --gray-4: color-mix(in oklab, var(--white), var(--black) 35%);
+    --gray-5: color-mix(in oklab, var(--white), var(--black) 45%);
+    --gray-6: color-mix(in oklab, var(--white), var(--black) 55%);
+    --gray-7: color-mix(in oklab, var(--white), var(--black) 65%);
+    --gray-8: color-mix(in oklab, var(--white), var(--black) 75%);
+    --gray-9: color-mix(in oklab, var(--white), var(--black) 85%);
+    --gray-10: color-mix(in oklab, var(--white), var(--black) 95%);
 
     --stats-1: var(--black);
     --stats-2: var(--gray-10);
@@ -65,16 +65,6 @@
         --magenta: #ec008c;
         --black: #ffffff;
         --white: #0e0d0e;
-        --gray-1: #231f20;
-        --gray-2: #414042;
-        --gray-3: #58595b;
-        --gray-4: #6d6e71;
-        --gray-5: #808285;
-        --gray-6: #939598;
-        --gray-7: #a7a9ac;
-        --gray-8: #bcbec0;
-        --gray-9: #d1d3d4;
-        --gray-10: #e6e7e8;
     }
 }
 
@@ -122,6 +112,12 @@ a.button {
     background: var(--gray-1);
     max-width: max-content;
     height: max-content;
+}
+
+.nav-tab {
+    border-bottom: 2px solid var(--gray-4);
+    border-radius: var(--radius) var(--radius) 0 0 !important;
+    padding: .25em .5em !important;
 }
 
 .fit-content {
@@ -400,6 +396,7 @@ button.positive:hover, .button.positive:hover {
 
 button.negative, .button.negative {
     border-color: var(--light-red);
+    --jessc-text-color: var(--light-red);
 }
 
 button.negative:hover, .button.negative:hover {
@@ -528,16 +525,7 @@ th, td {
 }
 
 tr:hover td {
-    border-top: 1px solid var(--black);
-    border-bottom: 1px solid var(--black);
-}
-
-tr:hover td:first-child {
-    border-left: 1px solid var(--black);
-}
-
-tr:hover td:last-child {
-    border-right: 1px solid var(--black);
+    background: var(--gray-2);
 }
 
 th:first-child {
@@ -637,10 +625,11 @@ td {
     cursor: pointer;
 }
 
-button.jessc {
+button.jess {
     align-items: center;
     display: flex;
     gap: var(--layout-gap);
+    border-radius: 999px;
 }
 
 .statistic {
@@ -793,7 +782,7 @@ button.jessc {
 
 .album-card:hover {
     border: 1px solid var(--cyan);
-    background: var(--gray-3);
+    background: var(--gray-2);
 }
 
 .auth-box {
