@@ -24,7 +24,7 @@ import {ImageSize} from "../enums/imageSize.ts";
 import {Time} from "../functions/time.ts";
 import {Files} from "./generic/files.ts";
 import {compute, create, InputType, Signal, signal, signalMap, when} from "@targoninc/jess";
-import {button, input, toggle} from "@targoninc/jess-components";
+import {button, input} from "@targoninc/jess-components";
 
 export class Albums {
     static page() {
@@ -161,7 +161,7 @@ export class Albums {
                     Inputs.number(price, "Price", "price"),
                     button({
                         text: "Create",
-                        icon: { icon: "add" },
+                        icon: {icon: "add"},
                         classes: ["positive"],
                         disabled: anyEmpty,
                         onclick: () => {
@@ -199,23 +199,36 @@ export class Albums {
         }
         load();
 
+        const tabs: Tab[] = [
+            {key: "details", text: "Details", icon: "info"},
+            {key: "analytics", text: "Analytics", icon: "analytics"},
+        ];
+        const tab$ = signal(tabs[0].key);
+
         return Generics.pageFrame(
-            horizontal(
-                vertical(
-                    when(loading, Generics.loading()),
-                    when(album$, Albums.album(album$, hasReleaseManagementPermission, load)),
-                ).classes("flex-grow"),
-                vertical(
-                    when(hasReleaseManagementPermission, Generics.container(1, [
-                        vertical(
-                            Inputs.serviceLinks(album$, "album"),
-                            Albums.campaignSection(album$),
-                        )
-                    ])),
-                    when(canView, Files.albumFiles(album$, load)),
-                    Generics.earnings(earnings),
-                    when(album$, Albums.albumStatistics(album$))
-                )
+            vertical(
+                when(loading, Generics.loading()),
+                when(album$, vertical(
+                    Generics.tabSelector(tab$, tabs),
+                    Generics.tabContents(tab$, {
+                        "details": () => horizontal(
+                            Albums.album(album$, hasReleaseManagementPermission, load),
+                            vertical(
+                                when(hasReleaseManagementPermission, Generics.container(1, [
+                                    vertical(
+                                        Inputs.serviceLinks(album$, "album"),
+                                        Albums.campaignSection(album$),
+                                    )
+                                ])),
+                                when(canView, Files.albumFiles(album$, load)),
+                            )
+                        ).build(),
+                        "analytics": () => vertical(
+                            Generics.earnings(earnings),
+                            Albums.albumStatistics(album$),
+                        ).build()
+                    })
+                ).build())
             ).build()
         );
     }
@@ -226,7 +239,7 @@ export class Albums {
             return {upc: a};
         }, upc);
 
-        return vertical(
+        return horizontal(
             Statistics.singleStatistic("Royalties by month", Api.getRoyaltiesByMonth, Statistics.royaltiesByMonthChart, null, options),
             Statistics.singleStatistic("Royalties by service", Api.getRoyaltiesByService, Statistics.royaltiesByServiceChart, null, options),
         ).build();
@@ -254,6 +267,9 @@ export class Albums {
         const loading = signal(false);
         const search = signal("");
         const searchResults = signal<SearchResult[]>([]);
+        const filteredSearchResults = compute((results, t) =>
+                results.filter(r => !t.some((track: any) => track.id === r.id)),
+            searchResults, tracks);
         let timeout: Timer;
         const debounce = 250;
         search.subscribe(q => {
@@ -302,7 +318,7 @@ export class Albums {
                 .children(
                     Albums.tracksTable(tracks, hasReleaseManagementPermission, loading, album, load),
                     Generics.divider(),
-                    when(hasReleaseManagementPermission, Albums.addTracksSection(search, searchResults, loading, album, load)),
+                    when(hasReleaseManagementPermission, Albums.addTracksSection(search, filteredSearchResults, loading, album, load)),
                 ).build(),
         ).classes("flex-grow").build();
     }

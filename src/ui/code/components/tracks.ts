@@ -8,8 +8,6 @@ import {navigate} from "../routing/Router.ts";
 import {NotificationType} from "../enums/NotificationType.ts";
 import {currentUser} from "../state.ts";
 import {Permissions} from "../enums/Permissions.ts";
-import {ServiceLink} from "../models/ServiceLink.ts";
-import {LinkServices} from "../enums/LinkServices.ts";
 import {Genre} from "../enums/Genre.ts";
 import {getImageUrl, target} from "../functions/templates.ts";
 import {Statistic} from "../models/Statistic.ts";
@@ -21,28 +19,43 @@ import {Images} from "./generic/images.ts";
 import {ImageSize} from "../enums/imageSize.ts";
 import {Time} from "../functions/time.ts";
 import {currency} from "../functions/formatters.ts";
+import {Tab} from "../models/Tab.ts";
 import {compute, create, InputType, nullElement, signal, Signal, signalMap, when} from "@targoninc/jess";
 import {button, input, searchableSelect} from "@targoninc/jess-components";
 
 export class Tracks {
     static trackPage(route: Route, params: any) {
-        const track = signal<Track | null>(null);
+        const track$ = signal<Track | null>(null);
         const loading = signal(false);
+        const earnings = compute(t => t?.earnings ?? 0, track$);
         Api.getTrack(params.id ?? 0)
-            .then(a => track.value = a)
+            .then(a => track$.value = a)
             .finally(() => loading.value = false);
 
+        const tabs: Tab[] = [
+            {key: "details", text: "Details", icon: "info"},
+            {key: "analytics", text: "Analytics", icon: "analytics"},
+        ];
+        const tab$ = signal(tabs[0].key);
+
         return Generics.pageFrame(
-            create("div")
-                .classes("flex-v")
-                .children(
-                    when(loading, Generics.loading()),
-                    when(track, Tracks.track(track))
-                ).build()
+            vertical(
+                when(loading, Generics.loading()),
+                when(track$, vertical(
+                    Generics.tabSelector(tab$, tabs),
+                    Generics.tabContents(tab$, {
+                        "details": () => Tracks.trackDetails(track$),
+                        "analytics": () => vertical(
+                            Generics.earnings(earnings),
+                            Tracks.trackStatistics(track$),
+                        ).build()
+                    })
+                ).build())
+            ).build()
         );
     }
 
-    private static track(track$: Signal<Track | null>) {
+    private static trackDetails(track$: Signal<Track | null>) {
         const title = compute(t => t?.title ?? "Track", track$);
         const isrc = compute(t => t?.isrc ?? "No ISRC", track$);
         const releaseDate = compute(t => {
@@ -50,7 +63,6 @@ export class Tracks {
         }, track$);
         const artists = compute(t => t?.artists ?? "Unknown artists", track$);
         const price = compute(t => t?.price ?? 0, track$);
-        const earnings = compute(t => t?.earnings ?? 0, track$);
         const albums = compute(t => t?.albums ?? [], track$);
         const id = compute(t => t?.id ?? 0, track$);
         const hasImage = compute(t => t?.has_cover ?? false, track$);
@@ -126,14 +138,10 @@ export class Tracks {
                         }),
                     ).build()
                 ])),
-            ).classes("flex-grow").build(),
-            vertical(
-                when(hasReleaseManagementPermission, Generics.container(1, [
-                    Inputs.serviceLinks(track$, "track")
-                ])),
-                Generics.earnings(earnings),
-                when(track$, Tracks.trackStatistics(track$))
-            )
+            ).classes("flex-grow"),
+            when(hasReleaseManagementPermission, Generics.container(1, [
+                Inputs.serviceLinks(track$, "track")
+            ])),
         ).build();
     }
 
@@ -264,7 +272,7 @@ export class Tracks {
                     Tracks.trackProperties(title, artists, credits, release_date, isrc, genres, genre, length, price),
                     button({
                         text: "Create",
-                        icon: { icon: "add" },
+                        icon: {icon: "add"},
                         classes: ["positive", "fit-content"],
                         disabled: anyEmpty,
                         onclick: () => {
