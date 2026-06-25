@@ -42,7 +42,7 @@ export class Generics {
         const loginShown = compute((u, l, r) => !u && !l && r?.path !== "login", currentUser, userLoading, currentRoute);
 
         return create("nav")
-            .classes("container", "layer-1", "flex", "split-flex", "center-items")
+            .classes("container", "layer-1", "flex", "space-between", "center-items")
             .children(
                 create("div")
                     .classes("flex", "center-items")
@@ -274,12 +274,12 @@ export class Generics {
             .build();
     }
 
-    static link(url: StringOrSignal, title: StringOrSignal) {
+    static link(url: StringOrSignal, title: StringOrSignal, classes: StringOrSignal[] = []) {
         const urlSignal: Signal<string> = url.constructor === Signal ? url : signal(url as string);
         const isRemote = compute(u => !!(u && u.includes("http")), urlSignal);
 
         return create("div")
-            .classes("link-container")
+            .classes("link-container", ...classes)
             .children(
                 create("a")
                     .classes("underline")
@@ -318,7 +318,7 @@ export class Generics {
             ).build();
     }
 
-    static pill(text: StringOrSignal, classes: StringOrSignal[]) {
+    static pill(text: StringOrSignal, classes: StringOrSignal[] = []) {
         return create("span")
             .classes("pill", ...classes)
             .text(text)

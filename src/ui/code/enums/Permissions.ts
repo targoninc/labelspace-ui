@@ -6,4 +6,5 @@ export enum Permissions {
     importData = "importData",
     fileManagement = "fileManagement",
     sendNewsletters = "sendNewsletters",
+    convertSubmissions = "convertSubmissions",
 }

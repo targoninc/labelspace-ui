@@ -4,6 +4,7 @@ import {Generics, horizontal, vertical} from "./generic/generics.ts";
 import {navigate, reload} from "../routing/Router.ts";
 import {Inputs} from "./generic/inputs.ts";
 import {notify} from "../functions/notifications.ts";
+
 import {NotificationType} from "../enums/NotificationType.ts";
 import {Route} from "../routing/Route.ts";
 import {currency} from "../functions/formatters.ts";
@@ -12,6 +13,7 @@ import {currentUser} from "../state.ts";
 import {Permissions} from "../enums/Permissions.ts";
 import {Tab} from "../models/Tab.ts";
 import {Tracks} from "./tracks.ts";
+import {Submissions} from "./submissions.ts";
 import {Modals} from "./modals.ts";
 import {SearchResult} from "../models/SearchResult.ts";
 import {getImageUrl, target} from "../functions/templates.ts";
@@ -39,9 +41,20 @@ export class Albums {
                 key: "tracks",
                 text: "Tracks",
                 icon: "graphic_eq"
+            },
+            {
+                key: "submissions",
+                text: "Submissions",
+                icon: "mail"
             }
         ];
-        const tab$ = signal(tabs[0].key);
+        const params = new URLSearchParams(window.location.search);
+        const tab$ = signal(tabs.find(t => t.key === params.get("tab"))?.key ?? tabs[0].key);
+        tab$.subscribe(t => {
+            const url = new URL(window.location.href);
+            url.searchParams.set("tab", t);
+            history.replaceState({}, "", url.toString());
+        });
 
         return Generics.pageFrame(
             create("div")
@@ -50,7 +63,8 @@ export class Albums {
                     Generics.tabSelector(tab$, tabs),
                     Generics.tabContents(tab$, {
                         "albums": () => Albums.albumsTab(canManageReleases),
-                        "tracks": () => Tracks.tracksTab(canManageReleases)
+                        "tracks": () => Tracks.tracksTab(canManageReleases),
+                        "submissions": () => Submissions.submissionsTab()
                     })
                 ).build()
         );
@@ -68,7 +82,7 @@ export class Albums {
         const count = compute(a => a.length + " Albums", filteredAlbums);
         const loading = signal(false);
         Api.getAlbums()
-            .then(a => albums.value = a)
+            .then(a => albums.value = a ?? [])
             .finally(() => loading.value = false);
 
         return create("div")
@@ -173,7 +187,7 @@ export class Albums {
                                 artists: artists.value,
                             }).then((album) => {
                                 notify("Album created", NotificationType.success);
-                                navigate(`/album/${album.id}`);
+                                navigate(`/album/${album?.id}`);
                             }).catch(e => {
                                 console.error(e);
                             });
@@ -203,7 +217,13 @@ export class Albums {
             {key: "details", text: "Details", icon: "info"},
             {key: "analytics", text: "Analytics", icon: "analytics"},
         ];
-        const tab$ = signal(tabs[0].key);
+        const urlParams = new URLSearchParams(window.location.search);
+        const tab$ = signal(tabs.find(t => t.key === urlParams.get("tab"))?.key ?? tabs[0].key);
+        tab$.subscribe(t => {
+            const url = new URL(window.location.href);
+            url.searchParams.set("tab", t);
+            history.replaceState({}, "", url.toString());
+        });
 
         return Generics.pageFrame(
             vertical(
@@ -279,7 +299,7 @@ export class Albums {
             }
             timeout = setTimeout(() => {
                 Api.searchTracks(q)
-                    .then(results => searchResults.value = results)
+                    .then(results => searchResults.value = results ?? [])
                     .finally();
             }, debounce);
         });
@@ -298,7 +318,7 @@ export class Albums {
                             window.open(triRecordsLink.value, "_blank");
                         }
                     }),
-                ).classes("center-items", "split-flex"),
+                ).classes("center-items", "space-between"),
                 when(hasReleaseManagementPermission, vertical(
                     Images.changeableImage(id, hasImage, MediaFileType.albumCover, {
                         changeable: false,
@@ -489,4 +509,5 @@ export class Albums {
                 ),
             ).build();
     }
+
 }

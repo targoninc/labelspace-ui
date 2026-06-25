@@ -36,7 +36,13 @@ export class Tracks {
             {key: "details", text: "Details", icon: "info"},
             {key: "analytics", text: "Analytics", icon: "analytics"},
         ];
-        const tab$ = signal(tabs[0].key);
+        const urlParams = new URLSearchParams(window.location.search);
+        const tab$ = signal(tabs.find(t => t.key === urlParams.get("tab"))?.key ?? tabs[0].key);
+        tab$.subscribe(t => {
+            const url = new URL(window.location.href);
+            url.searchParams.set("tab", t);
+            history.replaceState({}, "", url.toString());
+        });
 
         return Generics.pageFrame(
             vertical(
@@ -88,7 +94,7 @@ export class Tracks {
                         classes: ["positive"],
                         onclick: () => window.open(triRecordsLink.value, "_blank")
                     }),
-                ).classes("center-items", "split-flex"),
+                ).classes("center-items", "space-between"),
                 horizontal(
                     create("span")
                         .text("In")
@@ -158,7 +164,7 @@ export class Tracks {
         const load = () => {
             loading.value = true;
             Api.getRoyaltiesByMonth({isrc: isrc.value})
-                .then(s => stats.value = s)
+                .then(s => stats.value = s ?? [])
                 .finally(() => loading.value = false);
         };
         isrc.subscribe(load);
@@ -182,7 +188,7 @@ export class Tracks {
         const count = compute(a => a.length + " Tracks", filteredTracks);
         const loading = signal(false);
         Api.getTracks()
-            .then(a => tracks.value = a)
+            .then(a => tracks.value = a ?? [])
             .finally(() => loading.value = false);
 
         return vertical(

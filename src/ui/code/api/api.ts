@@ -8,6 +8,7 @@ import {Album} from "../models/db/tri/Album.ts";
 import {CreateAlbumRequestBody} from "../models/CreateAlbumRequestBody.ts";
 import {Track} from "../models/db/tri/Track.ts";
 import {UploadTrackRequestBody} from "../models/UploadTrackRequestBody.ts";
+import {Submission} from "../models/Submission.ts";
 import {SearchResult} from "../models/SearchResult.ts";
 import { MediaFileType } from "../enums/MediaFileType.ts";
 import {Artist} from "../models/db/tri/Artist.ts";
@@ -399,6 +400,25 @@ export class Api {
         return Fetcher.post(base + "/artists/actions/create", {
             name,
             linkedUserId
+        });
+    }
+
+    static getSubmissions() {
+        return Fetcher.get<Submission[]>(base + "/submissions/get");
+    }
+
+    static voteOnSubmission(submissionId: number, vote: string, comment: string | null) {
+        return Fetcher.post(base + "/submissions/vote", {
+            submission_id: submissionId,
+            vote,
+            comment
+        });
+    }
+
+    static convertSubmission(submissionId: number, action: string) {
+        return Fetcher.post(base + "/submissions/convert", {
+            submission_id: submissionId,
+            action
         });
     }
 }
