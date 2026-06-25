@@ -240,6 +240,10 @@ export class Api {
         return Fetcher.get<ArtistLink[]>(base + "/artists/links/get", {id});
     }
 
+    static getArtistByName(name: string) {
+        return Fetcher.get<any>(base + "/artists/byName", {name});
+    }
+
     static createArtistLink(artistId: number, text: string, url: string) {
         return Fetcher.post(base + "/artists/links/create", {
             artistId,
@@ -404,7 +408,7 @@ export class Api {
         });
     }
 
-    static createArtist(name: string, linkedUserId: number) {
+    static createArtist(name: string, linkedUserId: number | null) {
         return Fetcher.post(base + "/artists/actions/create", {
             name,
             linkedUserId

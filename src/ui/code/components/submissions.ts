@@ -11,6 +11,7 @@ import {Submission} from "../models/Submission.ts";
 import {compute, create, signal, signalMap, when} from "@targoninc/jess";
 import {button} from "@targoninc/jess-components";
 import {Time} from "../functions/time.ts";
+import {toUTCDate} from "../functions/dates.ts";
 
 export class Submissions {
     static submissionsTab() {
@@ -30,6 +31,20 @@ export class Submissions {
         ).build();
     }
 
+    private static dateStr(d: string | Date) {
+        const date = new Date(d);
+        const dd = String(date.getDate()).padStart(2, "0");
+        const mm = String(date.getMonth() + 1).padStart(2, "0");
+        const yyyy = date.getFullYear();
+        return `${dd}.${mm}.${yyyy}`;
+    }
+
+    private static async ensureArtist(name: string) {
+        const search = await Api.getArtistByName(name);
+        if (search) return search;
+        return await Api.createArtist(name, null);
+    }
+
     private static submissionCard(s: Submission, refresh: Function) {
         const initialVote = s.currentUserRating?.vote ?? "";
         const initialComment = s.currentUserRating?.comment ?? "";
@@ -45,93 +60,130 @@ export class Submissions {
         const yesCount = s.ratings?.filter(r => r.vote === SubmissionVote.Yes && r.user_id !== otherUserId).length ?? 0;
         const hasChanges = compute((v, c) => v !== initialVote || c !== initialComment, vote, comment);
         const saving = signal(false);
+        const converting = signal(false);
+        const title = `Submission from ${Submissions.dateStr(s.created_at)}`;
 
-        return Generics.container(1, [
-            vertical(
-                Generics.heading(2, s.artist_name),
-                Generics.link(s.link, s.link, ["big"]),
-                horizontal(
-                    Generics.pill("Desired release date", ["blue"]),
-                    create("span")
-                        .text(Time.ago(s.desired_release_date))
-                ).classes("align-children"),
-                horizontal(
-                    Generics.pill("Email", ["blue"]),
-                    Generics.privateText(s.email),
-                ).classes("align-children"),
-                horizontal(
-                    Generics.pill("Message", ["blue"]),
-                    create("p")
-                        .text(s.message),
-                ).classes("align-children"),
-                horizontal(
-                    button({
-                        text: `No (${noCount})`,
-                        icon: {icon: "thumb_down"},
-                        classes: [compute((v): string => v === SubmissionVote.No ? "negative" : "_", vote), "tab"],
-                        onclick: () => vote.value = SubmissionVote.No
-                    }),
-                    button({
-                        text: `Maybe (${maybeCount})`,
-                        icon: {icon: "help"},
-                        classes: [compute((v): string => v === SubmissionVote.Maybe ? "warning" : "_", vote), "tab"],
-                        onclick: () => vote.value = SubmissionVote.Maybe
-                    }),
-                    button({
-                        text: `Yes (${yesCount})`,
-                        icon: {icon: "thumb_up"},
-                        classes: [compute((v): string => v === SubmissionVote.Yes ? "positive" : "_", vote), "tab"],
-                        onclick: () => vote.value = SubmissionVote.Yes
-                    }),
-                ).classes("nogap").build(),
-                Inputs.longtext(comment, "Comment", "comment"),
-                horizontal(
-                    button({
-                        text: "Save vote",
-                        icon: {icon: "save"},
-                        disabled: compute((v, h, l) => !v || !h || l, vote, hasChanges, saving),
-                        onclick: () => {
-                            saving.value = true;
-                            Api.voteOnSubmission(s.id, vote.value, comment.value || null)
-                                .then(() => notify("Vote saved", NotificationType.success))
-                                .finally(() => saving.value = false);
-                        }
-                    }),
-                ).classes("center-items"),
-                Generics.pill(statusText, [statusClass]),
-                when(showConvert, horizontal(
-                    button({
-                        text: "Create album",
-                        icon: {icon: "album"},
-                        classes: ["positive"],
-                        onclick: () => {
-                            Api.convertSubmission(s.id, "accept").then(() => {
-                                notify("Submission accepted", NotificationType.success);
-                                navigate("/new-album");
-                            });
-                        }
-                    }),
-                    button({
-                        text: "Create track",
-                        icon: {icon: "graphic_eq"},
-                        classes: ["positive"],
-                        onclick: () => {
-                            Api.convertSubmission(s.id, "accept").then(() => {
-                                notify("Submission accepted", NotificationType.success);
-                                navigate("/new-track");
-                            });
-                        }
-                    }),
-                    button({
-                        text: "Reject",
-                        icon: {icon: "block"},
-                        classes: ["negative"],
-                        onclick: () => {
-                            Api.convertSubmission(s.id, "reject").then(() => refresh());
-                        }
-                    }),
-                ).build()),
-            ).build()
+        return Generics.container(2, [
+            horizontal(
+                vertical(
+                    horizontal(
+                        Generics.heading(2, s.artist_name),
+                        ...(s.artistHasReleases ? [Generics.pill("Artist name has releases", ["green"])] : [])
+                    ).classes("align-children"),
+                    Generics.link(s.link, s.link, ["big"]),
+                    horizontal(
+                        Generics.pill("Desired release date", ["blue"]),
+                        create("span")
+                            .text(Time.ago(s.desired_release_date))
+                    ).classes("align-children"),
+                    horizontal(
+                        Generics.pill("Email", ["blue"]),
+                        Generics.privateText(s.email),
+                    ).classes("align-children"),
+                    horizontal(
+                        Generics.pill("Message", ["blue"]),
+                        create("p")
+                            .text(s.message),
+                    ).classes("align-children"),
+                ),
+                vertical(
+                    horizontal(
+                        button({
+                            text: `No (${noCount})`,
+                            icon: {icon: "thumb_down"},
+                            classes: [compute((v): string => v === SubmissionVote.No ? "negative" : "_", vote), "tab"],
+                            onclick: () => vote.value = SubmissionVote.No
+                        }),
+                        button({
+                            text: `Maybe (${maybeCount})`,
+                            icon: {icon: "help"},
+                            classes: [compute((v): string => v === SubmissionVote.Maybe ? "warning" : "_", vote), "tab"],
+                            onclick: () => vote.value = SubmissionVote.Maybe
+                        }),
+                        button({
+                            text: `Yes (${yesCount})`,
+                            icon: {icon: "thumb_up"},
+                            classes: [compute((v): string => v === SubmissionVote.Yes ? "positive" : "_", vote), "tab"],
+                            onclick: () => vote.value = SubmissionVote.Yes
+                        }),
+                    ).classes("nogap").build(),
+                    Inputs.longtext(comment, "Comment", "comment"),
+                    horizontal(
+                        button({
+                            text: "Save vote",
+                            icon: {icon: "save"},
+                            disabled: compute((v, h, l) => !v || !h || l, vote, hasChanges, saving),
+                            onclick: () => {
+                                saving.value = true;
+                                Api.voteOnSubmission(s.id, vote.value, comment.value || null)
+                                    .then(() => notify("Vote saved", NotificationType.success))
+                                    .finally(() => saving.value = false);
+                            }
+                        }),
+                    ).classes("center-items"),
+                    horizontal(
+                        Generics.pill(statusText, [statusClass]),
+                        ...(canConvert.value && (s.rejected || s.accepted) ? [button({
+                            text: "Revert",
+                            icon: {icon: "undo"},
+                            onclick: () => {
+                                const action = s.rejected ? "revert_rejection" : "revert_acceptance";
+                                Api.convertSubmission(s.id, action).then(() => refresh());
+                            }
+                        })] : []),
+                        when(showConvert, horizontal(
+                            button({
+                                text: "Create album",
+                                icon: {icon: "album"},
+                                classes: ["positive"],
+                                disabled: converting,
+                                onclick: async () => {
+                                    converting.value = true;
+                                    await Submissions.ensureArtist(s.artist_name);
+                                    Api.createAlbum({
+                                        title,
+                                        artists: s.artist_name,
+                                        release_date: toUTCDate(new Date(s.desired_release_date)),
+                                    }).then(album => {
+                                        Api.convertSubmission(s.id, "accept").then(() => {
+                                            notify("Album created from submission", NotificationType.success);
+                                            navigate(`/album/${album?.id}`);
+                                        });
+                                    }).finally(() => converting.value = false);
+                                }
+                            }),
+                            button({
+                                text: "Create track",
+                                icon: {icon: "graphic_eq"},
+                                classes: ["positive"],
+                                disabled: converting,
+                                onclick: async () => {
+                                    converting.value = true;
+                                    await Submissions.ensureArtist(s.artist_name);
+                                    Api.createTrack({
+                                        title,
+                                        artists: s.artist_name,
+                                        release_date: toUTCDate(new Date(s.desired_release_date)),
+                                    }).then(() => {
+                                        Api.convertSubmission(s.id, "accept").then(() => {
+                                            notify("Track created from submission", NotificationType.success);
+                                            navigate("/releases");
+                                        });
+                                    }).finally(() => converting.value = false);
+                                }
+                            }),
+                            button({
+                                text: "Reject",
+                                icon: {icon: "block"},
+                                classes: ["negative"],
+                                onclick: () => {
+                                    Api.convertSubmission(s.id, "reject").then(() => refresh());
+                                }
+                            }),
+                        ).build()),
+                    ).classes("align-children"),
+                ),
+            ).classes("space-between").build()
         ]);
     }
 }
