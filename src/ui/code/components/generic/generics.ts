@@ -105,11 +105,11 @@ export class Generics {
             .build();
     }
 
-    static icon(icon: StringOrSignal, onclick: Function = () => {}) {
+    static icon(icon: StringOrSignal, title: string = "") {
         return create("i")
             .classes("material-symbols-outlined")
+            .title(title)
             .text(icon)
-            .onclick(onclick)
             .build();
     }
 

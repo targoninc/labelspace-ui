@@ -396,6 +396,14 @@ export class Api {
         });
     }
 
+    static setUserPermission(userId: number, permissionName: string, value: boolean) {
+        return Fetcher.post(base + "/user/permissions/set", {
+            userId,
+            permissionName,
+            value
+        });
+    }
+
     static createArtist(name: string, linkedUserId: number) {
         return Fetcher.post(base + "/artists/actions/create", {
             name,

@@ -15,7 +15,6 @@ import {Time} from "../functions/time.ts";
 import {Modals} from "./modals.ts";
 import {UserTotp} from "../models/db/tri/UserTotp.ts";
 import {Totp} from "./totp.ts";
-import {removeLastModal} from "../functions/modals.ts";
 import {registerWebauthnMethod, webauthnLogin} from "../functions/webauthn.ts";
 import {
     CredentialDescriptor,
@@ -24,10 +23,11 @@ import {
 } from "@passwordless-id/webauthn/dist/esm/types";
 import {PublicKey} from "../models/db/tri/PublicKey.ts";
 import {PermissionIcons} from "../enums/PermissionIcons.ts";
+import {addModal, removeLastModal} from "../functions/modals.ts";
 import {compute, create, InputType, Signal, signal, signalMap, when} from "@targoninc/jess";
-import {button, input} from "@targoninc/jess-components";
+import {Permission} from "../models/db/tri/Permission.ts";
+import {button, checkbox, input} from "@targoninc/jess-components";
 import {ArtistLink} from "../models/db/tri/ArtistLink.ts";
-import {currency} from "../functions/formatters.ts";
 import {Artists} from "./artists.ts";
 
 export class Users {
@@ -41,7 +41,7 @@ export class Users {
         const users = signal<User[]>([]);
         const loading = signal(false);
         Api.getUsers()
-            .then(u => users.value = u.sort((a, b) => parseFloat(b.available?.total ?? "0") - parseFloat(a.available?.total ?? "0")))
+            .then(u => users.value = u?.sort((a, b) => parseFloat(b.available?.total ?? "0") - parseFloat(a.available?.total ?? "0")) ?? [])
             .finally(() => loading.value = false);
 
         return Generics.pageFrame(
@@ -95,11 +95,17 @@ export class Users {
                 ).build(),
                 create("td")
                     .children(
-                        create("div")
-                            .classes("flex")
+                        create("button")
+                            .classes("jess", "flex", "align-children")
                             .children(
-                                ...permissions.map(p => Generics.icon(PermissionIcons[p as Permissions]))
-                            ).build()
+                                create("span")
+                                    .text("Edit"),
+                                ...permissions.map(p => horizontal(
+                                    Generics.icon(PermissionIcons[p as Permissions], p)
+                                )),
+                            ).onclick(() => {
+                            Users.permissionsEditor(user);
+                        }).build()
                     ).build()
             ).build();
     }
@@ -144,6 +150,9 @@ export class Users {
                         Modals.input(async (name: string) => {
                             loading.value = true;
                             await Api.addTotpMethod(name).then((res) => {
+                                if (!res) {
+                                    return;
+                                }
                                 Api.getUser().then(u => {
                                     currentUser.value = u;
                                 });
@@ -200,6 +209,9 @@ export class Users {
                         Modals.input(async (name: string) => {
                             loading.value = true;
                             await Api.getWebauthnChallenge().then(async (res) => {
+                                if (!res) {
+                                    return;
+                                }
                                 const user = currentUser.value;
                                 if (!user) {
                                     return;
@@ -241,6 +253,9 @@ export class Users {
                     onclick: () => {
                         loading.value = true;
                         Api.getWebauthnChallenge().then(async (res2) => {
+                            if (!res2) {
+                                return;
+                            }
                             const challenge = res2.challenge;
                             const cred: CredentialDescriptor = {
                                 id: key.key_id,
@@ -487,7 +502,7 @@ export class Users {
                                 temp_password.value
                             ).then(() => {
                                 notify("User created", NotificationType.success);
-                                Api.getUsers().then(u => users.value = u);
+                                Api.getUsers().then(u => users.value = u ?? []);
                                 username.value = "";
                                 legal_name.value = "";
                                 country.value = "";
@@ -613,5 +628,52 @@ export class Users {
                 onclick: save
             })),
         ).classes("center-items").build();
+    }
+
+    private static permissionsEditor(user: User) {
+        const permissions = signal<Permission[]>(user.permissions ?? []);
+        const allPermissions = Object.values(Permissions);
+
+        addModal(Modals.modalBase(
+            Generics.heading(2, `Permissions - ${user.username}`),
+            vertical(
+                ...allPermissions.map(p => {
+                    const hasPermission = compute(
+                        up => up.some(upp => upp.name === p),
+                        permissions
+                    );
+
+                    return checkbox({
+                        text: p,
+                        checked: hasPermission,
+                        onchange: () => {
+                            const val = !hasPermission.value;
+                            Api.setUserPermission(user.id, p, val).then(() => {
+                                if (val) {
+                                    permissions.value = [
+                                        ...permissions.value,
+                                        {
+                                            name: p,
+                                            id: -1,
+                                            created_at: "",
+                                            updated_at: "",
+                                            description: ""
+                                        }
+                                    ];
+                                } else {
+                                    permissions.value = permissions.value.filter(pm => pm.name !== p);
+                                }
+                            });
+                        }
+                    });
+                }),
+                button({
+                    text: "Close",
+                    icon: {icon: "close"},
+                    classes: ["negative"],
+                    onclick: removeLastModal
+                })
+            ).build()
+        ));
     }
 }
