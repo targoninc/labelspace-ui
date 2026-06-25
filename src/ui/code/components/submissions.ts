@@ -13,10 +13,19 @@ import {button} from "@targoninc/jess-components";
 import {Time} from "../functions/time.ts";
 import {toUTCDate} from "../functions/dates.ts";
 
+type Filter = "all" | "pending" | "accepted" | "rejected";
+
 export class Submissions {
     static submissionsTab() {
         const submissions = signal<Submission[]>([]);
         const loading = signal(false);
+        const filter = signal<Filter>("all");
+        const filtered = compute((s, f) => {
+            if (f === "all") return s;
+            if (f === "pending") return s.filter(x => !x.accepted && !x.rejected);
+            if (f === "accepted") return s.filter(x => x.accepted);
+            return s.filter(x => x.rejected);
+        }, submissions, filter);
         const load = () => {
             loading.value = true;
             Api.getSubmissions()
@@ -27,7 +36,16 @@ export class Submissions {
 
         return vertical(
             when(loading, Generics.loading()),
-            signalMap(submissions, vertical(), s => Submissions.submissionCard(s, load))
+            horizontal(
+                ...(["all", "pending", "accepted", "rejected"] as Filter[]).map(f =>
+                    button({
+                        text: f.charAt(0).toUpperCase() + f.slice(1),
+                        classes: [compute((v): string => v === f ? "active" : "_", filter)],
+                        onclick: () => filter.value = f
+                    })
+                )
+            ).classes("fullWidth").build(),
+            signalMap(filtered, vertical(), s => Submissions.submissionCard(s, load))
         ).build();
     }
 
@@ -43,6 +61,19 @@ export class Submissions {
         const search = await Api.getArtistByName(name);
         if (search) return search;
         return await Api.createArtist(name, null);
+    }
+
+    private static tryAddLink(type: "album" | "track", id: number, link: string) {
+        try {
+            new URL(link);
+            if (type === "album") {
+                Api.addAlbumLink(id, link);
+            } else {
+                Api.addTrackLink(id, link);
+            }
+        } catch {
+            // link is not a valid URL, skip
+        }
     }
 
     private static submissionCard(s: Submission, refresh: Function) {
@@ -145,6 +176,7 @@ export class Submissions {
                                         artists: s.artist_name,
                                         release_date: toUTCDate(new Date(s.desired_release_date)),
                                     }).then(album => {
+                                        if (album?.id) Submissions.tryAddLink("album", album.id, s.link);
                                         Api.convertSubmission(s.id, "accept").then(() => {
                                             notify("Album created from submission", NotificationType.success);
                                             navigate(`/album/${album?.id}`);
@@ -160,16 +192,17 @@ export class Submissions {
                                 onclick: async () => {
                                     converting.value = true;
                                     await Submissions.ensureArtist(s.artist_name);
-                            Api.createTrack({
-                                title,
-                                artists: s.artist_name,
-                                release_date: toUTCDate(new Date(s.desired_release_date)),
-                            }).then(track => {
-                                Api.convertSubmission(s.id, "accept").then(() => {
-                                    notify("Track created from submission", NotificationType.success);
-                                    navigate(`/track/${track?.id}`);
-                                });
-                            }).finally(() => converting.value = false);
+                                    Api.createTrack({
+                                        title,
+                                        artists: s.artist_name,
+                                        release_date: toUTCDate(new Date(s.desired_release_date)),
+                                    }).then(track => {
+                                        if (track?.id) Submissions.tryAddLink("track", track.id, s.link);
+                                        Api.convertSubmission(s.id, "accept").then(() => {
+                                            notify("Track created from submission", NotificationType.success);
+                                            navigate(`/track/${track?.id}`);
+                                        });
+                                    }).finally(() => converting.value = false);
                                 }
                             }),
                             button({
