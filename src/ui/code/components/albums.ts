@@ -332,6 +332,19 @@ export class Albums {
                     Generics.property("Price", currency(price)),
                 ).build(), true),
                 when(hasReleaseManagementPermission, Albums.albumDetailsEditor(id, hasImage, title, artists, upc, releaseDate, price, loading, noneChanged)),
+                when(hasReleaseManagementPermission, button({
+                    text: "Delete album",
+                    icon: {icon: "delete"},
+                    classes: ["negative", "fit-content"],
+                    onclick: () => {
+                        Modals.confirm(() => {
+                            Api.deleteAlbum(id.value).then(() => {
+                                notify("Album deleted", NotificationType.success);
+                                navigate("/releases");
+                            });
+                        }, "Delete album", "Are you sure you want to delete this album? This action cannot be undone.");
+                    }
+                })),
             ).build(),
             create("div")
                 .classes("flex-v", "container", "border")

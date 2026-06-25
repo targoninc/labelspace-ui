@@ -201,7 +201,7 @@ export class Api {
     }
 
     static createTrack(track: UploadTrackRequestBody) {
-        return Fetcher.post(base + "/tracks/create", track);
+        return Fetcher.postWithResponse<Track>(base + "/tracks/create", track);
     }
 
     static removeTrackFromAlbum(track_id: number, album_id: number) {
@@ -209,6 +209,14 @@ export class Api {
             track_id,
             album_ids: [album_id]
         });
+    }
+
+    static deleteTrack(id: number) {
+        return Fetcher.post(base + "/tracks/actions/delete", {id});
+    }
+
+    static deleteAlbum(id: number) {
+        return Fetcher.post(base + "/albums/actions/delete", {id});
     }
 
     static searchTracks(q: string) {

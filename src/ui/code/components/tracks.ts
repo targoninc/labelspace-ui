@@ -18,6 +18,7 @@ import {RequestableImageSize} from "../enums/requestableImageSize.ts";
 import {Images} from "./generic/images.ts";
 import {ImageSize} from "../enums/imageSize.ts";
 import {Time} from "../functions/time.ts";
+import {Modals} from "./modals.ts";
 import {currency} from "../functions/formatters.ts";
 import {Tab} from "../models/Tab.ts";
 import {compute, create, InputType, nullElement, signal, Signal, signalMap, when} from "@targoninc/jess";
@@ -140,6 +141,19 @@ export class Tracks {
                                 }).catch(e => {
                                     console.error(e);
                                 });
+                            }
+                        }),
+                        button({
+                            text: "Delete track",
+                            icon: {icon: "delete"},
+                            classes: ["negative", "fit-content"],
+                            onclick: () => {
+                                Modals.confirm(() => {
+                                    Api.deleteTrack(id.value).then(() => {
+                                        notify("Track deleted", NotificationType.success);
+                                        navigate("/releases");
+                                    });
+                                }, "Delete track", "Are you sure you want to delete this track? This action cannot be undone.");
                             }
                         }),
                     ).build()

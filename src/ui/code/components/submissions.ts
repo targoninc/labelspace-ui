@@ -160,16 +160,16 @@ export class Submissions {
                                 onclick: async () => {
                                     converting.value = true;
                                     await Submissions.ensureArtist(s.artist_name);
-                                    Api.createTrack({
-                                        title,
-                                        artists: s.artist_name,
-                                        release_date: toUTCDate(new Date(s.desired_release_date)),
-                                    }).then(() => {
-                                        Api.convertSubmission(s.id, "accept").then(() => {
-                                            notify("Track created from submission", NotificationType.success);
-                                            navigate("/releases");
-                                        });
-                                    }).finally(() => converting.value = false);
+                            Api.createTrack({
+                                title,
+                                artists: s.artist_name,
+                                release_date: toUTCDate(new Date(s.desired_release_date)),
+                            }).then(track => {
+                                Api.convertSubmission(s.id, "accept").then(() => {
+                                    notify("Track created from submission", NotificationType.success);
+                                    navigate(`/track/${track?.id}`);
+                                });
+                            }).finally(() => converting.value = false);
                                 }
                             }),
                             button({
