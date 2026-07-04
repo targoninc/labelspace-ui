@@ -396,6 +396,10 @@ export class Api {
         });
     }
 
+    static getTrackTikTok(trackId: number) {
+        return Fetcher.get<{ sound_id: string | null; sound_title: string | null; video_ids: string[] }>(base + "/tracks/tiktok", { trackId });
+    }
+
     static addAlbumLink(id: number, url: string) {
         return Fetcher.post(base + "/albums/actions/addLink", {
             id, url

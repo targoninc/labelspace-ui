@@ -817,6 +817,24 @@ button.jess {
     --service-link-color: #70c926;
 }
 
+.service-link.tiktok {
+    --service-link-color: #000000;
+    color: white;
+}
+
+.tiktok-videos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    justify-content: flex-start;
+}
+
+.tiktok-embed {
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
 .flex-grow {
     flex-grow: 1;
 }

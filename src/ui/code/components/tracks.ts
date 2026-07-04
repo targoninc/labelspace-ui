@@ -36,6 +36,7 @@ export class Tracks {
         const tabs: Tab[] = [
             {key: "details", text: "Details", icon: "info"},
             {key: "analytics", text: "Analytics", icon: "analytics"},
+            {key: "tiktok", text: "TikTok", icon: "music_note"},
         ];
         const urlParams = new URLSearchParams(window.location.search);
         const tab$ = signal(tabs.find(t => t.key === urlParams.get("tab"))?.key ?? tabs[0].key);
@@ -55,7 +56,8 @@ export class Tracks {
                         "analytics": () => vertical(
                             Generics.earnings(earnings),
                             Tracks.trackStatistics(track$),
-                        ).build()
+                        ).build(),
+                        "tiktok": () => Tracks.tiktokTab(track$),
                     })
                 ).build())
             ).build()
@@ -315,6 +317,64 @@ export class Tracks {
                     })
                 ).build(),
         );
+    }
+
+    private static tiktokTab(track$: Signal<Track | null>) {
+        const loading = signal(false);
+        const soundId = signal<string | null>(null);
+        const soundTitle = signal<string | null>(null);
+        const videoIds = signal<string[]>([]);
+        const id = compute(t => t?.id ?? 0, track$);
+
+        const load = () => {
+            if (!id.value) return;
+            loading.value = true;
+            Api.getTrackTikTok(id.value)
+                .then(data => {
+                    soundId.value = data?.sound_id ?? null;
+                    soundTitle.value = data?.sound_title ?? null;
+                    videoIds.value = data?.video_ids ?? [];
+                })
+                .finally(() => loading.value = false);
+        };
+        id.subscribe(load);
+        load();
+
+        return vertical(
+            when(loading, Generics.loading()),
+            when(soundId, vertical(
+                Generics.heading(3, compute(s => `Sound: ${s}`, soundTitle)),
+                compute(s => {
+                    if (!s) return nullElement();
+                    return Generics.link(
+                        `https://www.tiktok.com/music/-${s}`,
+                        "Open on TikTok",
+                        ["positive"]
+                    );
+                }, soundId),
+            ).build()),
+            when(compute((ids, l) => !l && ids.length === 0, videoIds, loading), vertical(
+                create("p").text("No TikTok videos found for this track.").build(),
+            ).build()),
+            when(compute((ids, l) => !l && ids.length > 0, videoIds, loading), vertical(
+                Generics.heading(3, compute(v => `${v.length} video${v.length === 1 ? "" : "s"}`, videoIds)),
+                compute(vids => {
+                    const grid = document.createElement("div");
+                    grid.className = "tiktok-videos";
+                    for (const vid of vids) {
+                        const iframe = document.createElement("iframe");
+                        iframe.src = `https://www.tiktok.com/embed/v2/${vid}`;
+                        iframe.width = "325";
+                        iframe.height = "580";
+                        iframe.frameBorder = "0";
+                        iframe.allowFullscreen = true;
+                        iframe.className = "tiktok-embed";
+                        grid.appendChild(iframe);
+                    }
+                    return grid;
+                }, videoIds),
+            ).build()),
+        ).build();
     }
 
     private static trackProperties(title: Signal<string>, artists: Signal<string>, credits: Signal<string>, release_date: Signal<string>, isrc: Signal<string>, genres: {
