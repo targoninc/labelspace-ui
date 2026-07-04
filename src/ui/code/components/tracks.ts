@@ -325,6 +325,7 @@ export class Tracks {
         const soundTitle = signal<string | null>(null);
         const videoIds = signal<string[]>([]);
         const id = compute(t => t?.id ?? 0, track$);
+        const canRecheck = compute(u => u?.permissions?.some(p => p.name === Permissions.recheckTikTok) ?? false, currentUser);
 
         const load = () => {
             if (!id.value) return;
@@ -340,7 +341,27 @@ export class Tracks {
         id.subscribe(load);
         load();
 
+        const recheck = () => {
+            if (!id.value) return;
+            loading.value = true;
+            Api.recheckTikTok(id.value)
+                .then(() => {
+                    notify("TikTok recheck started", NotificationType.info);
+                    load();
+                })
+                .catch(() => loading.value = false);
+        };
+
         return vertical(
+            horizontal(
+                when(canRecheck, button({
+                    text: "Recheck",
+                    icon: {icon: "refresh"},
+                    classes: ["positive"],
+                    onclick: recheck,
+                    disabled: loading,
+                })),
+            ).build(),
             when(loading, Generics.loading()),
             when(soundId, vertical(
                 Generics.heading(3, compute(s => `Sound: ${s}`, soundTitle)),

@@ -8,5 +8,6 @@ export const PermissionIcons: Record<Permissions, string> = {
     [Permissions.userManagement]: "manage_accounts",
     [Permissions.releaseManagement]: "music_note",
     [Permissions.releaseEditing]: "edit",
-    [Permissions.convertSubmissions]: "swap_horiz"
+    [Permissions.convertSubmissions]: "swap_horiz",
+    [Permissions.recheckTikTok]: "sync",
 }

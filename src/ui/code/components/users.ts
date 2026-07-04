@@ -55,13 +55,13 @@ export class Users {
                 Generics.table(
                     ["ID", "Username", "Artists", "Last login", "Email addresses", "TOTP methods", "Passkeys", "Earned", "Paid", "Available", "Permissions"],
                     users,
-                    (user: User) => Users.userInTable(user)
+                    (user: User) => Users.userInTable(user, () => { users.value = [...users.value]; })
                 )
             ).build(),
         )
     }
 
-    static userInTable(user: User) {
+    static userInTable(user: User, onPermissionChange?: () => void) {
         const permissions = user.permissions?.map(p => p.name) ?? [];
 
         return create("tr")
@@ -104,8 +104,8 @@ export class Users {
                                     Generics.icon(PermissionIcons[p as Permissions], p)
                                 )),
                             ).onclick(() => {
-                            Users.permissionsEditor(user);
-                        }).build()
+                                Users.permissionsEditor(user, onPermissionChange);
+                            }).build()
                     ).build()
             ).build();
     }
@@ -630,7 +630,7 @@ export class Users {
         ).classes("center-items").build();
     }
 
-    private static permissionsEditor(user: User) {
+    private static permissionsEditor(user: User, onChanged?: () => void) {
         const permissions = signal<Permission[]>(user.permissions ?? []);
         const allPermissions = Object.values(Permissions);
 
@@ -650,19 +650,20 @@ export class Users {
                             const val = !hasPermission.value;
                             Api.setUserPermission(user.id, p, val).then(() => {
                                 if (val) {
-                                    permissions.value = [
-                                        ...permissions.value,
-                                        {
-                                            name: p,
-                                            id: -1,
-                                            created_at: "",
-                                            updated_at: "",
-                                            description: ""
-                                        }
-                                    ];
+                                    const pm = {
+                                        name: p,
+                                        id: -1,
+                                        created_at: "",
+                                        updated_at: "",
+                                        description: ""
+                                    };
+                                    permissions.value = [...permissions.value, pm];
+                                    user.permissions = [...(user.permissions ?? []), pm];
                                 } else {
                                     permissions.value = permissions.value.filter(pm => pm.name !== p);
+                                    user.permissions = (user.permissions ?? []).filter(pm => pm.name !== p);
                                 }
+                                onChanged?.();
                             });
                         }
                     });

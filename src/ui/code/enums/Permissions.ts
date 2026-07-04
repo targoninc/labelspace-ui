@@ -7,4 +7,5 @@ export enum Permissions {
     fileManagement = "fileManagement",
     sendNewsletters = "sendNewsletters",
     convertSubmissions = "convertSubmissions",
+    recheckTikTok = "recheckTikTok",
 }
