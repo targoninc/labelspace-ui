@@ -144,6 +144,8 @@ export class Inputs {
             "youtube.com": LinkServices.youtube,
             "www.youtube.com": LinkServices.youtube,
             "youtu.be": LinkServices.youtube,
+            "tiktok.com": LinkServices.tiktok,
+            "www.tiktok.com": LinkServices.tiktok,
         }
         const service = serviceMap[link.host] ?? link.host;
 

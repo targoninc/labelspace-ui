@@ -8,8 +8,6 @@ import {navigate} from "../routing/Router.ts";
 import {NotificationType} from "../enums/NotificationType.ts";
 import {currentUser} from "../state.ts";
 import {Permissions} from "../enums/Permissions.ts";
-import {ServiceLink} from "../models/ServiceLink.ts";
-import {LinkServices} from "../enums/LinkServices.ts";
 import {Genre} from "../enums/Genre.ts";
 import {getImageUrl, target} from "../functions/templates.ts";
 import {Statistic} from "../models/Statistic.ts";
@@ -20,29 +18,53 @@ import {RequestableImageSize} from "../enums/requestableImageSize.ts";
 import {Images} from "./generic/images.ts";
 import {ImageSize} from "../enums/imageSize.ts";
 import {Time} from "../functions/time.ts";
+import {Modals} from "./modals.ts";
 import {currency} from "../functions/formatters.ts";
+import {Tab} from "../models/Tab.ts";
 import {compute, create, InputType, nullElement, signal, Signal, signalMap, when} from "@targoninc/jess";
 import {button, input, searchableSelect} from "@targoninc/jess-components";
 
 export class Tracks {
     static trackPage(route: Route, params: any) {
-        const track = signal<Track | null>(null);
+        const track$ = signal<Track | null>(null);
         const loading = signal(false);
+        const earnings = compute(t => t?.earnings ?? 0, track$);
         Api.getTrack(params.id ?? 0)
-            .then(a => track.value = a)
+            .then(a => track$.value = a)
             .finally(() => loading.value = false);
 
+        const tabs: Tab[] = [
+            {key: "details", text: "Details", icon: "info"},
+            {key: "analytics", text: "Analytics", icon: "analytics"},
+            {key: "tiktok", text: "TikTok", icon: "music_note"},
+        ];
+        const urlParams = new URLSearchParams(window.location.search);
+        const tab$ = signal(tabs.find(t => t.key === urlParams.get("tab"))?.key ?? tabs[0].key);
+        tab$.subscribe(t => {
+            const url = new URL(window.location.href);
+            url.searchParams.set("tab", t);
+            history.replaceState({}, "", url.toString());
+        });
+
         return Generics.pageFrame(
-            create("div")
-                .classes("flex-v")
-                .children(
-                    when(loading, Generics.loading()),
-                    when(track, Tracks.track(track))
-                ).build()
+            vertical(
+                when(loading, Generics.loading()),
+                when(track$, vertical(
+                    Generics.tabSelector(tab$, tabs),
+                    Generics.tabContents(tab$, {
+                        "details": () => Tracks.trackDetails(track$),
+                        "analytics": () => vertical(
+                            Generics.earnings(earnings),
+                            Tracks.trackStatistics(track$),
+                        ).build(),
+                        "tiktok": () => Tracks.tiktokTab(track$),
+                    })
+                ).build())
+            ).build()
         );
     }
 
-    private static track(track$: Signal<Track | null>) {
+    private static trackDetails(track$: Signal<Track | null>) {
         const title = compute(t => t?.title ?? "Track", track$);
         const isrc = compute(t => t?.isrc ?? "No ISRC", track$);
         const releaseDate = compute(t => {
@@ -50,7 +72,6 @@ export class Tracks {
         }, track$);
         const artists = compute(t => t?.artists ?? "Unknown artists", track$);
         const price = compute(t => t?.price ?? 0, track$);
-        const earnings = compute(t => t?.earnings ?? 0, track$);
         const albums = compute(t => t?.albums ?? [], track$);
         const id = compute(t => t?.id ?? 0, track$);
         const hasImage = compute(t => t?.has_cover ?? false, track$);
@@ -64,7 +85,7 @@ export class Tracks {
             };
         });
         const credits = compute(t => t?.credits ?? "", track$);
-        const triRecordsLink = compute(t => `https://trirecords.eu/track/${t?.id}`, track$);
+        const triRecordsLink = compute(t => Api.labelUrl(`/track/${t?.id}`), track$);
 
         return horizontal(
             vertical(
@@ -76,7 +97,7 @@ export class Tracks {
                         classes: ["positive"],
                         onclick: () => window.open(triRecordsLink.value, "_blank")
                     }),
-                ).classes("center-items", "split-flex"),
+                ).classes("center-items", "space-between"),
                 horizontal(
                     create("span")
                         .text("In")
@@ -124,16 +145,25 @@ export class Tracks {
                                 });
                             }
                         }),
+                        button({
+                            text: "Delete track",
+                            icon: {icon: "delete"},
+                            classes: ["negative", "fit-content"],
+                            onclick: () => {
+                                Modals.confirm(() => {
+                                    Api.deleteTrack(id.value).then(() => {
+                                        notify("Track deleted", NotificationType.success);
+                                        navigate("/releases");
+                                    });
+                                }, "Delete track", "Are you sure you want to delete this track? This action cannot be undone.");
+                            }
+                        }),
                     ).build()
                 ])),
-            ).classes("flex-grow").build(),
-            vertical(
-                when(hasReleaseManagementPermission, Generics.container(1, [
-                    Inputs.serviceLinks(track$, "track")
-                ])),
-                Generics.earnings(earnings),
-                when(track$, Tracks.trackStatistics(track$))
-            )
+            ).classes("flex-grow"),
+            when(hasReleaseManagementPermission, Generics.container(1, [
+                Inputs.serviceLinks(track$, "track")
+            ])),
         ).build();
     }
 
@@ -150,7 +180,7 @@ export class Tracks {
         const load = () => {
             loading.value = true;
             Api.getRoyaltiesByMonth({isrc: isrc.value})
-                .then(s => stats.value = s)
+                .then(s => stats.value = s ?? [])
                 .finally(() => loading.value = false);
         };
         isrc.subscribe(load);
@@ -174,7 +204,7 @@ export class Tracks {
         const count = compute(a => a.length + " Tracks", filteredTracks);
         const loading = signal(false);
         Api.getTracks()
-            .then(a => tracks.value = a)
+            .then(a => tracks.value = a ?? [])
             .finally(() => loading.value = false);
 
         return vertical(
@@ -257,34 +287,115 @@ export class Tracks {
         const anyEmpty = compute((t, u, r, p) => t === "" || u === "" || r === null || p === 0, title, artists, release_date, price);
 
         return Generics.pageFrame(
-            vertical(
-                Generics.heading(2, "Create track"),
-                Tracks.trackProperties(title, artists, credits, release_date, isrc, genres, genre, length, price),
-                button({
-                    text: "Create",
-                    icon: { icon: "add" },
-                    classes: ["positive", "fit-content"],
-                    disabled: anyEmpty,
-                    onclick: () => {
-                        Api.createTrack({
-                            title: title.value,
-                            artists: artists.value,
-                            release_date: toUTCDate(new Date(release_date.value)),
-                            price: price.value,
-                            isrc: isrc.value,
-                            credits: credits.value,
-                            genre: genre.value,
-                            length: length.value,
-                        }).then(() => {
-                            notify("Track created", NotificationType.success);
-                            navigate("/releases");
-                        }).catch(e => {
-                            console.error(e);
-                        });
-                    }
-                })
-            ).build(),
+            create("div")
+                .classes("flex-v", "auth-box")
+                .children(
+                    Generics.heading(2, "Create track"),
+                    Tracks.trackProperties(title, artists, credits, release_date, isrc, genres, genre, length, price),
+                    button({
+                        text: "Create",
+                        icon: {icon: "add"},
+                        classes: ["positive", "fit-content"],
+                        disabled: anyEmpty,
+                        onclick: () => {
+                            Api.createTrack({
+                                title: title.value,
+                                artists: artists.value,
+                                release_date: toUTCDate(new Date(release_date.value)),
+                                price: price.value,
+                                isrc: isrc.value,
+                                credits: credits.value,
+                                genre: genre.value,
+                                length: length.value,
+                            }).then(() => {
+                                notify("Track created", NotificationType.success);
+                                navigate("/releases");
+                            }).catch(e => {
+                                console.error(e);
+                            });
+                        }
+                    })
+                ).build(),
         );
+    }
+
+    private static tiktokTab(track$: Signal<Track | null>) {
+        const loading = signal(false);
+        const soundId = signal<string | null>(null);
+        const soundTitle = signal<string | null>(null);
+        const videoIds = signal<string[]>([]);
+        const id = compute(t => t?.id ?? 0, track$);
+        const canRecheck = compute(u => u?.permissions?.some(p => p.name === Permissions.recheckTikTok) ?? false, currentUser);
+
+        const load = () => {
+            if (!id.value) return;
+            loading.value = true;
+            Api.getTrackTikTok(id.value)
+                .then(data => {
+                    soundId.value = data?.sound_id ?? null;
+                    soundTitle.value = data?.sound_title ?? null;
+                    videoIds.value = data?.video_ids ?? [];
+                })
+                .finally(() => loading.value = false);
+        };
+        id.subscribe(load);
+        load();
+
+        const recheck = () => {
+            if (!id.value) return;
+            loading.value = true;
+            Api.recheckTikTok(id.value)
+                .then(() => {
+                    notify("TikTok recheck started", NotificationType.info);
+                    load();
+                })
+                .catch(() => loading.value = false);
+        };
+
+        return vertical(
+            horizontal(
+                when(canRecheck, button({
+                    text: "Recheck",
+                    icon: {icon: "refresh"},
+                    classes: ["positive"],
+                    onclick: recheck,
+                    disabled: loading,
+                })),
+            ).build(),
+            when(loading, Generics.loading()),
+            when(soundId, vertical(
+                Generics.heading(3, compute(s => `Sound: ${s}`, soundTitle)),
+                compute(s => {
+                    if (!s) return nullElement();
+                    return Generics.link(
+                        `https://www.tiktok.com/music/-${s}`,
+                        "Open on TikTok",
+                        ["positive"]
+                    );
+                }, soundId),
+            ).build()),
+            when(compute((ids, l) => !l && ids.length === 0, videoIds, loading), vertical(
+                create("p").text("No TikTok videos found for this track.").build(),
+            ).build()),
+            when(compute((ids, l) => !l && ids.length > 0, videoIds, loading), vertical(
+                Generics.heading(3, compute(v => `${v.length} video${v.length === 1 ? "" : "s"}`, videoIds)),
+                compute(vids => {
+                    const grid = document.createElement("div");
+                    grid.className = "tiktok-videos";
+                    for (const vid of vids) {
+                        const iframe = document.createElement("iframe");
+                        iframe.src = `https://www.tiktok.com/embed/v2/${vid}`;
+                        iframe.width = "325";
+                        iframe.height = "580";
+                        iframe.frameBorder = "0";
+                        iframe.allowFullscreen = true;
+                        iframe.className = "tiktok-embed";
+                        grid.appendChild(iframe);
+                    }
+                    return grid;
+                }, videoIds),
+            ).build()),
+        ).build();
     }
 
     private static trackProperties(title: Signal<string>, artists: Signal<string>, credits: Signal<string>, release_date: Signal<string>, isrc: Signal<string>, genres: {

@@ -4,7 +4,7 @@ import {Route} from "../../routing/Route.ts";
 import {Account} from "../account.ts";
 import {Users} from "../users.ts";
 import {Permissions} from "../../enums/Permissions.ts";
-import {currentUser, userLoading} from "../../state.ts";
+import {currentRoute, currentUser, userLoading} from "../../state.ts";
 import type {NavItem} from "../../models/NavItem.ts";
 import {Statistics} from "../statistics.ts";
 import {Payments} from "../payments.ts";
@@ -18,6 +18,7 @@ import {
     AnyElement,
     compute,
     create, DomNode,
+    InputType,
     nullElement,
     signal,
     Signal,
@@ -26,6 +27,7 @@ import {
     when
 } from "@targoninc/jess";
 import {button} from "@targoninc/jess-components";
+import {Api} from "../../api/api.ts";
 
 export class Generics {
     static notFound() {
@@ -37,29 +39,29 @@ export class Generics {
     }
 
     static nav() {
-        const loginShown = compute((u, l) => !u && !l, currentUser, userLoading);
+        const loginShown = compute((u, l, r) => !u && !l && r?.path !== "login", currentUser, userLoading, currentRoute);
 
         return create("nav")
-            .classes("container", "layer-1", "flex", "split-flex", "center-items")
+            .classes("container", "layer-1", "flex", "space-between", "center-items")
             .children(
                 create("div")
                     .classes("flex", "center-items")
                     .children(
                         Generics.image("/images/LOGO256.png", ["header-logo"]),
                         create("h1")
-                            .children(
-                                create("b").text("Tri").build(),
-                                create("span").text("Records").build(),
-                            ).build(),
-                        ...routes.filter(r => r.showInNav !== undefined)
-                            .map(r => {
-                                const show = compute(u => r.showInNav && r.showInNav(u), currentUser);
-                                return when(show, Nav.navItem(<NavItem>{
-                                    text: r.title,
-                                    path: r.path,
-                                    icon: r.icon,
-                                }));
-                            })
+                            .text(Api.labelName)
+                            .build(),
+                        horizontal(
+                            ...routes.filter(r => r.showInNav !== undefined)
+                                .map(r => {
+                                    const show = compute(u => r.showInNav && r.showInNav(u), currentUser);
+                                    return when(show, Nav.navItem(<NavItem>{
+                                        text: r.title,
+                                        path: r.path,
+                                        icon: r.icon,
+                                    }));
+                                })
+                        ).classes("nogap")
                     ).build(),
                 when(loginShown, button({
                     text: "Login",
@@ -76,10 +78,10 @@ export class Generics {
 
     static pageFrame(...content: (AnyElement|Signal<AnyElement>)[]) {
         return create("div")
-            .classes("container", "flex-v")
+            .classes("container", "flex-v", "full-height", "page-frame")
             .children(
                 Generics.nav(),
-                Generics.container(1, content)
+                Generics.container(1, content, ["page-content"])
             ).build();
     }
 
@@ -103,11 +105,11 @@ export class Generics {
             .build();
     }
 
-    static icon(icon: StringOrSignal, onclick: Function = () => {}) {
+    static icon(icon: StringOrSignal, title: string = "") {
         return create("i")
             .classes("material-symbols-outlined")
+            .title(title)
             .text(icon)
-            .onclick(onclick)
             .build();
     }
 
@@ -145,6 +147,35 @@ export class Generics {
             .classes(mono ? "monospace" : "_")
             .text(text)
             .build();
+    }
+
+    static toggle(
+        text: StringOrSignal,
+        checked: TypeOrSignal<boolean> = false,
+        onchange: (checked: boolean) => void = () => {},
+        extraClasses: StringOrSignal[] = [],
+    ) {
+        return create("label")
+            .classes("toggle", ...extraClasses)
+            .children(
+                create("input")
+                    .type(InputType.checkbox)
+                    .classes("slider")
+                    .checked(checked)
+                    .onchange(e => onchange((e.target as HTMLInputElement).checked))
+                    .build(),
+                create("div")
+                    .classes("toggle-container")
+                    .children(
+                        create("span")
+                            .classes("toggle-slider")
+                            .build()
+                    ).build(),
+                create("span")
+                    .classes("toggle-text")
+                    .text(text)
+                    .build(),
+            ).build();
     }
 
     static table<T>(headers: StringOrSignal[], entries: Signal<T[]>|T[], rowTemplate: (entry: T) => AnyElement, classes: StringOrSignal[] = []) {
@@ -213,7 +244,7 @@ export class Generics {
 
     static tabSelector(tab$: Signal<string>, tabs: Tab[]) {
         return create("div")
-            .classes("flex", "center-items")
+            .classes("flex", "center-items", "tabs")
             .children(
                 ...tabs.map(tab => {
                     const activeClass = compute((t): string => t === tab.key ? "active" : "_", tab$);
@@ -221,7 +252,7 @@ export class Generics {
                     return button({
                         text: tab.text,
                         icon: { icon: tab.icon },
-                        classes: [activeClass],
+                        classes: [activeClass, "tab"],
                         onclick: () => {
                             tab$.value = tab.key;
                         }
@@ -243,12 +274,12 @@ export class Generics {
             .build();
     }
 
-    static link(url: StringOrSignal, title: StringOrSignal) {
+    static link(url: StringOrSignal, title: StringOrSignal, classes: StringOrSignal[] = []) {
         const urlSignal: Signal<string> = url.constructor === Signal ? url : signal(url as string);
         const isRemote = compute(u => !!(u && u.includes("http")), urlSignal);
 
         return create("div")
-            .classes("link-container")
+            .classes("link-container", ...classes)
             .children(
                 create("a")
                     .classes("underline")
@@ -287,7 +318,7 @@ export class Generics {
             ).build();
     }
 
-    static pill(text: string, classes: string[]) {
+    static pill(text: StringOrSignal, classes: StringOrSignal[] = []) {
         return create("span")
             .classes("pill", ...classes)
             .text(text)
@@ -338,15 +369,9 @@ export const routes: Route[] = [
     },
     {
         path: "login",
-        aliases: ["/"],
+        aliases: ["/", "password-reset"],
         title: "Login",
         template: Account.loginPage,
-        allowWithoutLogin: true
-    },
-    {
-        path: "password-reset",
-        title: "Password reset",
-        template: Account.passwordReset,
         allowWithoutLogin: true
     },
     {

@@ -6,4 +6,5 @@ export enum LinkServices {
     bandcamp = "bandcamp",
     lyda = "lyda",
     tidal = "tidal",
+    tiktok = "tiktok",
 }

@@ -10,16 +10,16 @@
     --magenta: #ec008c;
     --black: #000000;
     --white: #ffffff;
-    --gray-1: #e6e7e8;
-    --gray-2: #d1d3d4;
-    --gray-3: #bcbec0;
-    --gray-4: #a7a9ac;
-    --gray-5: #939598;
-    --gray-6: #808285;
-    --gray-7: #6d6e71;
-    --gray-8: #58595b;
-    --gray-9: #414042;
-    --gray-10: #231f20;
+    --gray-1: color-mix(in oklab, var(--white), var(--black) 5%);
+    --gray-2: color-mix(in oklab, var(--white), var(--black) 10%);
+    --gray-3: color-mix(in oklab, var(--white), var(--black) 25%);
+    --gray-4: color-mix(in oklab, var(--white), var(--black) 35%);
+    --gray-5: color-mix(in oklab, var(--white), var(--black) 45%);
+    --gray-6: color-mix(in oklab, var(--white), var(--black) 55%);
+    --gray-7: color-mix(in oklab, var(--white), var(--black) 65%);
+    --gray-8: color-mix(in oklab, var(--white), var(--black) 75%);
+    --gray-9: color-mix(in oklab, var(--white), var(--black) 85%);
+    --gray-10: color-mix(in oklab, var(--white), var(--black) 95%);
 
     --stats-1: var(--black);
     --stats-2: var(--gray-10);
@@ -47,7 +47,7 @@
     --jessc-interactive-color-active: var(--black);
     --jessc-interactive-border: var(--gray-3);
     --jessc-interactive-border-focused: var(--blue);
-    --jessc-interactive-border-active: var(--blue);
+    --jessc-interactive-border-active: var(--black);
     --jessc-border-radius-small: var(--radius);
     --jessc-border-radius-medium: var(--radius);
     --jessc-border-radius-large: var(--radius);
@@ -65,17 +65,11 @@
         --magenta: #ec008c;
         --black: #ffffff;
         --white: #0e0d0e;
-        --gray-1: #231f20;
-        --gray-2: #414042;
-        --gray-3: #58595b;
-        --gray-4: #6d6e71;
-        --gray-5: #808285;
-        --gray-6: #939598;
-        --gray-7: #a7a9ac;
-        --gray-8: #bcbec0;
-        --gray-9: #d1d3d4;
-        --gray-10: #e6e7e8;
     }
+}
+
+* {
+    box-sizing: border-box;
 }
 
 .material-symbols-outlined {
@@ -120,6 +114,52 @@ a.button {
     height: max-content;
 }
 
+.nogap {
+    gap: 0 !important;
+}
+
+.nav-tab {
+    border-bottom: 3px solid var(--gray-4);
+    border-radius: var(--radius) var(--radius) 0 0 !important;
+    padding: .25em .75em !important;
+    background: transparent !important;
+
+    &.active {
+        background: var(--gray-9) !important;
+        box-shadow: inset 0 -15px 15px -15px var(--blue);
+        color: var(--blue) !important;
+        border-color: var(--blue) !important;
+    }
+}
+
+.tabs {
+    gap: 0 !important;
+}
+
+.tab {
+    border-radius: 0 !important;
+
+    &.active {
+        background: var(--gray-9) !important;
+        box-shadow: inset 0 -15px 15px -15px var(--blue);
+        border-color: var(--blue) !important;
+
+        & * {
+            color: var(--blue) !important;
+        }
+    }
+
+    &:first-child {
+        border-top-left-radius: 999px !important;
+        border-bottom-left-radius: 999px !important;
+    }
+
+    &:last-child {
+        border-top-right-radius: 999px !important;
+        border-bottom-right-radius: 999px !important;
+    }
+}
+
 .fit-content {
     max-width: max-content;
 }
@@ -137,6 +177,14 @@ a.button:hover {
 
 .flex-v {
     flex-direction: column;
+}
+
+.full-height {
+    min-height: 100%;
+}
+
+.full-width {
+    min-width: 100%;
 }
 
 .card {
@@ -163,11 +211,76 @@ body {
 }
 
 #content {
-    height: 100%;
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow: hidden;
 }
 
 .hidden {
     display: none;
+}
+
+.toggle {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--small-gap);
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+}
+
+.toggle .slider {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+    margin: 0;
+    pointer-events: none;
+}
+
+.toggle-container {
+    width: 2.5rem;
+    height: 1.5rem;
+    padding: 2px;
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+    background: var(--gray-3);
+    border: 1px solid var(--gray-4);
+    border-radius: 999px;
+    transition: background .15s ease-in-out, border-color .15s ease-in-out;
+}
+
+.toggle:hover .toggle-container {
+    background: var(--gray-4);
+}
+
+.toggle .slider:focus-visible + .toggle-container {
+    outline: 2px solid var(--blue);
+    outline-offset: 2px;
+}
+
+.toggle .slider:checked + .toggle-container {
+    background: var(--blue);
+    border-color: var(--blue);
+}
+
+.toggle-slider {
+    display: block;
+    width: 1rem;
+    height: 1rem;
+    background: var(--white);
+    border-radius: 50%;
+    transition: transform .15s ease-in-out;
+}
+
+.toggle .slider:checked + .toggle-container .toggle-slider {
+    transform: translateX(1rem);
+}
+
+.toggle-text {
+    font-size: .9rem;
 }
 
 p, h1, h2, h3, h4, h5, h6 {
@@ -265,11 +378,12 @@ b {
     padding: calc(var(--layout-gap) * 2);
     box-sizing: border-box;
     background: var(--white);
-    border-radius: var(--radius);
+    border-radius: calc(var(--radius) * 2);
 }
 
 nav.container {
-    padding: var(--layout-gap) !important;
+    padding: 0;
+    background: transparent;
 }
 
 .border {
@@ -292,8 +406,23 @@ nav.container {
     align-items: center;
 }
 
-.split-flex {
+.space-between {
     justify-content: space-between;
+}
+
+.page-frame {
+    height: 100%;
+    max-height: 100dvh;
+    overflow: hidden;
+    flex-wrap: nowrap;
+}
+
+.page-content {
+    width: 100%;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 button.positive, .button.positive {
@@ -306,14 +435,25 @@ button.positive:hover, .button.positive:hover {
     --jessc-text-color: var(--black);
 }
 
-button.negative, .button.negative {
-    background: var(--red);
+button.warning, .button.warning {
+    background: var(--orange);
     --jessc-text-color: var(--white);
+    border-color: var(--orange);
+}
+
+button.warning:hover, .button.warning:hover {
+    --jessc-text-color: var(--black);
+}
+
+button.negative, .button.negative {
     border-color: var(--light-red);
+    --jessc-text-color: var(--light-red);
 }
 
 button.negative:hover, .button.negative:hover {
     --jessc-text-color: var(--black);
+    background: var(--red);
+    border-color: var(--light-red);
 }
 
 button.active, .button.active {
@@ -356,6 +496,64 @@ hr {
     overflow: auto;
 }
 
+.scroll-table {
+    max-height: 75dvh;
+    overflow: auto;
+}
+
+.text-small {
+    font-size: .8rem;
+}
+
+.logs-table table {
+    table-layout: fixed;
+}
+
+.logs-page {
+    gap: var(--layout-gap);
+}
+
+.log-filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: var(--layout-gap);
+    padding: var(--layout-gap) !important;
+}
+
+.log-filter-field {
+    flex: 1 1 180px;
+    min-width: 180px;
+    align-self: flex-end;
+}
+
+.log-filter-toggle-field {
+    flex: 0 0 auto;
+    align-self: flex-end;
+}
+
+.log-filter-field > * {
+    width: 100%;
+}
+
+.log-filter-label {
+    width: 100%;
+}
+
+.log-filter-select {
+    width: 100%;
+}
+
+.log-filter-toggle {
+    min-height: 2.5rem;
+}
+
+.log-filter-actions {
+    flex: 0 0 auto;
+    flex-wrap: wrap;
+    margin-left: auto;
+}
+
 thead tr th {
     position: sticky;
     top: 0;
@@ -383,16 +581,7 @@ th, td {
 }
 
 tr:hover td {
-    border-top: 1px solid var(--black);
-    border-bottom: 1px solid var(--black);
-}
-
-tr:hover td:first-child {
-    border-left: 1px solid var(--black);
-}
-
-tr:hover td:last-child {
-    border-right: 1px solid var(--black);
+    background: var(--gray-2);
 }
 
 th:first-child {
@@ -415,21 +604,95 @@ td {
     background: var(--gray-1);
 }
 
+.log-row {
+    --log-level-color: var(--gray-5);
+}
+
+.logs-table th:nth-child(1),
+.logs-table .log-time {
+    width: 12rem;
+}
+
+.logs-table th:nth-child(2),
+.logs-table .log-level-cell {
+    width: 8rem;
+}
+
+.log-row td:first-child {
+    box-shadow: inset 4px 0 0 var(--log-level-color);
+}
+
+.log-time-label {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+.log-level-cell {
+    white-space: nowrap;
+}
+
+.log-level-pill {
+    display: inline-block;
+    background: var(--log-level-color);
+    border-radius: 999px;
+    padding: var(--inline-padding);
+    font-size: .8rem;
+    font-weight: bold;
+    min-width: 6rem;
+    text-align: center;
+}
+
+.log-message {
+    word-break: break-word;
+}
+
+.log-debug {
+    --log-level-color: var(--gray-5);
+}
+
+.log-success {
+    --log-level-color: var(--green);
+}
+
+.log-info {
+    --log-level-color: var(--blue);
+}
+
+.log-warning {
+    --log-level-color: var(--orange);
+}
+
+.log-error {
+    --log-level-color: var(--red);
+}
+
+.log-critical {
+    --log-level-color: var(--red);
+}
+
+.log-unknown {
+    --log-level-color: var(--gray-7);
+}
+
 .privateText {
     cursor: pointer;
 }
 
-button.jessc {
+button.jess {
     align-items: center;
     display: flex;
     gap: var(--layout-gap);
+    border-radius: 999px;
 }
 
 .statistic {
     width: min(100%, 600px);
     border: 1px solid var(--gray-2);
     padding: var(--layout-gap) calc(var(--layout-gap) * 2);
-    border-radius: var(--radius);
+    border-radius: calc(var(--radius) * 2);
     background: var(--white);
 }
 
@@ -459,6 +722,15 @@ button.jessc {
     padding: var(--inline-padding);
     font-size: .8rem;
     max-width: max-content;
+    font-variant-numeric: tabular-nums;
+}
+
+.pill {
+    padding: .2em .75em;
+}
+
+.gray {
+    --status-color: var(--gray-5);
 }
 
 .green {
@@ -479,6 +751,11 @@ button.jessc {
 
 .red {
     --status-color: var(--red);
+}
+
+.big {
+    font-weight: 800;
+    font-size: 1.2em;
 }
 
 .clickable-icon {
@@ -503,6 +780,10 @@ button.jessc {
     background: var(--service-link-color);
     --service-link-color: var(--gray-1);
     max-width: max-content;
+    align-self: end;
+}
+
+.align-end {
     align-self: end;
 }
 
@@ -534,6 +815,24 @@ button.jessc {
 
 .service-link.lyda {
     --service-link-color: #70c926;
+}
+
+.service-link.tiktok {
+    --service-link-color: #000000;
+    color: white;
+}
+
+.tiktok-videos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    justify-content: flex-start;
+}
+
+.tiktok-embed {
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .flex-grow {
@@ -571,5 +870,14 @@ button.jessc {
 
 .album-card:hover {
     border: 1px solid var(--cyan);
-    background: var(--gray-3);
+    background: var(--gray-2);
+}
+
+.auth-box {
+    max-width: 600px;
+    width: 100%;
+    padding: calc(var(--layout-gap) * 2);
+    background: var(--white);
+    border-radius: calc(var(--radius) * 2);
+    margin: auto;
 }

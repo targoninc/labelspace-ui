@@ -3,6 +3,8 @@ import {Api} from "./code/api/api.ts";
 import {navigate, startRouter} from "./code/routing/Router.ts";
 import {routes} from "./code/components/generic/generics.ts";
 
+await Api.initialize();
+
 router.value!.setRoutes(routes);
 userLoading.value = true;
 Api.getUser()
@@ -12,8 +14,12 @@ Api.getUser()
             navigate("dashboard");
         }
     })
-    .catch(e => {
-        navigate("login");
+    .catch(() => {
+        const path = window.location.pathname.substring(1).split("/").filter(p => p !== "")[0] ?? "/";
+        const route = routes.find(r => path.startsWith(r.path) || (r.aliases && r.aliases?.some((a: string) => path.startsWith(a))));
+        if (!route?.allowWithoutLogin) {
+            navigate("login");
+        }
     })
     .finally(() => {
         userLoading.value = false;

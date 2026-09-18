@@ -8,17 +8,63 @@ import {Album} from "../models/db/tri/Album.ts";
 import {CreateAlbumRequestBody} from "../models/CreateAlbumRequestBody.ts";
 import {Track} from "../models/db/tri/Track.ts";
 import {UploadTrackRequestBody} from "../models/UploadTrackRequestBody.ts";
+import {Submission} from "../models/Submission.ts";
 import {SearchResult} from "../models/SearchResult.ts";
 import { MediaFileType } from "../enums/MediaFileType.ts";
 import {Artist} from "../models/db/tri/Artist.ts";
 import {ArtistLink} from "../models/db/tri/ArtistLink.ts";
 import {AuthenticationJSON, CredentialDescriptor, RegistrationJSON} from "@passwordless-id/webauthn/dist/esm/types";
 import {MfaOption} from "../enums/MfaOption.ts";
+import {PaymentStatus} from "../enums/PaymentStatus.ts";
 
-const base = window.location.origin.includes("localhost") ? "http://localhost:8090" : "https://artists-api.trirecords.eu";
+type PublicUiConfig = {
+    labelUiUrl: string;
+    portalApiUrl: string;
+    contactEmail: string;
+    labelName: string;
+};
+
+let base = "";
 
 export class Api {
     static baseUrl = base;
+    static labelUiUrl = "";
+    static contactEmail = "";
+    static labelName = "LabelSpace";
+
+    private static joinUrl(baseUrl: string, path: string) {
+        return new URL(path, baseUrl.endsWith("/") ? baseUrl : `${baseUrl}/`).toString();
+    }
+
+    static labelUrl(path: string) {
+        return this.joinUrl(this.labelUiUrl, path);
+    }
+
+    static async initialize() {
+        const bootstrapResponse = await fetch("/api-url", {
+            credentials: "same-origin",
+        });
+
+        if (!bootstrapResponse.ok) {
+            throw new Error(`Failed to load backend API URL: ${bootstrapResponse.status} ${bootstrapResponse.statusText}`);
+        }
+
+        const bootstrapApiUrl = (await bootstrapResponse.text()).trim();
+        if (!bootstrapApiUrl) {
+            throw new Error("Backend API URL bootstrap endpoint returned an empty value.");
+        }
+
+        const config = await Fetcher.get<PublicUiConfig>(`${bootstrapApiUrl}/config/ui`);
+        if (!config?.portalApiUrl || !config.labelUiUrl || !config.contactEmail) {
+            throw new Error("Backend UI config response is missing required URLs.");
+        }
+
+        base = config.portalApiUrl.trim();
+        this.baseUrl = base;
+        this.labelUiUrl = config.labelUiUrl.trim();
+        this.contactEmail = config.contactEmail.trim();
+        this.labelName = config.labelName?.trim() || "LabelSpace";
+    }
 
     static async getUser() {
         return await Fetcher.get<User>(base + "/user/get");
@@ -74,16 +120,30 @@ export class Api {
         return await Fetcher.get<Statistic[]>(base + "/statistics/royaltiesByCountry");
     }
 
-    static async getPayments() {
-        return await Fetcher.get<Payment[]>(base + "/payments/get");
+    static async getPayments(options: {
+        status?: PaymentStatus;
+        startTime?: string;
+        endTime?: string;
+        minAmount?: number;
+        maxAmount?: number;
+        userQuery?: string;
+    } = {}) {
+        return await Fetcher.get<Payment[]>(base + "/payments/get", options);
     }
 
     static async getAvailablePaymentAmount() {
         return await Fetcher.postWithResponse<RoyaltyInfo>(base + "/payments/available");
     }
 
-    static async getLogs() {
-        return await Fetcher.get<Log[]>(base + "/logs/get");
+    static async getLogs(options: {
+        logLevel?: number;
+        message?: string;
+        startTime?: string;
+        endTime?: string;
+        offset?: number;
+        limit?: number;
+    } = {}) {
+        return await Fetcher.get<Log[]>(base + "/logs/get", options);
     }
 
     static async getAlbums() {
@@ -141,7 +201,7 @@ export class Api {
     }
 
     static createTrack(track: UploadTrackRequestBody) {
-        return Fetcher.post(base + "/tracks/create", track);
+        return Fetcher.postWithResponse<Track>(base + "/tracks/create", track);
     }
 
     static removeTrackFromAlbum(track_id: number, album_id: number) {
@@ -149,6 +209,14 @@ export class Api {
             track_id,
             album_ids: [album_id]
         });
+    }
+
+    static deleteTrack(id: number) {
+        return Fetcher.post(base + "/tracks/actions/delete", {id});
+    }
+
+    static deleteAlbum(id: number) {
+        return Fetcher.post(base + "/albums/actions/delete", {id});
     }
 
     static searchTracks(q: string) {
@@ -178,6 +246,10 @@ export class Api {
 
     static getArtistLinks(id: number) {
         return Fetcher.get<ArtistLink[]>(base + "/artists/links/get", {id});
+    }
+
+    static getArtistByName(name: string) {
+        return Fetcher.get<any>(base + "/artists/byName", {name});
     }
 
     static createArtistLink(artistId: number, text: string, url: string) {
@@ -324,6 +396,14 @@ export class Api {
         });
     }
 
+    static getTrackTikTok(trackId: number) {
+        return Fetcher.get<{ sound_id: string | null; sound_title: string | null; video_ids: string[] }>(base + "/tracks/tiktok", { trackId });
+    }
+
+    static recheckTikTok(trackId: number) {
+        return Fetcher.post(base + "/tracks/tiktok/recheck", { trackId });
+    }
+
     static addAlbumLink(id: number, url: string) {
         return Fetcher.post(base + "/albums/actions/addLink", {
             id, url
@@ -336,10 +416,37 @@ export class Api {
         });
     }
 
-    static createArtist(name: string, linkedUserId: number) {
+    static setUserPermission(userId: number, permissionName: string, value: boolean) {
+        return Fetcher.post(base + "/user/permissions/set", {
+            userId,
+            permissionName,
+            value
+        });
+    }
+
+    static createArtist(name: string, linkedUserId: number | null) {
         return Fetcher.post(base + "/artists/actions/create", {
             name,
             linkedUserId
+        });
+    }
+
+    static getSubmissions() {
+        return Fetcher.get<Submission[]>(base + "/submissions/get");
+    }
+
+    static voteOnSubmission(submissionId: number, vote: string, comment: string | null) {
+        return Fetcher.post(base + "/submissions/vote", {
+            submission_id: submissionId,
+            vote,
+            comment
+        });
+    }
+
+    static convertSubmission(submissionId: number, action: string) {
+        return Fetcher.post(base + "/submissions/convert", {
+            submission_id: submissionId,
+            action
         });
     }
 }

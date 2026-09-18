@@ -5,6 +5,18 @@ export class Time {
         return new Date(time).toLocaleDateString(undefined, { timeZone: 'UTC' });
     }
 
+    static localDateTime(time: number|string|Date) {
+        return new Date(time).toLocaleString(undefined, {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+            hour: "numeric",
+            minute: "2-digit",
+            second: "2-digit",
+            timeZoneName: "short",
+        });
+    }
+
     static adjust(time: number|string|Date): Date {
         return new Date(time);
     }
@@ -95,6 +107,41 @@ export class Time {
                 return;
             }
             setTimeout(update, updateInterval);
+        };
+        update();
+
+        return state;
+    }
+
+    static agoNumeric(time: number|string|Date) {
+        const targetTime = Time.adjust(time).getTime();
+        const seconds = Math.round((targetTime - Date.now()) / 1000);
+        const formatter = new Intl.RelativeTimeFormat(undefined, { numeric: "always" });
+        const units: [Intl.RelativeTimeFormatUnit, number][] = [
+            ["year", 60 * 60 * 24 * 365],
+            ["month", 60 * 60 * 24 * 30],
+            ["week", 60 * 60 * 24 * 7],
+            ["day", 60 * 60 * 24],
+            ["hour", 60 * 60],
+            ["minute", 60],
+            ["second", 1],
+        ];
+
+        for (const [unit, unitSeconds] of units) {
+            if (Math.abs(seconds) >= unitSeconds || unit === "second") {
+                return formatter.format(Math.round(seconds / unitSeconds), unit);
+            }
+        }
+
+        return formatter.format(seconds, "second");
+    }
+
+    static agoNumericUpdating(time: number|string|Date) {
+        const state = signal(Time.agoNumeric(time));
+        const update = () => {
+            const seconds = Math.abs(Time.adjust(time).getTime() - Date.now()) / 1000;
+            state.value = Time.agoNumeric(time);
+            setTimeout(update, seconds < 60 ? 1000 : 60000);
         };
         update();
 

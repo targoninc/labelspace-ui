@@ -33,7 +33,7 @@ export class Nav {
         const activeClass = compute((a): string => a ? "active" : "_", active);
 
         return create("a")
-            .classes("button", "flex", "center-items", activeClass)
+            .classes("button", "flex", "center-items", "nav-tab", activeClass)
             .href(window.location.origin + "/" + item.path)
             .target("_blank")
             .onclick((e: MouseEvent) => {

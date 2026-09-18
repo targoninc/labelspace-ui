@@ -4,6 +4,7 @@ import {Generics, horizontal, vertical} from "./generic/generics.ts";
 import {navigate, reload} from "../routing/Router.ts";
 import {Inputs} from "./generic/inputs.ts";
 import {notify} from "../functions/notifications.ts";
+
 import {NotificationType} from "../enums/NotificationType.ts";
 import {Route} from "../routing/Route.ts";
 import {currency} from "../functions/formatters.ts";
@@ -12,6 +13,7 @@ import {currentUser} from "../state.ts";
 import {Permissions} from "../enums/Permissions.ts";
 import {Tab} from "../models/Tab.ts";
 import {Tracks} from "./tracks.ts";
+import {Submissions} from "./submissions.ts";
 import {Modals} from "./modals.ts";
 import {SearchResult} from "../models/SearchResult.ts";
 import {getImageUrl, target} from "../functions/templates.ts";
@@ -24,7 +26,7 @@ import {ImageSize} from "../enums/imageSize.ts";
 import {Time} from "../functions/time.ts";
 import {Files} from "./generic/files.ts";
 import {compute, create, InputType, Signal, signal, signalMap, when} from "@targoninc/jess";
-import {button, input, toggle} from "@targoninc/jess-components";
+import {button, input} from "@targoninc/jess-components";
 
 export class Albums {
     static page() {
@@ -39,9 +41,20 @@ export class Albums {
                 key: "tracks",
                 text: "Tracks",
                 icon: "graphic_eq"
+            },
+            {
+                key: "submissions",
+                text: "Submissions",
+                icon: "mail"
             }
         ];
-        const tab$ = signal(tabs[0].key);
+        const params = new URLSearchParams(window.location.search);
+        const tab$ = signal(tabs.find(t => t.key === params.get("tab"))?.key ?? tabs[0].key);
+        tab$.subscribe(t => {
+            const url = new URL(window.location.href);
+            url.searchParams.set("tab", t);
+            history.replaceState({}, "", url.toString());
+        });
 
         return Generics.pageFrame(
             create("div")
@@ -50,7 +63,8 @@ export class Albums {
                     Generics.tabSelector(tab$, tabs),
                     Generics.tabContents(tab$, {
                         "albums": () => Albums.albumsTab(canManageReleases),
-                        "tracks": () => Tracks.tracksTab(canManageReleases)
+                        "tracks": () => Tracks.tracksTab(canManageReleases),
+                        "submissions": () => Submissions.submissionsTab()
                     })
                 ).build()
         );
@@ -68,7 +82,7 @@ export class Albums {
         const count = compute(a => a.length + " Albums", filteredAlbums);
         const loading = signal(false);
         Api.getAlbums()
-            .then(a => albums.value = a)
+            .then(a => albums.value = a ?? [])
             .finally(() => loading.value = false);
 
         return create("div")
@@ -77,10 +91,14 @@ export class Albums {
                 Generics.heading(2, count),
                 Albums.listActions(canManageReleases, filter),
                 when(loading, Generics.loading()),
-                Generics.heading(3, "Unreleased"),
-                signalMap(filteredUpcoming, horizontal(), album => Albums.albumCard(album)),
-                Generics.heading(3, "Released"),
-                signalMap(filteredReleased, horizontal(), album => Albums.albumCard(album)),
+                create("div")
+                    .classes("scroll-table")
+                    .children(
+                        Generics.heading(3, "Unreleased"),
+                        signalMap(filteredUpcoming, horizontal(), album => Albums.albumCard(album)),
+                        Generics.heading(3, "Released"),
+                        signalMap(filteredReleased, horizontal(), album => Albums.albumCard(album)),
+                    ).build()
             ).build();
     }
 
@@ -147,7 +165,7 @@ export class Albums {
 
         return Generics.pageFrame(
             create("div")
-                .classes("flex-v")
+                .classes("flex-v", "auth-box")
                 .children(
                     Generics.heading(2, "Create album"),
                     Inputs.text(title, "Title", "title"),
@@ -157,7 +175,7 @@ export class Albums {
                     Inputs.number(price, "Price", "price"),
                     button({
                         text: "Create",
-                        icon: { icon: "add" },
+                        icon: {icon: "add"},
                         classes: ["positive"],
                         disabled: anyEmpty,
                         onclick: () => {
@@ -169,7 +187,7 @@ export class Albums {
                                 artists: artists.value,
                             }).then((album) => {
                                 notify("Album created", NotificationType.success);
-                                navigate(`/album/${album.id}`);
+                                navigate(`/album/${album?.id}`);
                             }).catch(e => {
                                 console.error(e);
                             });
@@ -195,23 +213,42 @@ export class Albums {
         }
         load();
 
+        const tabs: Tab[] = [
+            {key: "details", text: "Details", icon: "info"},
+            {key: "analytics", text: "Analytics", icon: "analytics"},
+        ];
+        const urlParams = new URLSearchParams(window.location.search);
+        const tab$ = signal(tabs.find(t => t.key === urlParams.get("tab"))?.key ?? tabs[0].key);
+        tab$.subscribe(t => {
+            const url = new URL(window.location.href);
+            url.searchParams.set("tab", t);
+            history.replaceState({}, "", url.toString());
+        });
+
         return Generics.pageFrame(
-            horizontal(
-                vertical(
-                    when(loading, Generics.loading()),
-                    when(album$, Albums.album(album$, hasReleaseManagementPermission, load)),
-                ).classes("flex-grow"),
-                vertical(
-                    when(hasReleaseManagementPermission, Generics.container(1, [
-                        vertical(
-                            Inputs.serviceLinks(album$, "album"),
-                            Albums.campaignSection(album$),
-                        )
-                    ])),
-                    when(canView, Files.albumFiles(album$, load)),
-                    Generics.earnings(earnings),
-                    when(album$, Albums.albumStatistics(album$))
-                )
+            vertical(
+                when(loading, Generics.loading()),
+                when(album$, vertical(
+                    Generics.tabSelector(tab$, tabs),
+                    Generics.tabContents(tab$, {
+                        "details": () => horizontal(
+                            Albums.album(album$, hasReleaseManagementPermission, load),
+                            vertical(
+                                when(hasReleaseManagementPermission, Generics.container(1, [
+                                    vertical(
+                                        Inputs.serviceLinks(album$, "album"),
+                                        Albums.campaignSection(album$),
+                                    )
+                                ])),
+                                when(canView, Files.albumFiles(album$, load)),
+                            )
+                        ).build(),
+                        "analytics": () => vertical(
+                            Generics.earnings(earnings),
+                            Albums.albumStatistics(album$),
+                        ).build()
+                    })
+                ).build())
             ).build()
         );
     }
@@ -222,7 +259,7 @@ export class Albums {
             return {upc: a};
         }, upc);
 
-        return vertical(
+        return horizontal(
             Statistics.singleStatistic("Royalties by month", Api.getRoyaltiesByMonth, Statistics.royaltiesByMonthChart, null, options),
             Statistics.singleStatistic("Royalties by service", Api.getRoyaltiesByService, Statistics.royaltiesByServiceChart, null, options),
         ).build();
@@ -250,6 +287,9 @@ export class Albums {
         const loading = signal(false);
         const search = signal("");
         const searchResults = signal<SearchResult[]>([]);
+        const filteredSearchResults = compute((results, t) =>
+                results.filter(r => !t.some((track: any) => track.id === r.id)),
+            searchResults, tracks);
         let timeout: Timer;
         const debounce = 250;
         search.subscribe(q => {
@@ -259,12 +299,12 @@ export class Albums {
             }
             timeout = setTimeout(() => {
                 Api.searchTracks(q)
-                    .then(results => searchResults.value = results)
+                    .then(results => searchResults.value = results ?? [])
                     .finally();
             }, debounce);
         });
         const hasImage = compute(a => a?.has_cover ?? false, album);
-        const triRecordsLink = compute(a => `https://trirecords.eu/album/${a?.id}`, album);
+        const triRecordsLink = compute(a => Api.labelUrl(`/album/${a?.id}`), album);
 
         return vertical(
             vertical(
@@ -278,7 +318,7 @@ export class Albums {
                             window.open(triRecordsLink.value, "_blank");
                         }
                     }),
-                ).classes("center-items", "split-flex"),
+                ).classes("center-items", "space-between"),
                 when(hasReleaseManagementPermission, vertical(
                     Images.changeableImage(id, hasImage, MediaFileType.albumCover, {
                         changeable: false,
@@ -292,13 +332,26 @@ export class Albums {
                     Generics.property("Price", currency(price)),
                 ).build(), true),
                 when(hasReleaseManagementPermission, Albums.albumDetailsEditor(id, hasImage, title, artists, upc, releaseDate, price, loading, noneChanged)),
+                when(hasReleaseManagementPermission, button({
+                    text: "Delete album",
+                    icon: {icon: "delete"},
+                    classes: ["negative", "fit-content"],
+                    onclick: () => {
+                        Modals.confirm(() => {
+                            Api.deleteAlbum(id.value).then(() => {
+                                notify("Album deleted", NotificationType.success);
+                                navigate("/releases");
+                            });
+                        }, "Delete album", "Are you sure you want to delete this album? This action cannot be undone.");
+                    }
+                })),
             ).build(),
             create("div")
                 .classes("flex-v", "container", "border")
                 .children(
                     Albums.tracksTable(tracks, hasReleaseManagementPermission, loading, album, load),
                     Generics.divider(),
-                    when(hasReleaseManagementPermission, Albums.addTracksSection(search, searchResults, loading, album, load)),
+                    when(hasReleaseManagementPermission, Albums.addTracksSection(search, filteredSearchResults, loading, album, load)),
                 ).build(),
         ).classes("flex-grow").build();
     }
@@ -469,4 +522,5 @@ export class Albums {
                 ),
             ).build();
     }
+
 }

@@ -12,16 +12,26 @@ import {mfaOptionMap} from "../enums/MfaOptionMapping.ts";
 import {InputType, Signal} from "@targoninc/jess";
 import {SelectOption} from "@targoninc/jess-components";
 
-export function login(loading: Signal<boolean>, username: Signal<string>, password: Signal<string>, message: Signal<string>, challenge?: string) {
+interface LoginCallbacks {
+    onSuccess?: (user: User) => void;
+    onError?: (error: Error) => void;
+}
+
+export function login(loading: Signal<boolean>, username: Signal<string>, password: Signal<string>, message: Signal<string>, challenge?: string, callbacks: LoginCallbacks = {}) {
     loading.value = true;
     Api.login({
         username: username.value,
         password: password.value,
         challenge
     }).then(async () => {
-        currentUser.value = await Api.getUser();
+        const user = await Api.getUser();
+        currentUser.value = user;
+        callbacks.onSuccess?.(user);
         navigate("dashboard");
-    }).catch(e => message.value = e.message)
+    }).catch((e: Error) => {
+        message.value = e.message;
+        callbacks.onError?.(e);
+    })
         .finally(() => loading.value = false);
 }
 

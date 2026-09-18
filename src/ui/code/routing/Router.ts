@@ -98,7 +98,13 @@ router.value = new Router([], async (route: Route, params: any) => {
     }
     const component = await route.template(route, params);
     content.appendChild(component);
-    content.firstElementChild?.scrollIntoView();
+
+    const pageContent = content.querySelector(".page-content");
+    if (pageContent instanceof HTMLElement) {
+        pageContent.scrollTop = 0;
+    } else {
+        content.scrollTop = 0;
+    }
 }, () => {}, () => {
     if (router.value!.routes?.length === 0) {
         return;

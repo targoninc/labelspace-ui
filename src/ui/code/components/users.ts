@@ -15,7 +15,6 @@ import {Time} from "../functions/time.ts";
 import {Modals} from "./modals.ts";
 import {UserTotp} from "../models/db/tri/UserTotp.ts";
 import {Totp} from "./totp.ts";
-import {removeLastModal} from "../functions/modals.ts";
 import {registerWebauthnMethod, webauthnLogin} from "../functions/webauthn.ts";
 import {
     CredentialDescriptor,
@@ -24,10 +23,11 @@ import {
 } from "@passwordless-id/webauthn/dist/esm/types";
 import {PublicKey} from "../models/db/tri/PublicKey.ts";
 import {PermissionIcons} from "../enums/PermissionIcons.ts";
+import {addModal, removeLastModal} from "../functions/modals.ts";
 import {compute, create, InputType, Signal, signal, signalMap, when} from "@targoninc/jess";
-import {button, input} from "@targoninc/jess-components";
+import {Permission} from "../models/db/tri/Permission.ts";
+import {button, checkbox, input} from "@targoninc/jess-components";
 import {ArtistLink} from "../models/db/tri/ArtistLink.ts";
-import {currency} from "../functions/formatters.ts";
 import {Artists} from "./artists.ts";
 
 export class Users {
@@ -41,7 +41,7 @@ export class Users {
         const users = signal<User[]>([]);
         const loading = signal(false);
         Api.getUsers()
-            .then(u => users.value = u.sort((a, b) => parseFloat(b.available?.total ?? "0") - parseFloat(a.available?.total ?? "0")))
+            .then(u => users.value = u?.sort((a, b) => parseFloat(b.available?.total ?? "0") - parseFloat(a.available?.total ?? "0")) ?? [])
             .finally(() => loading.value = false);
 
         return Generics.pageFrame(
@@ -55,13 +55,13 @@ export class Users {
                 Generics.table(
                     ["ID", "Username", "Artists", "Last login", "Email addresses", "TOTP methods", "Passkeys", "Earned", "Paid", "Available", "Permissions", "Actions"],
                     users,
-                    (user: User) => Users.userInTable(user)
+                    (user: User) => Users.userInTable(user, () => { users.value = [...users.value]; })
                 )
             ).build(),
         )
     }
 
-    static userInTable(user: User) {
+    static userInTable(user: User, onPermissionChange?: () => void) {
         const permissions = user.permissions?.map(p => p.name) ?? [];
 
         return create("tr")
@@ -75,7 +75,7 @@ export class Users {
                 create("td")
                     .children(
                         horizontal(
-                            ...user.artists?.map(a => Generics.link("https://trirecords.eu/artist/" + a.name, a.name)) ?? []
+                            ...user.artists?.map(a => Generics.link(Api.labelUrl(`/artist/${a.name}`), a.name)) ?? []
                         )
                     ).build(),
                 create("td")
@@ -95,11 +95,17 @@ export class Users {
                 ).build(),
                 create("td")
                     .children(
-                        create("div")
-                            .classes("flex")
+                        create("button")
+                            .classes("jess", "flex", "align-children")
                             .children(
-                                ...permissions.map(p => Generics.icon(PermissionIcons[p as Permissions]))
-                            ).build()
+                                create("span")
+                                    .text("Edit"),
+                                ...permissions.map(p => horizontal(
+                                    Generics.icon(PermissionIcons[p as Permissions], p)
+                                )),
+                            ).onclick(() => {
+                                Users.permissionsEditor(user, onPermissionChange);
+                            }).build()
                     ).build(),
                 create("td")
                     .children(
@@ -157,6 +163,9 @@ export class Users {
                         Modals.input(async (name: string) => {
                             loading.value = true;
                             await Api.addTotpMethod(name).then((res) => {
+                                if (!res) {
+                                    return;
+                                }
                                 Api.getUser().then(u => {
                                     currentUser.value = u;
                                 });
@@ -213,6 +222,9 @@ export class Users {
                         Modals.input(async (name: string) => {
                             loading.value = true;
                             await Api.getWebauthnChallenge().then(async (res) => {
+                                if (!res) {
+                                    return;
+                                }
                                 const user = currentUser.value;
                                 if (!user) {
                                     return;
@@ -254,6 +266,9 @@ export class Users {
                     onclick: () => {
                         loading.value = true;
                         Api.getWebauthnChallenge().then(async (res2) => {
+                            if (!res2) {
+                                return;
+                            }
                             const challenge = res2.challenge;
                             const cred: CredentialDescriptor = {
                                 id: key.key_id,
@@ -297,42 +312,44 @@ export class Users {
 
         return Generics.container(1, [
             horizontal(
-                Images.changeableImage(a.id, a.has_logo, MediaFileType.artistLogo, {
-                    changeable: true,
-                    deletable: false,
-                    afterChange: reload,
-                    size: ImageSize.p100,
-                    classes: ["artist-logo"]
-                }, "/images/LOGO512.png"),
                 vertical(
-                    Generics.link("https://trirecords.eu/artist/" + a.name, a.name),
-                    Inputs.longtext(description, "Description", "description"),
-                    horizontal(
-                        button({
-                            text: "Update",
-                            icon: {icon: "save"},
-                            classes: ["positive"],
-                            disabled: compute((a, l) => a || l, noChanges, loading),
-                            onclick: () => {
-                                Api.updateArtist(a.name, <Partial<Artist>>{
-                                    description: description.value
-                                }).then(() => {
-                                    notify("Updated artist", NotificationType.success);
-                                    Api.getUser().then(u => {
-                                        currentUser.value = u;
-                                    });
-                                }).finally(() => loading.value = false);
-                            }
-                        }),
-                        when(noChanges, button({
-                            text: "Revert",
-                            icon: {icon: "undo"},
-                            classes: ["warning"],
-                            onclick: () => {
-                                description.value = a.description ?? "";
-                            }
-                        }), true)
-                    )
+                    Images.changeableImage(a.id, a.has_logo, MediaFileType.artistLogo, {
+                        changeable: true,
+                        deletable: false,
+                        afterChange: reload,
+                        size: ImageSize.p100,
+                        classes: ["artist-logo"]
+                    }, "/images/LOGO512.png"),
+                    vertical(
+                        Generics.link(Api.labelUrl(`/artist/${a.name}`), a.name),
+                        Inputs.longtext(description, "Description", "description"),
+                        horizontal(
+                            button({
+                                text: "Update",
+                                icon: {icon: "save"},
+                                classes: ["positive"],
+                                disabled: compute((a, l) => a || l, noChanges, loading),
+                                onclick: () => {
+                                    Api.updateArtist(a.name, <Partial<Artist>>{
+                                        description: description.value
+                                    }).then(() => {
+                                        notify("Updated artist", NotificationType.success);
+                                        Api.getUser().then(u => {
+                                            currentUser.value = u;
+                                        });
+                                    }).finally(() => loading.value = false);
+                                }
+                            }),
+                            when(noChanges, button({
+                                text: "Revert",
+                                icon: {icon: "undo"},
+                                classes: ["warning"],
+                                onclick: () => {
+                                    description.value = a.description ?? "";
+                                }
+                            }), true)
+                        )
+                    ),
                 ),
                 Users.artistLinks(a)
             ).build()
@@ -498,7 +515,7 @@ export class Users {
                                 temp_password.value
                             ).then(() => {
                                 notify("User created", NotificationType.success);
-                                Api.getUsers().then(u => users.value = u);
+                                Api.getUsers().then(u => users.value = u ?? []);
                                 username.value = "";
                                 legal_name.value = "";
                                 country.value = "";
@@ -522,7 +539,7 @@ export class Users {
         const update = () => {
             loading.value = true;
             Api.getArtistLinks(a.id)
-                .then(l => links.value = l)
+                .then(l => links.value = l ?? [])
                 .finally(() => loading.value = false);
         }
         update();
@@ -554,6 +571,7 @@ export class Users {
                 button({
                     text: "New link",
                     icon: {icon: "add"},
+                    classes: ["align-end", "positive"],
                     disabled: compute((l, t, u) => l.length >= 10 || !t || !u || t.length === 0 || u.length <= 9, links, newLinkText, newLinkUrl),
                     onclick: () => {
                         loading.value = true;
@@ -606,6 +624,7 @@ export class Users {
                 text: "Delete",
                 icon: {icon: "delete"},
                 disabled: loading,
+                classes: ["align-end", "negative"],
                 onclick: () => {
                     Modals.confirm(() => {
                         loading.value = true;
@@ -622,5 +641,53 @@ export class Users {
                 onclick: save
             })),
         ).classes("center-items").build();
+    }
+
+    private static permissionsEditor(user: User, onChanged?: () => void) {
+        const permissions = signal<Permission[]>(user.permissions ?? []);
+        const allPermissions = Object.values(Permissions);
+
+        addModal(Modals.modalBase(
+            Generics.heading(2, `Permissions - ${user.username}`),
+            vertical(
+                ...allPermissions.map(p => {
+                    const hasPermission = compute(
+                        up => up.some(upp => upp.name === p),
+                        permissions
+                    );
+
+                    return checkbox({
+                        text: p,
+                        checked: hasPermission,
+                        onchange: () => {
+                            const val = !hasPermission.value;
+                            Api.setUserPermission(user.id, p, val).then(() => {
+                                if (val) {
+                                    const pm = {
+                                        name: p,
+                                        id: -1,
+                                        created_at: "",
+                                        updated_at: "",
+                                        description: ""
+                                    };
+                                    permissions.value = [...permissions.value, pm];
+                                    user.permissions = [...(user.permissions ?? []), pm];
+                                } else {
+                                    permissions.value = permissions.value.filter(pm => pm.name !== p);
+                                    user.permissions = (user.permissions ?? []).filter(pm => pm.name !== p);
+                                }
+                                onChanged?.();
+                            });
+                        }
+                    });
+                }),
+                button({
+                    text: "Close",
+                    icon: {icon: "close"},
+                    classes: ["negative"],
+                    onclick: removeLastModal
+                })
+            ).build()
+        ));
     }
 }

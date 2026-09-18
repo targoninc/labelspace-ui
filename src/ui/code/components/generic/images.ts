@@ -55,7 +55,7 @@ export class Images {
                     }
                 })),
                 when(loading, Generics.loading())
-            ).build()
+            ).classes("align-children").build()
         ).build();
     }
 
