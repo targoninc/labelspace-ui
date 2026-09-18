@@ -53,7 +53,7 @@ export class Users {
                     Artists.createSection(users),
                 ),
                 Generics.table(
-                    ["ID", "Username", "Artists", "Last login", "Email addresses", "TOTP methods", "Passkeys", "Earned", "Paid", "Available", "Permissions"],
+                    ["ID", "Username", "Artists", "Last login", "Email addresses", "TOTP methods", "Passkeys", "Earned", "Paid", "Available", "Permissions", "Actions"],
                     users,
                     (user: User) => Users.userInTable(user)
                 )
@@ -100,6 +100,19 @@ export class Users {
                             .children(
                                 ...permissions.map(p => Generics.icon(PermissionIcons[p as Permissions]))
                             ).build()
+                    ).build(),
+                create("td")
+                    .children(
+                        when(user.emails?.length, button({
+                            text: "Send password reset",
+                            icon: {icon: "password"},
+                            title: "Send password reset mail",
+                            onclick: () => {
+                                Api.requestPasswordReset(user.username)
+                                    .then(() => notify("Password reset email sent.", NotificationType.success))
+                                    .catch(e => notify(`Error: ${e.message}`, NotificationType.error));
+                            }
+                        }))
                     ).build()
             ).build();
     }
