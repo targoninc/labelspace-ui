@@ -109,18 +109,34 @@ export class Users {
                     ).build(),
                 create("td")
                     .children(
-                        when(user.emails?.length, button({
-                            text: "Send password reset",
-                            icon: {icon: "password"},
-                            title: "Send password reset mail",
-                            onclick: () => {
-                                Api.requestPasswordReset(user.username)
-                                    .then(() => notify("Password reset email sent.", NotificationType.success))
-                                    .catch(e => notify(`Error: ${e.message}`, NotificationType.error));
-                            }
-                        }))
+                        when(user.emails?.length, Users.passwordResetAction(user))
                     ).build()
             ).build();
+    }
+
+    private static passwordResetAction(user: User) {
+        const sent = signal(false);
+        const loading = signal(false);
+
+        return button({
+            text: compute((s): string => s ? "Password reset mail sent!" : "Send password reset", sent),
+            icon: {icon: compute((s): string => s ? "check" : "password", sent)},
+            title: "Send password reset mail",
+            classes: [compute((s): string => s ? "positive" : "_", sent)],
+            disabled: compute((s, l) => s || l, sent, loading),
+            onclick: () => {
+                Modals.confirm(() => {
+                    loading.value = true;
+                    return Api.requestPasswordReset(user.username)
+                        .then(() => {
+                            sent.value = true;
+                            notify("Password reset email sent.", NotificationType.success);
+                        })
+                        .catch(e => notify(`Error: ${e.message}`, NotificationType.error))
+                        .finally(() => loading.value = false);
+                }, "Send password reset", `Send a password reset mail to ${user.username}?`);
+            }
+        });
     }
 
     static profile() {
