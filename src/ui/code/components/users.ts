@@ -40,6 +40,7 @@ export class Users {
 
         const users = signal<User[]>([]);
         const loading = signal(false);
+        const hideNumbers = signal(true);
         Api.getUsers()
             .then(u => users.value = u?.sort((a, b) => parseFloat(b.available?.total ?? "0") - parseFloat(a.available?.total ?? "0")) ?? [])
             .finally(() => loading.value = false);
@@ -52,16 +53,17 @@ export class Users {
                     Users.createSection(users),
                     Artists.createSection(users),
                 ),
+                Generics.toggle("Hide numbers", hideNumbers, checked => hideNumbers.value = checked),
                 Generics.table(
                     ["ID", "Username", "Artists", "Last login", "Email addresses", "TOTP methods", "Passkeys", "Earned", "Paid", "Available", "Permissions", "Actions"],
                     users,
-                    (user: User) => Users.userInTable(user, () => { users.value = [...users.value]; })
+                    (user: User) => Users.userInTable(user, () => { users.value = [...users.value]; }, hideNumbers)
                 )
             ).build(),
         )
     }
 
-    static userInTable(user: User, onPermissionChange?: () => void) {
+    static userInTable(user: User, onPermissionChange: () => void, hideNumbers: Signal<boolean>) {
         const permissions = user.permissions?.map(p => p.name) ?? [];
 
         return create("tr")
@@ -85,13 +87,13 @@ export class Users {
                 create("td").text(user.totp?.length ?? 0).build(),
                 create("td").text(user.public_keys?.length ?? 0).build(),
                 create("td").children(
-                    Generics.heading(3, `$${user.available?.total ?? "0"}`, true)
+                    Generics.heading(3, compute(h => h ? "***" : `$${user.available?.total ?? "0"}`, hideNumbers), true)
                 ).build(),
                 create("td").children(
-                    Generics.heading(3, `$${user.available?.paidOut ?? "0"}`, true)
+                    Generics.heading(3, compute(h => h ? "***" : `$${user.available?.paidOut ?? "0"}`, hideNumbers), true)
                 ).build(),
                 create("td").children(
-                    Generics.heading(3, `$${user.available?.available ?? "0"}`, true)
+                    Generics.heading(3, compute(h => h ? "***" : `$${user.available?.available ?? "0"}`, hideNumbers), true)
                 ).build(),
                 create("td")
                     .children(
