@@ -103,6 +103,11 @@ export class Submissions {
                     ).classes("align-children"),
                     Generics.link(s.link, s.link, ["big"]),
                     horizontal(
+                        Generics.pill("Submitted", ["blue"]),
+                        create("span")
+                            .text(Time.ago(s.created_at))
+                    ).classes("align-children"),
+                    horizontal(
                         Generics.pill("Desired release date", ["blue"]),
                         create("span")
                             .text(Time.ago(s.desired_release_date))
